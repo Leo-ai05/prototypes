@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>可交互原型 - 会话属性列表优化</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: #f5f7fa; color: #303133; font-size: 14px; }
+    .layout { display: flex; min-height: 100vh; }
+    .sidebar { width: 220px; background: #304156; color: #bfcbd9; flex-shrink: 0; }
+    .sidebar-title { padding: 20px 16px; font-size: 16px; color: #fff; font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .menu-item { padding: 12px 16px 12px 24px; cursor: pointer; transition: background 0.2s; font-size: 13px; }
+    .menu-item:hover { background: rgba(255,255,255,0.05); }
+    .menu-item.active { background: #409eff; color: #fff; }
+    .main { flex: 1; padding: 20px; overflow-x: auto; }
+    .card { background: #fff; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    .card-header { padding: 16px 20px; border-bottom: 1px solid #ebeef5; display: flex; justify-content: space-between; align-items: center; }
+    .card-header h3 { font-size: 16px; font-weight: 600; }
+    .card-body { padding: 20px; }
+    .btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; transition: opacity 0.2s; display: inline-flex; align-items: center; gap: 4px; }
+    .btn-primary { background: #409eff; color: #fff; }
+    .btn-primary:hover { opacity: 0.85; }
+    .btn-link { background: none; color: #409eff; padding: 4px 8px; }
+    .btn-link:hover { opacity: 0.7; }
+    .btn-danger-link { background: none; color: #f56c6c; padding: 4px 8px; }
+    .btn-danger-link:hover { opacity: 0.7; }
+    table { width: 100%; border-collapse: collapse; }
+    th { background: #fafafa; font-weight: 600; text-align: left; padding: 12px 16px; border-bottom: 2px solid #ebeef5; font-size: 13px; color: #606266; white-space: nowrap; }
+    td { padding: 12px 16px; border-bottom: 1px solid #ebeef5; font-size: 13px; }
+    tr:hover td { background: #f5f7fa; }
+    .tag { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 12px; margin-left: 8px; }
+    .tag-info { background: #f4f4f5; color: #909399; border: 1px solid #e9e9eb; }
+    .tag-yes { background: #f0f9eb; color: #67c23a; border: 1px solid #e1f3d8; }
+    .tag-no { background: #f4f4f5; color: #909399; border: 1px solid #e9e9eb; }
+    .new-col { background: #ecf5ff; }
+    th.new-col { background: #d9ecff; color: #409eff; }
+    .new-col-v11 { background: #fdf6ec; }
+    th.new-col-v11 { background: #faecd8; color: #e6a23c; }
+    .overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+    .overlay.show { display: flex; }
+    .dialog { background: #fff; border-radius: 8px; width: 520px; max-width: 90vw; box-shadow: 0 4px 24px rgba(0,0,0,0.15); }
+    .dialog-header { padding: 16px 20px; border-bottom: 1px solid #ebeef5; display: flex; justify-content: space-between; align-items: center; }
+    .dialog-header h4 { font-size: 16px; }
+    .dialog-close { cursor: pointer; font-size: 20px; color: #909399; background: none; border: none; }
+    .dialog-close:hover { color: #303133; }
+    .dialog-body { padding: 20px; }
+    .dialog-footer { padding: 12px 20px; border-top: 1px solid #ebeef5; text-align: right; display: flex; justify-content: flex-end; gap: 8px; }
+    .form-item { margin-bottom: 18px; display: flex; align-items: flex-start; }
+    .form-label { width: 120px; text-align: right; padding-right: 12px; line-height: 32px; color: #606266; flex-shrink: 0; }
+    .form-label .required { color: #f56c6c; margin-right: 2px; }
+    .form-control { flex: 1; }
+    .input { width: 100%; padding: 8px 12px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 13px; outline: none; transition: border-color 0.2s; }
+    .input:focus { border-color: #409eff; }
+    .textarea { resize: vertical; min-height: 80px; font-family: inherit; }
+    .select { width: 100%; padding: 8px 12px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 13px; outline: none; transition: border-color 0.2s; background: #fff; cursor: pointer; appearance: auto; }
+    .select:focus { border-color: #409eff; }
+    .select:disabled { background: #f5f7fa; color: #c0c4cc; cursor: not-allowed; border-color: #e4e7ed; }
+    .form-hint { font-size: 12px; color: #e6a23c; margin-top: 4px; line-height: 1.4; }
+    .btn-cancel { background: #fff; color: #606266; border: 1px solid #dcdfe6; }
+    .btn-cancel:hover { color: #409eff; border-color: #c6e2ff; background: #ecf5ff; }
+    .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); padding: 12px 24px; background: #67c23a; color: #fff; border-radius: 4px; font-size: 14px; z-index: 2000; display: none; box-shadow: 0 2px 12px rgba(0,0,0,0.15); }
+    .toast.show { display: block; animation: fadeInDown 0.3s; }
+    @keyframes fadeInDown { from { opacity: 0; transform: translateX(-50%) translateY(-10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+    .confirm-dialog .dialog { width: 420px; }
+    .confirm-body { padding: 20px; display: flex; align-items: flex-start; gap: 12px; }
+    .confirm-icon { color: #e6a23c; font-size: 24px; flex-shrink: 0; }
+    .confirm-text { font-size: 14px; line-height: 1.6; }
+    .legend { margin-top: 16px; padding: 12px 16px; background: #fdf6ec; border-radius: 4px; border: 1px solid #faecd8; font-size: 12px; color: #e6a23c; line-height: 1.8; }
+    .legend b { color: #303133; }
+    .change-marker { display: inline-block; width: 8px; height: 8px; background: #409eff; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
+    .change-marker-v11 { display: inline-block; width: 8px; height: 8px; background: #e6a23c; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
+    .tab-bar { display: flex; border-bottom: 2px solid #e4e7ed; margin-bottom: 16px; }
+    .tab-item { padding: 8px 16px; cursor: pointer; color: #606266; border-bottom: 2px solid transparent; margin-bottom: -2px; font-size: 13px; }
+    .tab-item.active { color: #409eff; border-bottom-color: #409eff; font-weight: 500; }
+    .form-divider { border: none; border-top: 1px dashed #e4e7ed; margin: 12px 0 18px 0; }
+    .form-section-title { font-size: 13px; color: #e6a23c; font-weight: 600; margin-bottom: 14px; padding-left: 8px; border-left: 3px solid #e6a23c; line-height: 1; }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-title">企微机器人后台</div>
+    <div class="menu-item" onclick="switchTab('ai')">AI员工明细</div>
+    <div class="menu-item active" onclick="switchTab('session')">会话属性</div>
+    <div class="menu-item">规则配置</div>
+    <div class="menu-item">全局配置</div>
+  </div>
+  <div class="main">
+    <div id="page-session">
+      <div class="card">
+        <div class="card-header">
+          <h3>会话属性</h3>
+          <button class="btn btn-primary" onclick="openAddDialog()">＋ 新增</button>
+        </div>
+        <div class="card-body">
+          <div class="tab-bar">
+            <div class="tab-item active" onclick="switchView('after')">调整后（新版）</div>
+            <div class="tab-item" onclick="switchView('before')">调整前（旧版）</div>
+          </div>
+          <div id="view-after">
+            <table>
+              <thead><tr>
+                <th style="min-width:160px">属性名称</th>
+                <th class="new-col" style="min-width:160px"><span class="change-marker"></span>变量定义（数据库值）</th>
+                <th style="min-width:220px">描述</th>
+                <th class="new-col-v11" style="min-width:120px"><span class="change-marker-v11"></span>是否对接扣子</th>
+                <th class="new-col-v11" style="min-width:120px"><span class="change-marker-v11"></span>扣子是否更新</th>
+                <th style="width:150px">操作</th>
+              </tr></thead>
+              <tbody id="tb-after"></tbody>
+            </table>
+            <div class="legend">
+              <b>本次变更：</b><br/>
+              <span class="change-marker"></span> 蓝色背景列 = v1.0 新增「变量定义（数据库值）」列<br/>
+              <span class="change-marker-v11"></span> 橙色背景列 = v1.1 新增「是否对接扣子」「扣子是否更新」列（枚举：是/否，存在关联约束）<br/>
+              系统默认值行：显示「编辑」按钮（v1.0 新增），「删除」按钮不显示（禁止删除）<br/>
+              新增/编辑弹窗：v1.1 增加「是否对接扣子」和「扣子是否更新」配置项，扣子是否更新受对接状态联动控制
+            </div>
+          </div>
+          <div id="view-before" style="display:none">
+            <table>
+              <thead><tr>
+                <th style="min-width:180px">属性名称</th>
+                <th style="min-width:280px">描述</th>
+                <th style="width:120px">操作</th>
+              </tr></thead>
+              <tbody id="tb-before"></tbody>
+            </table>
+            <div class="legend"><b>旧版说明：</b>无「变量定义」列；无「是否对接扣子」「扣子是否更新」列；系统默认值行编辑和删除按钮均隐藏</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="page-ai" style="display:none">
+      <div class="card">
+        <div class="card-header"><h3>AI员工明细 - 会话变量列表（参考）</h3></div>
+        <div class="card-body">
+          <table>
+            <thead><tr><th>变量名称</th><th>变量定义（数据库命名）</th><th>变量描述</th><th>当前值</th></tr></thead>
+            <tbody id="tb-ai"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="overlay" id="attrDialog">
+  <div class="dialog">
+    <div class="dialog-header"><h4 id="dlgTitle">新增属性</h4><button class="dialog-close" onclick="closeDlg()">&times;</button></div>
+    <div class="dialog-body">
+      <div class="form-item"><div class="form-label"><span class="required">*</span>属性名称</div><div class="form-control"><input class="input" id="inName" placeholder="请输入属性名称" maxlength="50"/></div></div>
+      <div class="form-item"><div class="form-label"><span class="required">*</span>描述</div><div class="form-control"><textarea class="input textarea" id="inDesc" placeholder="请输入描述" maxlength="200" rows="3"></textarea></div></div>
+      <hr class="form-divider"/>
+      <div class="form-section-title">扣子（Coze）配置</div>
+      <div class="form-item"><div class="form-label"><span class="required">*</span>是否对接扣子</div><div class="form-control"><select class="select" id="inIsCoze" onchange="onIsCozeChange()"><option value="否">否</option><option value="是">是</option></select></div></div>
+      <div class="form-item"><div class="form-label"><span class="required">*</span>扣子是否更新</div><div class="form-control"><select class="select" id="inCozeUpdated" disabled><option value="否">否</option><option value="是">是</option></select><div class="form-hint" id="cozeHint">需先将「是否对接扣子」设置为「是」才能开启</div></div></div>
+    </div>
+    <div class="dialog-footer"><button class="btn btn-cancel" onclick="closeDlg()">取消</button><button class="btn btn-primary" onclick="submitDlg()">确定</button></div>
+  </div>
+</div>
+<div class="overlay confirm-dialog" id="cfmDialog">
+  <div class="dialog">
+    <div class="dialog-header"><h4>提示</h4><button class="dialog-close" onclick="closeCfm()">&times;</button></div>
+    <div class="confirm-body"><span class="confirm-icon">⚠</span><span class="confirm-text" id="cfmText"></span></div>
+    <div class="dialog-footer"><button class="btn btn-cancel" onclick="closeCfm()">取消</button><button class="btn btn-primary" onclick="doDel()" style="background:#f56c6c">确定</button></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+var data=[
+  {id:1,fieldKey:"user_name",fieldName:"用户姓名",description:"企微用户的真实姓名",isPreset:true,isCoze:"是",cozeUpdated:"是"},
+  {id:2,fieldKey:"regist_time",fieldName:"注册时间",description:"用户首次注册的时间戳",isPreset:true,isCoze:"是",cozeUpdated:"否"},
+  {id:3,fieldKey:"last_active_time",fieldName:"最后活跃时间",description:"用户最后一次发送消息的时间戳",isPreset:true,isCoze:"否",cozeUpdated:"否"},
+  {id:4,fieldKey:"vip_level",fieldName:"VIP等级",description:"用户当前的VIP等级",isPreset:true,isCoze:"否",cozeUpdated:"否"},
+  {id:5,fieldKey:"intent_tag",fieldName:"意向标签",description:"用户的意向分类标签，用于智能路由",isPreset:false,isCoze:"是",cozeUpdated:"否"},
+  {id:6,fieldKey:"custom_note",fieldName:"自定义备注",description:"运营人员手动填写的备注信息",isPreset:false,isCoze:"否",cozeUpdated:"否"},
+  {id:7,fieldKey:"source_channel",fieldName:"来源渠道",description:"用户进入会话的来源渠道标识",isPreset:false,isCoze:"否",cozeUpdated:"否"}
+];
+var aiData=[
+  {fieldKey:"user_name",fieldName:"用户姓名",description:"企微用户的真实姓名",value:"张三"},
+  {fieldKey:"regist_time",fieldName:"注册时间",description:"用户首次注册的时间戳",value:"2025-12-01 10:30:00"},
+  {fieldKey:"last_active_time",fieldName:"最后活跃时间",description:"用户最后一次发送消息的时间戳",value:"2026-02-10 09:15:22"},
+  {fieldKey:"vip_level",fieldName:"VIP等级",description:"用户当前的VIP等级",value:"3"},
+  {fieldKey:"intent_tag",fieldName:"意向标签",description:"用户的意向分类标签",value:"高意向"},
+  {fieldKey:"custom_note",fieldName:"自定义备注",description:"运营人员手动填写的备注信息",value:""},
+  {fieldKey:"source_channel",fieldName:"来源渠道",description:"用户进入会话的来源渠道标识",value:"朋友圈广告"}
+];
+var editId=null,delId=null;
+function enumTag(val){
+  if(val==="是") return '<span class="tag tag-yes">是</span>';
+  return '<span class="tag tag-no">否</span>';
+}
+function render(){
+  var h1="",h2="",h3="";
+  data.forEach(function(r){
+    var tag=r.isPreset?'<span class="tag tag-info">系统默认值</span>':"";
+    var a1=r.isPreset?'<button class="btn btn-link" onclick="editRow('+r.id+')">编辑</button>':'<button class="btn btn-link" onclick="editRow('+r.id+')">编辑</button><button class="btn btn-danger-link" onclick="cfmDel('+r.id+')">删除</button>';
+    var a0=r.isPreset?'':'<button class="btn btn-link" onclick="editRow('+r.id+')">编辑</button><button class="btn btn-danger-link" onclick="cfmDel('+r.id+')">删除</button>';
+    h1+="<tr><td>"+r.fieldName+tag+'</td><td class="new-col">'+r.fieldKey+'</td><td>'+r.description+'</td><td class="new-col-v11">'+enumTag(r.isCoze)+'</td><td class="new-col-v11">'+enumTag(r.cozeUpdated)+"</td><td>"+a1+"</td></tr>";
+    h2+="<tr><td>"+r.fieldName+tag+"</td><td>"+r.description+"</td><td>"+a0+"</td></tr>";
+  });
+  aiData.forEach(function(r){h3+="<tr><td>"+r.fieldName+"</td><td>"+r.fieldKey+"</td><td>"+r.description+"</td><td>"+(r.value||"-")+"</td></tr>";});
+  document.getElementById("tb-after").innerHTML=h1;
+  document.getElementById("tb-before").innerHTML=h2;
+  document.getElementById("tb-ai").innerHTML=h3;
+}
+function switchTab(t){
+  document.getElementById("page-session").style.display=t==="session"?"block":"none";
+  document.getElementById("page-ai").style.display=t==="ai"?"block":"none";
+  var m=document.querySelectorAll(".menu-item");
+  for(var i=0;i<m.length;i++)m[i].classList.remove("active");
+  if(t==="session")m[1].classList.add("active");
+  else if(t==="ai")m[0].classList.add("active");
+}
+function switchView(v){
+  document.getElementById("view-after").style.display=v==="after"?"block":"none";
+  document.getElementById("view-before").style.display=v==="before"?"block":"none";
+  var t=document.querySelectorAll(".tab-item");
+  t[0].classList.toggle("active",v==="after");
+  t[1].classList.toggle("active",v==="before");
+}
+function onIsCozeChange(){
+  var isCoze=document.getElementById("inIsCoze").value;
+  var cozeSelect=document.getElementById("inCozeUpdated");
+  var hint=document.getElementById("cozeHint");
+  if(isCoze==="是"){
+    cozeSelect.disabled=false;
+    hint.style.display="none";
+  } else {
+    cozeSelect.value="否";
+    cozeSelect.disabled=true;
+    hint.style.display="block";
+  }
+}
+function openAddDialog(){
+  editId=null;
+  document.getElementById("dlgTitle").textContent="新增属性";
+  document.getElementById("inName").value="";
+  document.getElementById("inDesc").value="";
+  document.getElementById("inIsCoze").value="否";
+  document.getElementById("inCozeUpdated").value="否";
+  document.getElementById("inCozeUpdated").disabled=true;
+  document.getElementById("cozeHint").style.display="block";
+  document.getElementById("attrDialog").classList.add("show");
+}
+function editRow(id){
+  editId=id;
+  var r=data.find(function(x){return x.id===id});
+  if(!r)return;
+  document.getElementById("dlgTitle").textContent="编辑属性";
+  document.getElementById("inName").value=r.fieldName;
+  document.getElementById("inDesc").value=r.description;
+  document.getElementById("inIsCoze").value=r.isCoze||"否";
+  var cozeSelect=document.getElementById("inCozeUpdated");
+  var hint=document.getElementById("cozeHint");
+  if(r.isCoze==="是"){
+    cozeSelect.disabled=false;
+    cozeSelect.value=r.cozeUpdated||"否";
+    hint.style.display="none";
+  } else {
+    cozeSelect.value="否";
+    cozeSelect.disabled=true;
+    hint.style.display="block";
+  }
+  document.getElementById("attrDialog").classList.add("show");
+}
+function closeDlg(){document.getElementById("attrDialog").classList.remove("show");}
+function submitDlg(){
+  var n=document.getElementById("inName").value.trim(),d=document.getElementById("inDesc").value.trim();
+  var isCoze=document.getElementById("inIsCoze").value;
+  var cozeUpdated=document.getElementById("inCozeUpdated").value;
+  if(!n){toast("请输入属性名称","#f56c6c");return;}
+  if(!d){toast("请输入描述","#f56c6c");return;}
+  // 兜底保护：未对接扣子时强制扣子更新为否
+  if(isCoze==="否") cozeUpdated="否";
+  if(editId){
+    var r=data.find(function(x){return x.id===editId});
+    if(r){r.fieldName=n;r.description=d;r.isCoze=isCoze;r.cozeUpdated=cozeUpdated;}
+    toast("编辑成功");
+  } else {
+    var nid=Math.max.apply(null,data.map(function(x){return x.id}))+1;
+    data.push({id:nid,fieldKey:"custom_"+nid,fieldName:n,description:d,isPreset:false,isCoze:isCoze,cozeUpdated:cozeUpdated});
+    toast("新增成功");
+  }
+  closeDlg();render();
+}
+function cfmDel(id){delId=id;var r=data.find(function(x){return x.id===id});document.getElementById("cfmText").textContent='确定要删除会话属性「'+r.fieldName+'」吗？';document.getElementById("cfmDialog").classList.add("show");}
+function closeCfm(){document.getElementById("cfmDialog").classList.remove("show");}
+function doDel(){data=data.filter(function(x){return x.id!==delId});closeCfm();toast("删除成功");render();}
+function toast(m,c){var e=document.getElementById("toast");e.textContent=m;e.style.background=c||"#67c23a";e.classList.add("show");setTimeout(function(){e.classList.remove("show");},2000);}
+render();
+</script>
+</body>
+</html>
