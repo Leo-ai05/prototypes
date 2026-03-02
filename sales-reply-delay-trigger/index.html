@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>企业微信机器人 - 全局配置（原型）</title>
+  <style>
+    /* 与 telesale-web_v2 weworkBot/globalConfig 页面保持一致 */
+    :root {
+      --primary: #409eff;
+      --primary-hover: #66b1ff;
+      --text-primary: #303133;
+      --text-regular: #606266;
+      --border: #dcdfe6;
+      --bg-page: #f2f3f5;
+      --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      --radius: 8px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      background: var(--bg-page);
+      color: var(--text-primary);
+      min-height: 100vh;
+    }
+    .layout {
+      display: flex;
+      min-height: 100vh;
+    }
+    /* 左侧菜单（还原企微机器人菜单） */
+    .sidebar {
+      width: 200px;
+      background: #fff;
+      border-right: 1px solid var(--border);
+      padding: 16px 0;
+    }
+    .menu-item {
+      padding: 10px 20px;
+      font-size: 14px;
+      color: var(--text-regular);
+      cursor: default;
+    }
+    .menu-item.active {
+      color: var(--primary);
+      font-weight: 500;
+      background: rgba(64, 158, 255, 0.08);
+      border-right: 3px solid var(--primary);
+      margin-right: -1px;
+    }
+    .menu-title {
+      padding: 8px 20px;
+      font-size: 12px;
+      color: #909399;
+      text-transform: uppercase;
+    }
+    /* 主内容区 */
+    .main {
+      flex: 1;
+      padding: 20px;
+    }
+    .config-section {
+      background: #fff;
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: var(--card-shadow);
+    }
+    .section-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .section-indicator {
+      width: 4px;
+      height: 16px;
+      background: var(--primary);
+      border-radius: 2px;
+      margin-right: 8px;
+    }
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .section-content {
+      padding-left: 12px;
+    }
+    .desc-text {
+      font-size: 14px;
+      color: var(--text-regular);
+      margin-bottom: 8px;
+      line-height: 1.6;
+    }
+    .trigger-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px 0;
+      font-size: 14px;
+    }
+    .trigger-row .label { color: var(--text-regular); }
+    .mx-8 { margin: 0 8px; }
+    .mb-12px { margin-bottom: 12px; }
+    .time-input {
+      width: 140px;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    .time-input.w160 { width: 160px; }
+    .time-input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+    /* 销售回复延迟配置 */
+    .delay-send-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .delay-send-row .label { color: var(--text-regular); font-size: 14px; }
+    .switch {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      background: var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .switch.on { background: var(--primary); }
+    .switch::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 20px;
+      height: 20px;
+      background: #fff;
+      border-radius: 50%;
+      box-shadow: 0 1px 2px rgba(0,0,0,.2);
+      transition: transform .2s;
+    }
+    .switch.on::after { transform: translateX(20px); }
+    .delay-value-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .delay-value-wrap input {
+      width: 100px;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    .delay-value-wrap input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+    .delay-value-wrap select {
+      padding: 8px 32px 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 14px;
+      background: #fff;
+      cursor: pointer;
+    }
+    .delay-send-sub { display: none; }
+    .delay-send-sub.visible { display: flex; }
+    .btn-primary {
+      padding: 9px 20px;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      background: var(--primary);
+      color: #fff;
+      cursor: pointer;
+    }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .actions { margin-top: 24px; }
+    .msg {
+      font-size: 13px;
+      margin-top: 12px;
+      padding: 8px 12px;
+      border-radius: 4px;
+    }
+    .msg.success { background: #f0f9eb; color: #67c23a; }
+    .msg.error { background: #fef0f0; color: #f56c6c; }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="menu-title">企微机器人</div>
+      <div class="menu-item">规则配置</div>
+      <div class="menu-item">会话属性</div>
+      <div class="menu-item active">全局配置</div>
+      <div class="menu-item">AI员工明细</div>
+    </aside>
+    <main class="main">
+      <div class="config-section">
+        <div class="section-header">
+          <div class="section-indicator"></div>
+          <span class="section-title">触发器全局规则</span>
+        </div>
+        <div class="section-content">
+          <div class="desc-text mb-12px">触发时间:</div>
+          <div class="trigger-row">
+            <span class="label">若触发器命中时间范围为</span>
+            <input type="text" class="time-input mx-8" placeholder="开始时间" value="00:00:00" />
+            <span class="label">-</span>
+            <input type="text" class="time-input mx-8" placeholder="结束时间" value="00:00:00" />
+            <span class="label">顺延至</span>
+            <input type="text" class="time-input time-input w160 mx-8" placeholder="00:00:00" value="00:00:00" />
+            <span class="label">触发</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="config-section">
+        <div class="section-header">
+          <div class="section-indicator"></div>
+          <span class="section-title">销售回复 · 延迟触发器消息发送</span>
+        </div>
+        <div class="section-content">
+          <div class="desc-text mb-12px">控制销售回复时，由触发器触发的消息体是否延迟发送及延迟时长。</div>
+          <div class="delay-send-row">
+            <span class="label">销售回复时延迟发送触发器消息</span>
+            <div id="switch" class="switch" role="switch" aria-checked="false" tabindex="0"></div>
+            <span id="switchLabel">关</span>
+          </div>
+          <div id="delaySub" class="delay-send-row delay-send-sub">
+            <span class="label">延迟时间</span>
+            <div class="delay-value-wrap">
+              <input id="delayValue" type="number" min="1" max="3600" placeholder="请输入" value="" step="1" />
+              <select id="delayUnit">
+                <option value="second">秒</option>
+                <option value="minute">分钟</option>
+              </select>
+            </div>
+          </div>
+          <div class="desc-text" style="margin-top: 8px;">开启后，销售回复触发的消息体将按上述延迟时间后再发送；关闭则即时发送。</div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="saveBtn" class="btn-primary" type="button">保存配置</button>
+        <div id="feedback" class="msg" style="display: none;"></div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    (function () {
+      var switchEl = document.getElementById('switch');
+      var switchLabel = document.getElementById('switchLabel');
+      var delaySub = document.getElementById('delaySub');
+      var delayValue = document.getElementById('delayValue');
+      var delayUnit = document.getElementById('delayUnit');
+      var saveBtn = document.getElementById('saveBtn');
+      var feedback = document.getElementById('feedback');
+
+      var state = { on: false, value: '', unit: 'second' };
+
+      function showFeedback(text, isError) {
+        feedback.style.display = 'block';
+        feedback.textContent = text;
+        feedback.className = 'msg ' + (isError ? 'error' : 'success');
+      }
+      function hideFeedback() { feedback.style.display = 'none'; }
+
+      function updateDelaySub() {
+        if (state.on) {
+          delaySub.classList.add('visible');
+          delayValue.removeAttribute('disabled');
+          delayUnit.removeAttribute('disabled');
+        } else {
+          delaySub.classList.remove('visible');
+          delayValue.setAttribute('disabled', 'disabled');
+          delayUnit.setAttribute('disabled', 'disabled');
+        }
+      }
+
+      switchEl.addEventListener('click', function () {
+        state.on = !state.on;
+        switchEl.classList.toggle('on', state.on);
+        switchEl.setAttribute('aria-checked', state.on);
+        switchLabel.textContent = state.on ? '开' : '关';
+        updateDelaySub();
+        hideFeedback();
+      });
+      switchEl.addEventListener('keydown', function (e) {
+        if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); switchEl.click(); }
+      });
+
+      delayValue.addEventListener('input', function () {
+        state.value = delayValue.value.trim();
+        hideFeedback();
+      });
+      delayUnit.addEventListener('change', function () {
+        state.unit = delayUnit.value;
+        var max = state.unit === 'minute' ? 60 : 3600;
+        delayValue.setAttribute('max', String(max));
+        hideFeedback();
+      });
+
+      saveBtn.addEventListener('click', function () {
+        hideFeedback();
+        if (state.on) {
+          var num = parseInt(state.value, 10);
+          if (!state.value || isNaN(num) || num < 1) {
+            showFeedback('请填写有效的延迟时间（正整数）', true);
+            return;
+          }
+          var max = state.unit === 'minute' ? 60 : 3600;
+          if (num > max) {
+            showFeedback('延迟时间超出范围（' + (state.unit === 'minute' ? '1-60分钟' : '1-3600秒') + '）', true);
+            return;
+          }
+        }
+        showFeedback('保存成功（原型演示）', false);
+      });
+
+      updateDelaySub();
+    })();
+  </script>
+</body>
+</html>
