@@ -1,0 +1,1613 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AISaaS 模型生命周期管理与平滑升级 - 可交互原型</title>
+<style>
+:root {
+  --primary: #4f6ef7;
+  --primary-light: #eef1fe;
+  --primary-dark: #3b54c4;
+  --success: #52c41a;
+  --success-bg: #f6ffed;
+  --warning: #faad14;
+  --warning-bg: #fffbe6;
+  --danger: #ff4d4f;
+  --danger-bg: #fff2f0;
+  --info: #1890ff;
+  --info-bg: #e6f7ff;
+  --gray-1: #f7f8fa;
+  --gray-2: #f2f3f5;
+  --gray-3: #e5e6eb;
+  --gray-4: #c9cdd4;
+  --gray-5: #86909c;
+  --gray-6: #4e5969;
+  --gray-7: #272e3b;
+  --border: #e5e6eb;
+  --radius: 8px;
+  --shadow: 0 2px 8px rgba(0,0,0,.08);
+  --shadow-lg: 0 4px 16px rgba(0,0,0,.12);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif; background: var(--gray-1); color: var(--gray-7); font-size: 14px; line-height: 1.6; }
+.app { display: flex; height: 100vh; overflow: hidden; }
+
+/* Sidebar */
+.sidebar { width: 220px; background: var(--gray-7); color: #fff; flex-shrink: 0; display: flex; flex-direction: column; }
+.sidebar-logo { padding: 20px 16px; font-size: 16px; font-weight: 600; border-bottom: 1px solid rgba(255,255,255,.1); display: flex; align-items: center; gap: 10px; }
+.sidebar-logo .icon { width: 32px; height: 32px; background: var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.sidebar-nav { flex: 1; padding: 8px 0; overflow-y: auto; }
+.nav-group { padding: 12px 16px 6px; font-size: 12px; color: var(--gray-4); text-transform: uppercase; letter-spacing: .5px; }
+.nav-item { padding: 10px 16px 10px 20px; cursor: pointer; display: flex; align-items: center; gap: 10px; color: rgba(255,255,255,.7); transition: all .2s; font-size: 14px; border-left: 3px solid transparent; }
+.nav-item:hover { background: rgba(255,255,255,.08); color: #fff; }
+.nav-item.active { background: rgba(79,110,247,.2); color: #fff; border-left-color: var(--primary); }
+.nav-item .nav-icon { width: 18px; text-align: center; font-size: 15px; }
+.nav-badge { margin-left: auto; background: var(--danger); color: #fff; font-size: 11px; padding: 1px 6px; border-radius: 10px; }
+
+/* Main */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.header { height: 56px; background: #fff; border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 24px; gap: 16px; flex-shrink: 0; }
+.header-title { font-size: 16px; font-weight: 600; }
+.header-breadcrumb { font-size: 13px; color: var(--gray-5); display: flex; gap: 6px; align-items: center; }
+.header-breadcrumb span { color: var(--gray-7); }
+.header-actions { margin-left: auto; display: flex; gap: 12px; align-items: center; }
+.content { flex: 1; overflow-y: auto; padding: 24px; }
+
+/* Components */
+.card { background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; margin-bottom: 16px; }
+.card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.card-title { font-size: 15px; font-weight: 600; }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 6px; border: 1px solid var(--border); background: #fff; cursor: pointer; font-size: 13px; transition: all .2s; white-space: nowrap; }
+.btn:hover { border-color: var(--primary); color: var(--primary); }
+.btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-danger { color: var(--danger); border-color: var(--danger); }
+.btn-danger:hover { background: var(--danger-bg); }
+.btn-warning { color: var(--warning); border-color: var(--warning); }
+.btn-warning:hover { background: var(--warning-bg); }
+.btn-success { color: var(--success); border-color: var(--success); }
+.btn-success:hover { background: var(--success-bg); }
+.btn-sm { padding: 4px 10px; font-size: 12px; }
+.btn-text { border: none; background: none; color: var(--primary); padding: 4px 8px; }
+.btn-text:hover { background: var(--primary-light); }
+.btn-group { display: flex; gap: 8px; }
+
+/* Table */
+table { width: 100%; border-collapse: collapse; }
+th { background: var(--gray-1); padding: 10px 12px; text-align: left; font-weight: 500; font-size: 13px; color: var(--gray-6); border-bottom: 1px solid var(--border); }
+td { padding: 12px; border-bottom: 1px solid var(--gray-2); font-size: 13px; vertical-align: middle; }
+tr:hover td { background: var(--gray-1); }
+
+/* Tags */
+.tag { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 4px; font-size: 12px; gap: 4px; }
+.tag-active { background: var(--success-bg); color: var(--success); border: 1px solid #b7eb8f; }
+.tag-sunsetting { background: var(--warning-bg); color: #d48806; border: 1px solid #ffe58f; }
+.tag-offline { background: var(--danger-bg); color: var(--danger); border: 1px solid #ffccc7; }
+.tag-pending { background: var(--info-bg); color: var(--info); border: 1px solid #91d5ff; }
+.tag-archived { background: var(--gray-2); color: var(--gray-5); border: 1px solid var(--gray-3); }
+.tag-default { background: var(--gray-2); color: var(--gray-6); border: 1px solid var(--gray-3); }
+
+/* Stats */
+.stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+.stat-card { background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; }
+.stat-label { font-size: 13px; color: var(--gray-5); margin-bottom: 6px; }
+.stat-value { font-size: 28px; font-weight: 700; }
+.stat-change { font-size: 12px; margin-top: 4px; }
+.stat-change.up { color: var(--danger); }
+.stat-change.down { color: var(--success); }
+
+/* Tabs */
+.tabs { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 16px; gap: 4px; }
+.tab { padding: 10px 16px; cursor: pointer; font-size: 14px; color: var(--gray-5); border-bottom: 2px solid transparent; transition: all .2s; }
+.tab:hover { color: var(--primary); }
+.tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 500; }
+
+/* Modal */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 1000; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity .3s; }
+.modal-overlay.show { opacity: 1; pointer-events: all; }
+.modal { background: #fff; border-radius: 12px; box-shadow: var(--shadow-lg); width: 640px; max-height: 80vh; display: flex; flex-direction: column; transform: scale(.95); transition: transform .3s; }
+.modal-overlay.show .modal { transform: scale(1); }
+.modal-lg { width: 800px; }
+.modal-header { padding: 20px 24px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+.modal-title { font-size: 16px; font-weight: 600; }
+.modal-close { width: 32px; height: 32px; border-radius: 6px; border: none; background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--gray-5); }
+.modal-close:hover { background: var(--gray-2); }
+.modal-body { padding: 20px 24px; overflow-y: auto; flex: 1; }
+.modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+
+/* Form */
+.form-group { margin-bottom: 16px; }
+.form-label { display: block; font-size: 13px; font-weight: 500; color: var(--gray-6); margin-bottom: 6px; }
+.form-label .required { color: var(--danger); }
+.form-input, .form-select, .form-textarea { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; outline: none; transition: border-color .2s; }
+.form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(79,110,247,.15); }
+.form-textarea { resize: vertical; min-height: 80px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-hint { font-size: 12px; color: var(--gray-5); margin-top: 4px; }
+
+/* Search/Filter bar */
+.filter-bar { display: flex; gap: 12px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+.search-input { position: relative; }
+.search-input input { padding-left: 32px; width: 240px; }
+.search-input::before { content: "🔍"; position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 13px; }
+
+/* Progress */
+.progress-bar { height: 8px; background: var(--gray-2); border-radius: 4px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 4px; transition: width .6s ease; }
+.progress-fill.green { background: var(--success); }
+.progress-fill.blue { background: var(--primary); }
+.progress-fill.orange { background: var(--warning); }
+
+/* Timeline */
+.timeline { position: relative; padding-left: 24px; }
+.timeline::before { content: ""; position: absolute; left: 7px; top: 4px; bottom: 4px; width: 2px; background: var(--gray-3); }
+.timeline-item { position: relative; padding-bottom: 20px; }
+.timeline-dot { position: absolute; left: -21px; top: 4px; width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--primary); background: #fff; }
+.timeline-dot.done { background: var(--primary); }
+.timeline-dot.active { background: var(--primary); box-shadow: 0 0 0 4px rgba(79,110,247,.2); }
+.timeline-dot.pending { border-color: var(--gray-4); }
+.timeline-content { font-size: 13px; }
+.timeline-time { font-size: 12px; color: var(--gray-5); margin-top: 2px; }
+
+/* Topo */
+.topo-tree { padding: 16px; }
+.topo-node { padding: 8px 0; }
+.topo-branch { padding-left: 24px; border-left: 2px solid var(--gray-3); margin-left: 8px; }
+.topo-label { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 6px; font-size: 13px; cursor: default; }
+.topo-label.root { background: var(--danger-bg); border: 1px solid #ffccc7; font-weight: 500; }
+.topo-label.alias { background: var(--info-bg); border: 1px solid #91d5ff; }
+.topo-label.tenant { background: var(--warning-bg); border: 1px solid #ffe58f; }
+.topo-label.robot { background: var(--success-bg); border: 1px solid #b7eb8f; }
+.topo-stat { font-size: 12px; color: var(--gray-5); margin-left: 8px; }
+
+/* Steps */
+.steps { display: flex; gap: 4px; margin-bottom: 24px; }
+.step { flex: 1; text-align: center; position: relative; }
+.step-line { position: absolute; top: 14px; left: 50%; right: -50%; height: 2px; background: var(--gray-3); z-index: 0; }
+.step:last-child .step-line { display: none; }
+.step-dot { width: 28px; height: 28px; border-radius: 50%; background: var(--gray-3); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; position: relative; z-index: 1; margin-bottom: 6px; }
+.step.done .step-dot { background: var(--success); }
+.step.active .step-dot { background: var(--primary); box-shadow: 0 0 0 4px rgba(79,110,247,.2); }
+.step.done .step-line { background: var(--success); }
+.step-label { font-size: 12px; color: var(--gray-5); }
+.step.done .step-label, .step.active .step-label { color: var(--gray-7); font-weight: 500; }
+
+/* Gauge/Donut */
+.gauge-container { display: flex; align-items: center; gap: 24px; }
+.gauge { width: 120px; height: 120px; position: relative; }
+.gauge-label { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.gauge-value { font-size: 24px; font-weight: 700; }
+.gauge-text { font-size: 11px; color: var(--gray-5); }
+
+/* Alert */
+.alert { padding: 12px 16px; border-radius: 6px; font-size: 13px; display: flex; align-items: flex-start; gap: 8px; margin-bottom: 12px; }
+.alert-warning { background: var(--warning-bg); border: 1px solid #ffe58f; color: #874d00; }
+.alert-info { background: var(--info-bg); border: 1px solid #91d5ff; color: #0050b3; }
+.alert-danger { background: var(--danger-bg); border: 1px solid #ffccc7; color: #a8071a; }
+.alert-success { background: var(--success-bg); border: 1px solid #b7eb8f; color: #135200; }
+
+/* Notification panel */
+.notif-list { max-height: 400px; overflow-y: auto; }
+.notif-item { padding: 12px 0; border-bottom: 1px solid var(--gray-2); display: flex; gap: 10px; }
+.notif-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); flex-shrink: 0; margin-top: 6px; }
+.notif-dot.read { background: var(--gray-4); }
+.notif-body { flex: 1; }
+.notif-title { font-size: 13px; font-weight: 500; margin-bottom: 2px; }
+.notif-desc { font-size: 12px; color: var(--gray-5); }
+.notif-time { font-size: 11px; color: var(--gray-4); margin-top: 4px; }
+
+/* Page hidden by default */
+.page { display: none; }
+.page.active { display: block; }
+
+/* Tooltip */
+.tooltip-trigger { position: relative; cursor: help; border-bottom: 1px dashed var(--gray-4); }
+
+/* Empty state */
+.empty { text-align: center; padding: 40px 20px; color: var(--gray-5); }
+.empty-icon { font-size: 48px; margin-bottom: 12px; opacity: .4; }
+
+/* Phase bar */
+.phase-bar { display: flex; height: 32px; border-radius: 6px; overflow: hidden; margin: 12px 0; }
+.phase-segment { display: flex; align-items: center; justify-content: center; font-size: 11px; color: #fff; font-weight: 500; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sidebar { width: 60px; }
+  .sidebar-logo span, .nav-group, .nav-item span:not(.nav-icon), .nav-badge { display: none; }
+  .nav-item { justify-content: center; padding: 12px; }
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="icon">🧅</div>
+      <span>AISaaS Admin</span>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-group">模型资产</div>
+      <div class="nav-item" data-page="platform-model" onclick="switchPage('platform-model')">
+        <span class="nav-icon">📦</span>
+        <span>平台与模型</span>
+      </div>
+      <div class="nav-item" data-page="model-alias" onclick="switchPage('model-alias')">
+        <span class="nav-icon">🔗</span>
+        <span>逻辑模型</span>
+      </div>
+      <div class="nav-group">升级管理</div>
+      <div class="nav-item" data-page="upgrade-center" onclick="switchPage('upgrade-center')">
+        <span class="nav-icon">🚀</span>
+        <span>升级中心</span>
+        <span class="nav-badge">3</span>
+      </div>
+      <div class="nav-item" data-page="impact-analysis" onclick="switchPage('impact-analysis')">
+        <span class="nav-icon">📊</span>
+        <span>影响分析</span>
+      </div>
+      <div class="nav-group">空间管理</div>
+      <div class="nav-item" data-page="tenant-resource" onclick="switchPage('tenant-resource')">
+        <span class="nav-icon">🏢</span>
+        <span>空间资源</span>
+      </div>
+      <div class="nav-group">系统</div>
+      <div class="nav-item" data-page="notifications" onclick="switchPage('notifications')">
+        <span class="nav-icon">🔔</span>
+        <span>通知记录</span>
+        <span class="nav-badge">5</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="main">
+    <div class="header">
+      <div class="header-breadcrumb" id="breadcrumb">
+        模型资产 / <span>平台与模型</span>
+      </div>
+      <div class="header-actions">
+        <div style="position:relative;cursor:pointer" onclick="switchPage('notifications')">🔔 <span class="nav-badge" style="position:absolute;top:-4px;right:-8px;font-size:10px">5</span></div>
+        <div style="display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:6px;background:var(--gray-2)">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px">管</div>
+          <span style="font-size:13px">平台管理员</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- ========== Page 1: 平台与模型管理 ========== -->
+      <div class="page active" id="page-platform-model">
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-label">接入平台数</div>
+            <div class="stat-value">3</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">物理模型总数</div>
+            <div class="stat-value">12</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label" style="color:var(--warning)">⚠ 即将下线</div>
+            <div class="stat-value" style="color:var(--warning)">3</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label" style="color:var(--danger)">🔴 已下线</div>
+            <div class="stat-value" style="color:var(--danger)">1</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">物理模型列表</div>
+            <div class="btn-group">
+              <button class="btn btn-primary" onclick="showModal('add-model-modal')">+ 新增模型</button>
+            </div>
+          </div>
+          <div class="filter-bar">
+            <div class="search-input">
+              <input class="form-input" placeholder="搜索模型名称..." style="padding-left:32px">
+            </div>
+            <select class="form-select" style="width:160px">
+              <option>全部平台</option>
+              <option>火山引擎</option>
+              <option>阿里云百炼</option>
+              <option>OpenAI</option>
+            </select>
+            <select class="form-select" style="width:140px">
+              <option>全部状态</option>
+              <option>✅ 已上线</option>
+              <option>⚠️ 即将下线</option>
+              <option>🔴 已下线</option>
+              <option>📋 待上线</option>
+            </select>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>模型名称</th>
+                <th>所属平台</th>
+                <th>生命周期状态</th>
+                <th>预计下线日期</th>
+                <th>能力</th>
+                <th>引用数</th>
+                <th>日均调用</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>doubao-pro-32k</strong><br><span style="font-size:11px;color:var(--gray-5)">ep-20240901-xxx</span></td>
+                <td>火山引擎</td>
+                <td><span class="tag tag-sunsetting">⚠ 即将下线</span></td>
+                <td style="color:var(--danger);font-weight:500">2026-04-15</td>
+                <td><span class="tag tag-default">对话</span> <span class="tag tag-default">技能</span></td>
+                <td><a href="#" onclick="switchPage('impact-analysis');return false" style="color:var(--primary)">5 个机器人</a></td>
+                <td>48,750</td>
+                <td>
+                  <div class="btn-group">
+                    <button class="btn btn-text btn-sm" onclick="showModal('lifecycle-modal')">生命周期</button>
+                    <button class="btn btn-text btn-sm" onclick="switchPage('impact-analysis')">影响分析</button>
+                    <button class="btn btn-text btn-sm" style="color:var(--success)" onclick="showModal('upgrade-plan-modal')">创建升级</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>doubao-pro-256k</strong><br><span style="font-size:11px;color:var(--gray-5)">ep-20240915-xxx</span></td>
+                <td>火山引擎</td>
+                <td><span class="tag tag-sunsetting">⚠ 即将下线</span></td>
+                <td style="color:var(--warning)">2026-05-01</td>
+                <td><span class="tag tag-default">对话</span> <span class="tag tag-default">长文本</span></td>
+                <td><a href="#" onclick="switchPage('impact-analysis');return false" style="color:var(--primary)">2 个机器人</a></td>
+                <td>12,300</td>
+                <td>
+                  <div class="btn-group">
+                    <button class="btn btn-text btn-sm" onclick="showModal('lifecycle-modal')">生命周期</button>
+                    <button class="btn btn-text btn-sm" onclick="switchPage('impact-analysis')">影响分析</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>doubao-1.5-pro-32k</strong><br><span style="font-size:11px;color:var(--gray-5)">ep-20260201-xxx</span></td>
+                <td>火山引擎</td>
+                <td><span class="tag tag-active">✅ 已上线</span></td>
+                <td>-</td>
+                <td><span class="tag tag-default">对话</span> <span class="tag tag-default">技能</span> <span class="tag tag-default">多模态</span></td>
+                <td>3 个机器人</td>
+                <td>35,200</td>
+                <td>
+                  <div class="btn-group">
+                    <button class="btn btn-text btn-sm" onclick="showModal('lifecycle-modal')">生命周期</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>doubao-1.5-pro-256k</strong><br><span style="font-size:11px;color:var(--gray-5)">ep-20260202-xxx</span></td>
+                <td>火山引擎</td>
+                <td><span class="tag tag-active">✅ 已上线</span></td>
+                <td>-</td>
+                <td><span class="tag tag-default">对话</span> <span class="tag tag-default">长文本</span> <span class="tag tag-default">深度思考</span></td>
+                <td>1 个机器人</td>
+                <td>8,900</td>
+                <td>
+                  <div class="btn-group">
+                    <button class="btn btn-text btn-sm" onclick="showModal('lifecycle-modal')">生命周期</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>doubao-vision-pro-32k</strong><br><span style="font-size:11px;color:var(--gray-5)">ep-20240820-xxx</span></td>
+                <td>火山引擎</td>
+                <td><span class="tag tag-sunsetting">⚠ 即将下线</span></td>
+                <td style="color:var(--danger);font-weight:500">2026-04-01</td>
+                <td><span class="tag tag-default">多模态</span> <span class="tag tag-default">视觉</span></td>
+                <td>1 个机器人</td>
+                <td>5,600</td>
+                <td>
+                  <div class="btn-group">
+                    <button class="btn btn-text btn-sm" onclick="showModal('lifecycle-modal')">生命周期</button>
+                    <button class="btn btn-text btn-sm" onclick="switchPage('impact-analysis')">影响分析</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>doubao-embedding</strong><br><span style="font-size:11px;color:var(--gray-5)">ep-20240601-xxx</span></td>
+                <td>火山引擎</td>
+                <td><span class="tag tag-offline">🔴 已下线</span></td>
+                <td style="color:var(--gray-5);text-decoration:line-through">2026-03-01</td>
+                <td><span class="tag tag-default">向量</span></td>
+                <td style="color:var(--danger)">0（已迁移）</td>
+                <td>0</td>
+                <td>
+                  <button class="btn btn-text btn-sm" style="color:var(--gray-5)">归档</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ========== Page 2: 逻辑模型管理 ========== -->
+      <div class="page" id="page-model-alias">
+        <div class="alert alert-info">
+          💡 逻辑模型是业务侧引用的抽象模型。通过逻辑模型，当底层物理模型更新/下线时，只需更换绑定关系，所有引用该逻辑模型的机器人自动切换，无需逐一修改。
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">逻辑模型列表</div>
+            <button class="btn btn-primary" onclick="showModal('add-alias-modal')">+ 新建逻辑模型</button>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>逻辑模型名称</th>
+                <th>标识码</th>
+                <th>当前绑定</th>
+                <th>候选绑定（灰度）</th>
+                <th>灰度比例</th>
+                <th>引用机器人数</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <strong>通用对话-标准版</strong>
+                  <br><span style="font-size:11px;color:var(--gray-5)">适用于日常对话、问答场景</span>
+                </td>
+                <td><code style="background:var(--gray-2);padding:2px 6px;border-radius:4px;font-size:12px">chat-standard</code></td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:6px">
+                    <span class="tag tag-sunsetting">⚠ 即将下线</span>
+                    doubao-pro-32k
+                  </div>
+                </td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:6px">
+                    <span class="tag tag-active">✅ 已上线</span>
+                    doubao-1.5-pro-32k
+                  </div>
+                </td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:8px;min-width:120px">
+                    <div class="progress-bar" style="flex:1;height:6px">
+                      <div class="progress-fill blue" style="width:30%"></div>
+                    </div>
+                    <span style="font-size:12px;font-weight:500">30%</span>
+                  </div>
+                </td>
+                <td>5</td>
+                <td>
+                  <div class="btn-group">
+                    <button class="btn btn-text btn-sm" onclick="showModal('binding-detail-modal')">绑定详情</button>
+                    <button class="btn btn-text btn-sm" style="color:var(--success)" onclick="showModal('adjust-traffic-modal')">调整流量</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>长文本理解-高级版</strong>
+                  <br><span style="font-size:11px;color:var(--gray-5)">适用于长文档分析、摘要生成</span>
+                </td>
+                <td><code style="background:var(--gray-2);padding:2px 6px;border-radius:4px;font-size:12px">long-context-pro</code></td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:6px">
+                    <span class="tag tag-sunsetting">⚠ 即将下线</span>
+                    doubao-pro-256k
+                  </div>
+                </td>
+                <td><span style="color:var(--gray-5)">未配置</span></td>
+                <td><span style="color:var(--gray-5)">-</span></td>
+                <td>2</td>
+                <td>
+                  <div class="btn-group">
+                    <button class="btn btn-text btn-sm" onclick="showModal('binding-detail-modal')">绑定详情</button>
+                    <button class="btn btn-text btn-sm" style="color:var(--primary)" onclick="showModal('set-candidate-modal')">设置候选</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>多模态理解-标准版</strong>
+                  <br><span style="font-size:11px;color:var(--gray-5)">适用于图文混合输入理解</span>
+                </td>
+                <td><code style="background:var(--gray-2);padding:2px 6px;border-radius:4px;font-size:12px">multimodal-std</code></td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:6px">
+                    <span class="tag tag-sunsetting">⚠ 即将下线</span>
+                    doubao-vision-pro-32k
+                  </div>
+                </td>
+                <td><span style="color:var(--gray-5)">未配置</span></td>
+                <td><span style="color:var(--gray-5)">-</span></td>
+                <td>1</td>
+                <td>
+                  <div class="btn-group">
+                    <button class="btn btn-text btn-sm" onclick="showModal('binding-detail-modal')">绑定详情</button>
+                    <button class="btn btn-text btn-sm" style="color:var(--primary)" onclick="showModal('set-candidate-modal')">设置候选</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>深度思考-旗舰版</strong>
+                  <br><span style="font-size:11px;color:var(--gray-5)">适用于复杂推理、数学解题</span>
+                </td>
+                <td><code style="background:var(--gray-2);padding:2px 6px;border-radius:4px;font-size:12px">thinking-flagship</code></td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:6px">
+                    <span class="tag tag-active">✅ 已上线</span>
+                    doubao-1.5-pro-256k
+                  </div>
+                </td>
+                <td><span style="color:var(--gray-5)">未配置</span></td>
+                <td><span style="color:var(--gray-5)">-</span></td>
+                <td>1</td>
+                <td>
+                  <div class="btn-group">
+                    <button class="btn btn-text btn-sm" onclick="showModal('binding-detail-modal')">绑定详情</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ========== Page 3: 升级中心 ========== -->
+      <div class="page" id="page-upgrade-center">
+        <div class="alert alert-warning">
+          ⚠️ 当前有 <strong>3 个物理模型</strong> 处于"即将下线"状态，涉及 <strong>4 个空间</strong>、<strong>8 个机器人</strong>，日均调用量 <strong>66,650 次</strong>。请尽快制定升级计划。
+        </div>
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-label">待处理升级</div>
+            <div class="stat-value" style="color:var(--warning)">3</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">执行中</div>
+            <div class="stat-value" style="color:var(--primary)">1</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">已完成</div>
+            <div class="stat-value" style="color:var(--success)">2</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">已回滚</div>
+            <div class="stat-value" style="color:var(--danger)">0</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">升级计划列表</div>
+            <button class="btn btn-primary" onclick="showModal('upgrade-plan-modal')">+ 创建升级计划</button>
+          </div>
+          <div class="tabs" id="upgrade-tabs">
+            <div class="tab active" onclick="switchUpgradeTab(this,'all')">全部</div>
+            <div class="tab" onclick="switchUpgradeTab(this,'pending')">待执行</div>
+            <div class="tab" onclick="switchUpgradeTab(this,'executing')">执行中</div>
+            <div class="tab" onclick="switchUpgradeTab(this,'completed')">已完成</div>
+          </div>
+
+          <!-- Executing plan -->
+          <div class="card" style="border:2px solid var(--primary);margin-bottom:16px">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
+              <div>
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+                  <span class="tag tag-pending" style="background:rgba(79,110,247,.1);color:var(--primary);border-color:var(--primary)">🔄 执行中</span>
+                  <strong style="font-size:15px">doubao-pro-32k → doubao-1.5-pro-32k 灰度升级</strong>
+                </div>
+                <div style="font-size:12px;color:var(--gray-5)">逻辑模型：通用对话-标准版 (chat-standard) · 创建于 2026-03-15</div>
+              </div>
+              <div class="btn-group">
+                <button class="btn btn-sm btn-warning" onclick="showModal('rollback-confirm-modal')">回滚</button>
+                <button class="btn btn-sm btn-primary" onclick="showModal('upgrade-detail-modal')">查看详情</button>
+              </div>
+            </div>
+            <div class="steps">
+              <div class="step done"><div class="step-line"></div><div class="step-dot">✓</div><div class="step-label">连通性测试</div></div>
+              <div class="step done"><div class="step-line"></div><div class="step-dot">✓</div><div class="step-label">10% 灰度</div></div>
+              <div class="step active"><div class="step-line"></div><div class="step-dot">3</div><div class="step-label">30% 灰度</div></div>
+              <div class="step"><div class="step-line"></div><div class="step-dot">4</div><div class="step-label">50% 灰度</div></div>
+              <div class="step"><div class="step-line"></div><div class="step-dot">5</div><div class="step-label">100% 全量</div></div>
+              <div class="step"><div class="step-dot">6</div><div class="step-label">完成确认</div></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+              <div>
+                <div style="font-size:12px;color:var(--gray-5);margin-bottom:4px">当前灰度比例</div>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div class="progress-bar" style="flex:1">
+                    <div class="progress-fill blue" style="width:30%"></div>
+                  </div>
+                  <strong>30%</strong>
+                </div>
+              </div>
+              <div>
+                <div style="font-size:12px;color:var(--gray-5);margin-bottom:4px">新模型错误率</div>
+                <div style="font-size:20px;font-weight:700;color:var(--success)">0.12%</div>
+                <div style="font-size:11px;color:var(--gray-5)">阈值 < 1%</div>
+              </div>
+              <div>
+                <div style="font-size:12px;color:var(--gray-5);margin-bottom:4px">新模型 P99 延迟</div>
+                <div style="font-size:20px;font-weight:700;color:var(--success)">1.8s</div>
+                <div style="font-size:11px;color:var(--gray-5)">阈值 < 3s</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pending plans -->
+          <table>
+            <thead>
+              <tr>
+                <th>升级计划</th>
+                <th>策略</th>
+                <th>影响范围</th>
+                <th>状态</th>
+                <th>创建时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <strong>doubao-pro-256k → doubao-1.5-pro-256k</strong>
+                  <br><span style="font-size:11px;color:var(--gray-5)">逻辑模型: 长文本理解-高级版</span>
+                </td>
+                <td><span class="tag tag-pending">灰度发布</span></td>
+                <td>2 空间 / 2 机器人</td>
+                <td><span class="tag tag-default">待执行</span></td>
+                <td>2026-03-18</td>
+                <td>
+                  <div class="btn-group">
+                    <button class="btn btn-sm btn-primary" onclick="showModal('upgrade-detail-modal')">执行</button>
+                    <button class="btn btn-sm btn-text">编辑</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <strong>doubao-vision-pro-32k → doubao-1.5-vision-pro</strong>
+                  <br><span style="font-size:11px;color:var(--gray-5)">逻辑模型: 多模态理解-标准版</span>
+                </td>
+                <td><span class="tag tag-active">立即切换</span></td>
+                <td>1 空间 / 1 机器人</td>
+                <td><span class="tag tag-default">待执行</span></td>
+                <td>2026-03-18</td>
+                <td>
+                  <div class="btn-group">
+                    <button class="btn btn-sm btn-primary">执行</button>
+                    <button class="btn btn-sm btn-text">编辑</button>
+                  </div>
+                </td>
+              </tr>
+              <tr style="opacity:.6">
+                <td>
+                  <strong>doubao-embedding → doubao-embedding-v2</strong>
+                  <br><span style="font-size:11px;color:var(--gray-5)">向量模型迁移</span>
+                </td>
+                <td><span class="tag tag-active">立即切换</span></td>
+                <td>3 空间 / 4 机器人</td>
+                <td><span class="tag tag-active">✅ 已完成</span></td>
+                <td>2026-02-20</td>
+                <td>
+                  <button class="btn btn-sm btn-text">查看报告</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ========== Page 4: 影响分析 ========== -->
+      <div class="page" id="page-impact-analysis">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">模型影响分析</div>
+            <div class="btn-group">
+              <select class="form-select" style="width:200px" id="impact-model-select">
+                <option>doubao-pro-32k（即将下线）</option>
+                <option>doubao-pro-256k（即将下线）</option>
+                <option>doubao-vision-pro-32k（即将下线）</option>
+              </select>
+              <button class="btn" onclick="alert('影响报告已导出为 Excel')">📥 导出报告</button>
+            </div>
+          </div>
+
+          <div class="stats-row" style="grid-template-columns:repeat(5,1fr)">
+            <div class="stat-card" style="text-align:center">
+              <div class="stat-label">引用逻辑模型</div>
+              <div class="stat-value">1</div>
+            </div>
+            <div class="stat-card" style="text-align:center">
+              <div class="stat-label">受影响空间</div>
+              <div class="stat-value" style="color:var(--warning)">3</div>
+            </div>
+            <div class="stat-card" style="text-align:center">
+              <div class="stat-label">受影响机器人</div>
+              <div class="stat-value" style="color:var(--danger)">5</div>
+            </div>
+            <div class="stat-card" style="text-align:center">
+              <div class="stat-label">日均调用量</div>
+              <div class="stat-value">48,750</div>
+            </div>
+            <div class="stat-card" style="text-align:center">
+              <div class="stat-label">距下线剩余</div>
+              <div class="stat-value" style="color:var(--danger)">27 天</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">影响拓扑图</div>
+            <div style="font-size:12px;color:var(--gray-5)">
+              <span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#fff2f0;border:1px solid #ffccc7;margin-right:4px;vertical-align:middle"></span>物理模型
+              <span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#e6f7ff;border:1px solid #91d5ff;margin:0 4px 0 12px;vertical-align:middle"></span>逻辑模型
+              <span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#fffbe6;border:1px solid #ffe58f;margin:0 4px 0 12px;vertical-align:middle"></span>空间
+              <span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#f6ffed;border:1px solid #b7eb8f;margin:0 4px 0 12px;vertical-align:middle"></span>机器人
+            </div>
+          </div>
+          <div class="topo-tree">
+            <div class="topo-node">
+              <div class="topo-label root">⚠ doubao-pro-32k <span class="topo-stat">即将下线 · 2026-04-15</span></div>
+              <div class="topo-branch">
+                <div class="topo-node">
+                  <div class="topo-label alias">🔗 通用对话-标准版 (chat-standard) <span class="topo-stat">灰度中 30%→新模型</span></div>
+                  <div class="topo-branch">
+                    <div class="topo-node">
+                      <div class="topo-label tenant">🏢 教研业务部</div>
+                      <div class="topo-branch">
+                        <div class="topo-node"><div class="topo-label robot">🤖 作业批改助手 <span class="topo-stat">日均 12,000 次</span></div></div>
+                        <div class="topo-node"><div class="topo-label robot">🤖 知识问答Bot <span class="topo-stat">日均 8,500 次</span></div></div>
+                      </div>
+                    </div>
+                    <div class="topo-node">
+                      <div class="topo-label tenant">🏢 运营部</div>
+                      <div class="topo-branch">
+                        <div class="topo-node"><div class="topo-label robot">🤖 客服小助手 <span class="topo-stat">日均 25,000 次</span></div></div>
+                      </div>
+                    </div>
+                    <div class="topo-node">
+                      <div class="topo-label tenant">🏢 产品部</div>
+                      <div class="topo-branch">
+                        <div class="topo-node"><div class="topo-label robot">🤖 需求分析助手 <span class="topo-stat">日均 2,200 次</span></div></div>
+                        <div class="topo-node"><div class="topo-label robot">🤖 文案生成器 <span class="topo-stat">日均 1,050 次</span></div></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">受影响机器人明细</div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>机器人名称</th>
+                <th>所属空间</th>
+                <th>逻辑模型</th>
+                <th>日均调用</th>
+                <th>空间管理员</th>
+                <th>迁移状态</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>客服小助手</strong></td>
+                <td>运营部</td>
+                <td>通用对话-标准版</td>
+                <td style="font-weight:600">25,000</td>
+                <td>王小明</td>
+                <td><span class="tag tag-pending" style="background:rgba(79,110,247,.1);color:var(--primary);border-color:var(--primary)">灰度中 30%</span></td>
+              </tr>
+              <tr>
+                <td><strong>作业批改助手</strong></td>
+                <td>教研业务部</td>
+                <td>通用对话-标准版</td>
+                <td style="font-weight:600">12,000</td>
+                <td>李老师</td>
+                <td><span class="tag tag-pending" style="background:rgba(79,110,247,.1);color:var(--primary);border-color:var(--primary)">灰度中 30%</span></td>
+              </tr>
+              <tr>
+                <td><strong>知识问答Bot</strong></td>
+                <td>教研业务部</td>
+                <td>通用对话-标准版</td>
+                <td>8,500</td>
+                <td>李老师</td>
+                <td><span class="tag tag-pending" style="background:rgba(79,110,247,.1);color:var(--primary);border-color:var(--primary)">灰度中 30%</span></td>
+              </tr>
+              <tr>
+                <td><strong>需求分析助手</strong></td>
+                <td>产品部</td>
+                <td>通用对话-标准版</td>
+                <td>2,200</td>
+                <td>张产品</td>
+                <td><span class="tag tag-pending" style="background:rgba(79,110,247,.1);color:var(--primary);border-color:var(--primary)">灰度中 30%</span></td>
+              </tr>
+              <tr>
+                <td><strong>文案生成器</strong></td>
+                <td>产品部</td>
+                <td>通用对话-标准版</td>
+                <td>1,050</td>
+                <td>张产品</td>
+                <td><span class="tag tag-pending" style="background:rgba(79,110,247,.1);color:var(--primary);border-color:var(--primary)">灰度中 30%</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ========== Page 5: 空间资源 ========== -->
+      <div class="page" id="page-tenant-resource">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">空间资源配置</div>
+            <select class="form-select" style="width:180px">
+              <option>教研业务部</option>
+              <option>运营部</option>
+              <option>产品部</option>
+              <option>内容团队</option>
+              <option>测试环境</option>
+            </select>
+          </div>
+          <div class="alert alert-warning">
+            ⚠️ 当前空间有 <strong>2 个机器人</strong> 使用的模型即将下线，建议尽快确认升级计划。<a href="#" onclick="switchPage('upgrade-center');return false" style="color:var(--primary);margin-left:4px">前往升级中心 →</a>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>资源名称</th>
+                <th>引用方式</th>
+                <th>逻辑模型</th>
+                <th>当前物理模型</th>
+                <th>模型状态</th>
+                <th>platformKey</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>主对话模型</strong></td>
+                <td><span class="tag tag-active" style="font-size:11px">逻辑模型</span></td>
+                <td>通用对话-标准版</td>
+                <td>doubao-pro-32k<br><span style="font-size:11px;color:var(--gray-5)">灰度 → doubao-1.5-pro-32k (30%)</span></td>
+                <td><span class="tag tag-sunsetting">⚠ 即将下线</span></td>
+                <td><code style="font-size:11px;background:var(--gray-2);padding:2px 6px;border-radius:4px">ep-xxxx-***</code></td>
+                <td><button class="btn btn-text btn-sm">配置</button></td>
+              </tr>
+              <tr>
+                <td><strong>长文本分析</strong></td>
+                <td><span class="tag tag-active" style="font-size:11px">逻辑模型</span></td>
+                <td>长文本理解-高级版</td>
+                <td>doubao-pro-256k</td>
+                <td><span class="tag tag-sunsetting">⚠ 即将下线</span></td>
+                <td><code style="font-size:11px;background:var(--gray-2);padding:2px 6px;border-radius:4px">ep-xxxx-***</code></td>
+                <td><button class="btn btn-text btn-sm">配置</button></td>
+              </tr>
+              <tr>
+                <td><strong>向量检索模型</strong></td>
+                <td><span class="tag tag-default" style="font-size:11px">直接绑定</span></td>
+                <td><span style="color:var(--gray-5)">-</span></td>
+                <td>doubao-embedding-v2</td>
+                <td><span class="tag tag-active">✅ 已上线</span></td>
+                <td><code style="font-size:11px;background:var(--gray-2);padding:2px 6px;border-radius:4px">ep-xxxx-***</code></td>
+                <td>
+                  <button class="btn btn-text btn-sm">配置</button>
+                  <button class="btn btn-text btn-sm" style="color:var(--warning)">升级为逻辑模型</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ========== Page 6: 通知记录 ========== -->
+      <div class="page" id="page-notifications">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">通知记录</div>
+            <div class="btn-group">
+              <button class="btn btn-sm" onclick="this.textContent='✅ 已全部标为已读'">全部标为已读</button>
+              <select class="form-select" style="width:140px">
+                <option>全部通知</option>
+                <option>模型下线</option>
+                <option>升级进展</option>
+                <option>回滚告警</option>
+              </select>
+            </div>
+          </div>
+          <div class="notif-list">
+            <div class="notif-item">
+              <div class="notif-dot"></div>
+              <div class="notif-body">
+                <div class="notif-title">⚠️ doubao-pro-32k 灰度升级进入 30% 阶段</div>
+                <div class="notif-desc">升级计划「doubao-pro-32k → doubao-1.5-pro-32k」已进入第3阶段（30%灰度），当前新模型错误率 0.12%，P99延迟 1.8s，均在安全阈值内。</div>
+                <div class="notif-time">10 分钟前</div>
+              </div>
+            </div>
+            <div class="notif-item">
+              <div class="notif-dot"></div>
+              <div class="notif-body">
+                <div class="notif-title">📋 新升级计划已创建：doubao-pro-256k → doubao-1.5-pro-256k</div>
+                <div class="notif-desc">逻辑模型「长文本理解-高级版」的升级计划已创建，策略为灰度发布，待管理员确认后执行。</div>
+                <div class="notif-time">1 小时前</div>
+              </div>
+            </div>
+            <div class="notif-item">
+              <div class="notif-dot"></div>
+              <div class="notif-body">
+                <div class="notif-title">🔴 火山引擎公告：doubao-vision-pro-32k 将于 2026-04-01 下线</div>
+                <div class="notif-desc">火山引擎发布模型下线通知，doubao-vision-pro-32k 将于 2026-04-01 停止服务。影响 1 个逻辑模型、1 个空间、1 个机器人。建议尽快迁移至 doubao-1.5-vision-pro。</div>
+                <div class="notif-time">3 小时前</div>
+              </div>
+            </div>
+            <div class="notif-item">
+              <div class="notif-dot read"></div>
+              <div class="notif-body">
+                <div class="notif-title">✅ doubao-pro-32k 灰度升级通过 10% 阶段验证</div>
+                <div class="notif-desc">经过 4 小时监测，10% 灰度阶段各项指标正常，系统已自动推进至 30% 阶段。</div>
+                <div class="notif-time">昨天 14:30</div>
+              </div>
+            </div>
+            <div class="notif-item">
+              <div class="notif-dot read"></div>
+              <div class="notif-body">
+                <div class="notif-title">📢 已向 3 位空间管理员发送模型下线预警</div>
+                <div class="notif-desc">doubao-pro-32k 即将下线通知已通过飞书推送至教研业务部（李老师）、运营部（王小明）、产品部（张产品）。</div>
+                <div class="notif-time">2026-03-15 10:00</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== Modals ========== -->
+
+<!-- Modal: 生命周期管理 -->
+<div class="modal-overlay" id="lifecycle-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">模型生命周期管理</div>
+      <button class="modal-close" onclick="hideModal('lifecycle-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;padding:12px;background:var(--gray-1);border-radius:8px">
+        <div>
+          <div style="font-size:15px;font-weight:600">doubao-pro-32k</div>
+          <div style="font-size:12px;color:var(--gray-5)">火山引擎 · ep-20240901-xxx</div>
+        </div>
+        <span class="tag tag-sunsetting" style="margin-left:auto">⚠ 即将下线</span>
+      </div>
+
+      <div class="form-group">
+        <div class="form-label">生命周期状态 <span class="required">*</span></div>
+        <select class="form-select" id="lifecycle-status">
+          <option>待上线 (pending)</option>
+          <option>已上线 (active)</option>
+          <option selected>即将下线 (sunsetting)</option>
+          <option>已下线 (offline)</option>
+          <option>已归档 (archived)</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <div class="form-label">预计下线日期</div>
+          <input type="date" class="form-input" value="2026-04-15">
+        </div>
+        <div class="form-group">
+          <div class="form-label">推荐替代模型</div>
+          <select class="form-select">
+            <option>doubao-1.5-pro-32k</option>
+            <option>doubao-1.5-pro-256k</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">下线公告</div>
+        <textarea class="form-textarea" placeholder="填写下线原因和迁移建议...">火山引擎将于 2026-04-15 停止 doubao-pro-32k 模型服务。建议迁移至 doubao-1.5-pro-32k，新模型在性能和成本上均有优化。</textarea>
+      </div>
+      <div class="form-group">
+        <div class="form-label">通知配置</div>
+        <label style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:13px;cursor:pointer">
+          <input type="checkbox" checked> 立即通知受影响空间管理员（飞书消息）
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:13px;cursor:pointer">
+          <input type="checkbox" checked> 距下线 7 天时每日提醒未迁移空间
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">
+          <input type="checkbox"> 到达下线日期自动转为「已下线」状态
+        </label>
+      </div>
+
+      <div style="margin-top:16px">
+        <div style="font-size:13px;font-weight:500;margin-bottom:8px">状态变更历史</div>
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="timeline-dot done"></div>
+            <div class="timeline-content"><strong>即将下线</strong> — 管理员标记模型即将下线，设置替代方案</div>
+            <div class="timeline-time">2026-03-15 10:00</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot done"></div>
+            <div class="timeline-content"><strong>已上线</strong> — 模型创建并投入使用</div>
+            <div class="timeline-time">2024-09-01 00:00</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="hideModal('lifecycle-modal')">取消</button>
+      <button class="btn btn-primary" onclick="hideModal('lifecycle-modal');alert('生命周期状态已更新，通知已发送')">保存并通知</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: 创建升级计划 -->
+<div class="modal-overlay" id="upgrade-plan-modal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <div class="modal-title">创建升级计划</div>
+      <button class="modal-close" onclick="hideModal('upgrade-plan-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <div class="form-label">源模型（即将下线） <span class="required">*</span></div>
+          <select class="form-select">
+            <option>doubao-pro-32k（火山引擎）</option>
+            <option>doubao-pro-256k（火山引擎）</option>
+            <option>doubao-vision-pro-32k（火山引擎）</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <div class="form-label">目标模型 <span class="required">*</span></div>
+          <select class="form-select">
+            <option>doubao-1.5-pro-32k（火山引擎）</option>
+            <option>doubao-1.5-pro-256k（火山引擎）</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">关联逻辑模型</div>
+        <div style="padding:8px 12px;background:var(--gray-1);border-radius:6px;font-size:13px">
+          通用对话-标准版 (chat-standard) — 引用 5 个机器人，日均调用 48,750 次
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">升级策略 <span class="required">*</span></div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+          <label style="padding:16px;border:2px solid var(--border);border-radius:8px;cursor:pointer;text-align:center;transition:all .2s" onclick="this.style.borderColor='var(--primary)';this.style.background='var(--primary-light)';this.parentElement.children[1].style.borderColor='var(--border)';this.parentElement.children[1].style.background='';this.parentElement.children[2].style.borderColor='var(--border)';this.parentElement.children[2].style.background=''">
+            <input type="radio" name="strategy" style="display:none" checked>
+            <div style="font-size:24px;margin-bottom:6px">📈</div>
+            <div style="font-weight:600;font-size:13px">灰度发布</div>
+            <div style="font-size:11px;color:var(--gray-5);margin-top:4px">逐步切流，自动监测</div>
+          </label>
+          <label style="padding:16px;border:2px solid var(--border);border-radius:8px;cursor:pointer;text-align:center;transition:all .2s" onclick="this.style.borderColor='var(--primary)';this.style.background='var(--primary-light)';this.parentElement.children[0].style.borderColor='var(--border)';this.parentElement.children[0].style.background='';this.parentElement.children[2].style.borderColor='var(--border)';this.parentElement.children[2].style.background=''">
+            <input type="radio" name="strategy" style="display:none">
+            <div style="font-size:24px;margin-bottom:6px">⚡</div>
+            <div style="font-weight:600;font-size:13px">立即切换</div>
+            <div style="font-size:11px;color:var(--gray-5);margin-top:4px">确认后即时全量切换</div>
+          </label>
+          <label style="padding:16px;border:2px solid var(--border);border-radius:8px;cursor:pointer;text-align:center;transition:all .2s" onclick="this.style.borderColor='var(--primary)';this.style.background='var(--primary-light)';this.parentElement.children[0].style.borderColor='var(--border)';this.parentElement.children[0].style.background='';this.parentElement.children[1].style.borderColor='var(--border)';this.parentElement.children[1].style.background=''">
+            <input type="radio" name="strategy" style="display:none">
+            <div style="font-size:24px;margin-bottom:6px">👤</div>
+            <div style="font-weight:600;font-size:13px">手动迁移</div>
+            <div style="font-size:11px;color:var(--gray-5);margin-top:4px">通知业务方自行切换</div>
+          </label>
+        </div>
+      </div>
+
+      <div style="border:1px solid var(--border);border-radius:8px;padding:16px;margin-top:4px">
+        <div style="font-size:13px;font-weight:600;margin-bottom:12px">灰度配置</div>
+        <div class="form-row">
+          <div class="form-group">
+            <div class="form-label">阶段配置</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;align-items:center;gap:8px;font-size:13px">
+                <span style="width:60px">阶段 1:</span>
+                <input class="form-input" style="width:60px" value="10"> <span>% 流量</span>
+                <span style="margin-left:8px">持续</span> <input class="form-input" style="width:60px" value="4"> <span>小时</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:13px">
+                <span style="width:60px">阶段 2:</span>
+                <input class="form-input" style="width:60px" value="30"> <span>% 流量</span>
+                <span style="margin-left:8px">持续</span> <input class="form-input" style="width:60px" value="12"> <span>小时</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:13px">
+                <span style="width:60px">阶段 3:</span>
+                <input class="form-input" style="width:60px" value="50"> <span>% 流量</span>
+                <span style="margin-left:8px">持续</span> <input class="form-input" style="width:60px" value="24"> <span>小时</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:13px">
+                <span style="width:60px">阶段 4:</span>
+                <input class="form-input" style="width:60px" value="100"> <span>% 全量</span>
+                <span style="margin-left:8px">持续</span> <input class="form-input" style="width:60px" value="72"> <span>小时（回滚窗口）</span>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="form-label">安全阈值</div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div>
+                <div style="font-size:12px;color:var(--gray-5);margin-bottom:4px">最大错误率（超过则自动回滚）</div>
+                <div style="display:flex;align-items:center;gap:6px">
+                  <input class="form-input" style="width:80px" value="1"> <span style="font-size:13px">%</span>
+                </div>
+              </div>
+              <div>
+                <div style="font-size:12px;color:var(--gray-5);margin-bottom:4px">P99 延迟上限</div>
+                <div style="display:flex;align-items:center;gap:6px">
+                  <input class="form-input" style="width:80px" value="3"> <span style="font-size:13px">秒</span>
+                </div>
+              </div>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;margin-top:4px">
+                <input type="checkbox" checked> 超过阈值自动回滚
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-top:16px">
+        <div class="form-label">目标模型连通性测试</div>
+        <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--success-bg);border:1px solid #b7eb8f;border-radius:6px">
+          <span style="font-size:18px">✅</span>
+          <div>
+            <div style="font-size:13px;font-weight:500;color:#135200">连通性测试通过</div>
+            <div style="font-size:12px;color:#389e0d">响应时间 320ms · 返回格式正确 · API Key 有效</div>
+          </div>
+          <button class="btn btn-sm" style="margin-left:auto" onclick="this.textContent='测试中...'">重新测试</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="hideModal('upgrade-plan-modal')">取消</button>
+      <button class="btn" onclick="hideModal('upgrade-plan-modal')">保存为草稿</button>
+      <button class="btn btn-primary" onclick="hideModal('upgrade-plan-modal');alert('升级计划已创建，进入连通性测试阶段')">创建并执行</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: 升级执行详情 -->
+<div class="modal-overlay" id="upgrade-detail-modal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <div class="modal-title">升级执行详情</div>
+      <button class="modal-close" onclick="hideModal('upgrade-detail-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:16px;background:var(--gray-1);border-radius:8px;margin-bottom:20px">
+        <div>
+          <div style="font-size:15px;font-weight:600">doubao-pro-32k → doubao-1.5-pro-32k</div>
+          <div style="font-size:12px;color:var(--gray-5)">策略: 灰度发布 · 逻辑模型: 通用对话-标准版</div>
+        </div>
+        <span class="tag tag-pending" style="background:rgba(79,110,247,.1);color:var(--primary);border-color:var(--primary);font-size:13px;padding:4px 12px">🔄 执行中</span>
+      </div>
+
+      <div class="steps" style="margin-bottom:24px">
+        <div class="step done"><div class="step-line"></div><div class="step-dot">✓</div><div class="step-label">连通性测试</div></div>
+        <div class="step done"><div class="step-line"></div><div class="step-dot">✓</div><div class="step-label">10% 灰度</div></div>
+        <div class="step active"><div class="step-line"></div><div class="step-dot">3</div><div class="step-label">30% 灰度</div></div>
+        <div class="step"><div class="step-line"></div><div class="step-dot">4</div><div class="step-label">50% 灰度</div></div>
+        <div class="step"><div class="step-line"></div><div class="step-dot">5</div><div class="step-label">100% 全量</div></div>
+        <div class="step"><div class="step-dot">6</div><div class="step-label">确认完成</div></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+        <div class="card" style="margin-bottom:0">
+          <div style="font-size:13px;font-weight:600;margin-bottom:12px">📊 实时监控指标</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div>
+              <div style="font-size:12px;color:var(--gray-5)">新模型错误率</div>
+              <div style="font-size:24px;font-weight:700;color:var(--success)">0.12%</div>
+              <div style="font-size:11px;color:var(--gray-5)">阈值 < 1.00%</div>
+            </div>
+            <div>
+              <div style="font-size:12px;color:var(--gray-5)">旧模型错误率</div>
+              <div style="font-size:24px;font-weight:700">0.15%</div>
+              <div style="font-size:11px;color:var(--gray-5)">基准对比</div>
+            </div>
+            <div>
+              <div style="font-size:12px;color:var(--gray-5)">新模型 P99</div>
+              <div style="font-size:24px;font-weight:700;color:var(--success)">1.8s</div>
+              <div style="font-size:11px;color:var(--gray-5)">阈值 < 3.0s</div>
+            </div>
+            <div>
+              <div style="font-size:12px;color:var(--gray-5)">旧模型 P99</div>
+              <div style="font-size:24px;font-weight:700">2.1s</div>
+              <div style="font-size:11px;color:var(--gray-5)">基准对比</div>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:0">
+          <div style="font-size:13px;font-weight:600;margin-bottom:12px">⏱ 执行时间线</div>
+          <div class="timeline">
+            <div class="timeline-item">
+              <div class="timeline-dot active"></div>
+              <div class="timeline-content"><strong>30% 灰度</strong> — 监测中，已运行 2h / 12h</div>
+              <div class="timeline-time">2026-03-19 10:00 ~ 进行中</div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot done"></div>
+              <div class="timeline-content"><strong>10% 灰度通过</strong> — 各项指标正常，自动推进</div>
+              <div class="timeline-time">2026-03-19 06:00 ~ 10:00 (4h)</div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot done"></div>
+              <div class="timeline-content"><strong>连通性测试通过</strong> — 响应正常，开始灰度</div>
+              <div class="timeline-time">2026-03-19 05:55</div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot done"></div>
+              <div class="timeline-content"><strong>升级计划创建</strong></div>
+              <div class="timeline-time">2026-03-15 14:00</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:12px">
+        <div class="card" style="flex:1;margin-bottom:0">
+          <div style="font-size:13px;font-weight:600;margin-bottom:8px">当前流量分布</div>
+          <div class="phase-bar">
+            <div class="phase-segment" style="width:70%;background:var(--gray-4)">旧模型 70%</div>
+            <div class="phase-segment" style="width:30%;background:var(--primary)">新模型 30%</div>
+          </div>
+          <div style="font-size:12px;color:var(--gray-5);margin-top:4px">预计 10 小时后自动推进至 50%（需指标持续达标）</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-warning" onclick="hideModal('upgrade-detail-modal');alert('已触发回滚，流量正在切回旧模型...')">紧急回滚</button>
+      <button class="btn" onclick="hideModal('upgrade-detail-modal')">关闭</button>
+      <button class="btn btn-primary" onclick="hideModal('upgrade-detail-modal');alert('已手动推进至 50% 灰度阶段')">手动推进下一阶段</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: 新建逻辑模型 -->
+<div class="modal-overlay" id="add-alias-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">新建逻辑模型</div>
+      <button class="modal-close" onclick="hideModal('add-alias-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <div class="form-label">逻辑模型名称 <span class="required">*</span></div>
+        <input class="form-input" placeholder="如: 通用对话-标准版">
+      </div>
+      <div class="form-group">
+        <div class="form-label">标识码 <span class="required">*</span></div>
+        <input class="form-input" placeholder="如: chat-standard（英文短横线，全局唯一）">
+        <div class="form-hint">业务侧通过标识码引用逻辑模型，创建后不可修改</div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">描述</div>
+        <textarea class="form-textarea" placeholder="描述该逻辑模型的适用场景和能力特点..."></textarea>
+      </div>
+      <div class="form-group">
+        <div class="form-label">能力要求</div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap">
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" checked> 对话</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" checked> 技能调用</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox"> 多模态</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox"> 视频理解</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox"> 深度思考</label>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <div class="form-label">绑定平台 <span class="required">*</span></div>
+          <select class="form-select">
+            <option>火山引擎</option>
+            <option>阿里云百炼</option>
+            <option>OpenAI</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <div class="form-label">绑定物理模型 <span class="required">*</span></div>
+          <select class="form-select">
+            <option>doubao-1.5-pro-32k</option>
+            <option>doubao-1.5-pro-256k</option>
+            <option>doubao-pro-32k (即将下线)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">Platform Key <span class="required">*</span></div>
+        <input class="form-input" placeholder="输入该平台模型组合的调用密钥">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="hideModal('add-alias-modal')">取消</button>
+      <button class="btn btn-primary" onclick="hideModal('add-alias-modal');alert('逻辑模型创建成功')">创建</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: 新增物理模型 -->
+<div class="modal-overlay" id="add-model-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">新增物理模型</div>
+      <button class="modal-close" onclick="hideModal('add-model-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <div class="form-label">所属平台 <span class="required">*</span></div>
+          <select class="form-select">
+            <option>火山引擎</option>
+            <option>阿里云百炼</option>
+            <option>OpenAI</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <div class="form-label">模型名称 <span class="required">*</span></div>
+          <input class="form-input" placeholder="如: doubao-1.5-pro-32k">
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">模型标识 (Endpoint)</div>
+        <input class="form-input" placeholder="如: ep-20260301-xxx">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <div class="form-label">输入单价 (元/千token)</div>
+          <input class="form-input" type="number" placeholder="0.0008" step="0.0001">
+        </div>
+        <div class="form-group">
+          <div class="form-label">输出单价 (元/千token)</div>
+          <input class="form-input" type="number" placeholder="0.002" step="0.0001">
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">最大 Token 长度</div>
+        <input class="form-input" type="number" placeholder="32768">
+      </div>
+      <div class="form-group">
+        <div class="form-label">模型能力</div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap">
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox" checked> 技能调用</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox"> 多模态</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox"> 视频理解</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="checkbox"> 深度思考</label>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">初始生命周期状态</div>
+        <select class="form-select">
+          <option>待上线 (pending)</option>
+          <option selected>已上线 (active)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <div class="form-label">描述</div>
+        <textarea class="form-textarea" placeholder="模型说明..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="hideModal('add-model-modal')">取消</button>
+      <button class="btn btn-primary" onclick="hideModal('add-model-modal');alert('物理模型已新增')">新增</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: 绑定详情 -->
+<div class="modal-overlay" id="binding-detail-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">绑定详情 — 通用对话-标准版</div>
+      <button class="modal-close" onclick="hideModal('binding-detail-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="margin-bottom:16px">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px">当前绑定</div>
+        <div style="padding:12px;border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;gap:12px">
+          <div style="width:40px;height:40px;border-radius:8px;background:var(--warning-bg);display:flex;align-items:center;justify-content:center;font-size:18px">⚠</div>
+          <div style="flex:1">
+            <div style="font-weight:600">doubao-pro-32k</div>
+            <div style="font-size:12px;color:var(--gray-5)">火山引擎 · 流量占比 70%</div>
+          </div>
+          <span class="tag tag-sunsetting">即将下线</span>
+        </div>
+      </div>
+      <div style="margin-bottom:16px">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px">候选绑定（灰度中）</div>
+        <div style="padding:12px;border:2px solid var(--primary);border-radius:8px;display:flex;align-items:center;gap:12px">
+          <div style="width:40px;height:40px;border-radius:8px;background:var(--success-bg);display:flex;align-items:center;justify-content:center;font-size:18px">✅</div>
+          <div style="flex:1">
+            <div style="font-weight:600">doubao-1.5-pro-32k</div>
+            <div style="font-size:12px;color:var(--gray-5)">火山引擎 · 流量占比 30%</div>
+          </div>
+          <span class="tag tag-active">已上线</span>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px">历史绑定</div>
+        <table>
+          <thead><tr><th>物理模型</th><th>绑定时间</th><th>解绑时间</th><th>状态</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>doubao-pro-32k</td>
+              <td>2024-09-01</td>
+              <td>-</td>
+              <td><span class="tag tag-sunsetting">迁移中</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="hideModal('binding-detail-modal')">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: 调整流量 -->
+<div class="modal-overlay" id="adjust-traffic-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">调整灰度流量</div>
+      <button class="modal-close" onclick="hideModal('adjust-traffic-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="margin-bottom:16px">
+        <div style="font-size:13px;font-weight:500;margin-bottom:8px">逻辑模型: 通用对话-标准版 (chat-standard)</div>
+        <div class="phase-bar" id="traffic-bar">
+          <div class="phase-segment" style="width:70%;background:var(--gray-4)" id="old-seg">旧: doubao-pro-32k 70%</div>
+          <div class="phase-segment" style="width:30%;background:var(--primary)" id="new-seg">新: doubao-1.5-pro-32k 30%</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">新模型流量比例</div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <input type="range" min="0" max="100" value="30" style="flex:1" id="traffic-slider" oninput="updateTraffic(this.value)">
+          <span style="font-size:20px;font-weight:700;width:50px;text-align:right" id="traffic-value">30%</span>
+        </div>
+      </div>
+      <div class="alert alert-info">
+        💡 调整流量后，系统将持续监测新模型的错误率和延迟。如果指标超过安全阈值（错误率 > 1%，P99 > 3s），将自动触发回滚。
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="hideModal('adjust-traffic-modal')">取消</button>
+      <button class="btn btn-primary" onclick="hideModal('adjust-traffic-modal');alert('流量比例已调整')">确认调整</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: 设置候选模型 -->
+<div class="modal-overlay" id="set-candidate-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">设置候选模型</div>
+      <button class="modal-close" onclick="hideModal('set-candidate-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="alert alert-info">为逻辑模型设置候选绑定后，可通过灰度方式逐步将流量切至新模型。</div>
+      <div class="form-row">
+        <div class="form-group">
+          <div class="form-label">候选平台 <span class="required">*</span></div>
+          <select class="form-select">
+            <option>火山引擎</option>
+            <option>阿里云百炼</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <div class="form-label">候选物理模型 <span class="required">*</span></div>
+          <select class="form-select">
+            <option>doubao-1.5-pro-256k</option>
+            <option>doubao-1.5-pro-32k</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="form-label">Platform Key <span class="required">*</span></div>
+        <input class="form-input" placeholder="输入候选模型的调用密钥">
+      </div>
+      <div class="form-group">
+        <div class="form-label">连通性测试</div>
+        <button class="btn btn-sm" onclick="this.innerHTML='✅ 测试通过 (320ms)';this.classList.add('btn-success')">点击测试连通性</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="hideModal('set-candidate-modal')">取消</button>
+      <button class="btn btn-primary" onclick="hideModal('set-candidate-modal');alert('候选模型已设置，可前往升级中心创建升级计划')">确认设置</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: 回滚确认 -->
+<div class="modal-overlay" id="rollback-confirm-modal">
+  <div class="modal" style="width:480px">
+    <div class="modal-header">
+      <div class="modal-title" style="color:var(--danger)">⚠ 确认回滚</div>
+      <button class="modal-close" onclick="hideModal('rollback-confirm-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="alert alert-danger">
+        回滚将把所有流量切回旧模型 <strong>doubao-pro-32k</strong>，候选模型 doubao-1.5-pro-32k 的灰度流量将归零。
+      </div>
+      <div style="font-size:13px;margin-bottom:12px">
+        <strong>回滚影响：</strong>
+        <ul style="margin-top:8px;padding-left:20px;color:var(--gray-6)">
+          <li>3 个空间、5 个机器人的流量将 100% 回切至旧模型</li>
+          <li>灰度进度将重置，需重新创建升级计划</li>
+          <li>系统将向相关空间管理员发送回滚通知</li>
+        </ul>
+      </div>
+      <div class="form-group">
+        <div class="form-label">回滚原因 <span class="required">*</span></div>
+        <textarea class="form-textarea" placeholder="请描述回滚原因，如：新模型响应质量不达预期..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="hideModal('rollback-confirm-modal')">取消</button>
+      <button class="btn btn-danger" onclick="hideModal('rollback-confirm-modal');alert('已触发回滚，流量正在切回旧模型。预计 1 分钟内完成。')">确认回滚</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function switchPage(pageId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + pageId).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const navItem = document.querySelector(`.nav-item[data-page="${pageId}"]`);
+  if (navItem) navItem.classList.add('active');
+  const breadcrumbs = {
+    'platform-model': '模型资产 / <span>平台与模型</span>',
+    'model-alias': '模型资产 / <span>逻辑模型</span>',
+    'upgrade-center': '升级管理 / <span>升级中心</span>',
+    'impact-analysis': '升级管理 / <span>影响分析</span>',
+    'tenant-resource': '空间管理 / <span>空间资源</span>',
+    'notifications': '系统 / <span>通知记录</span>'
+  };
+  document.getElementById('breadcrumb').innerHTML = breadcrumbs[pageId] || '';
+}
+
+function showModal(id) {
+  document.getElementById(id).classList.add('show');
+}
+
+function hideModal(id) {
+  document.getElementById(id).classList.remove('show');
+}
+
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('show');
+  });
+});
+
+function switchUpgradeTab(el, tab) {
+  document.querySelectorAll('#upgrade-tabs .tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function updateTraffic(val) {
+  document.getElementById('traffic-value').textContent = val + '%';
+  document.getElementById('new-seg').style.width = val + '%';
+  document.getElementById('new-seg').textContent = '新: doubao-1.5-pro-32k ' + val + '%';
+  document.getElementById('old-seg').style.width = (100 - val) + '%';
+  document.getElementById('old-seg').textContent = '旧: doubao-pro-32k ' + (100 - val) + '%';
+}
+
+switchPage('platform-model');
+</script>
+</body>
+</html>
