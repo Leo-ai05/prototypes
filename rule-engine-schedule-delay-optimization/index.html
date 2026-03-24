@@ -394,11 +394,11 @@
       <section class="page active" id="rulePage">
         <div class="card">
           <div class="title">规则引擎优化方向</div>
-          <div class="desc">参考当前 `规则配置` 页面结构，继续保留“基本信息 / 触发器配置 / 动作配置”的编辑方式，仅在 `补充触发时间` 中补充一个新的 `当日` 枚举类型，用于选择当日触发的时间节点。</div>
+          <div class="desc">参考当前 `规则配置` 页面结构，继续保留“基本信息 / 触发器配置 / 动作配置”的编辑方式，仅在 `补充触发时间` 中补充一个新的 `当日` 枚举类型，用于选择当日触发时间。</div>
           <div style="margin-top: 14px;">
             <span class="tag tag-blue">保留现有页面结构</span>
             <span class="tag tag-blue">新增 scheduleType = 当日</span>
-            <span class="tag tag-blue">支持多个当日时间节点</span>
+            <span class="tag tag-blue">当日仅支持单个触发时间</span>
             <span class="tag tag-green">全局配置开关继续保留</span>
           </div>
         </div>
@@ -430,7 +430,7 @@
               <tr>
                 <td>周末未成交客户二次激活</td>
                 <td><span class="tag tag-blue">定时任务</span></td>
-                <td>当日 10:00、15:30、19:00 触发</td>
+                <td>当日 10:00 触发</td>
                 <td><span class="tag tag-green">启用中</span></td>
               </tr>
               <tr>
@@ -441,7 +441,7 @@
               </tr>
             </tbody>
           </table>
-          <div class="notice">原型重点展示增量能力：在当前页面中新增 `当日` 枚举后，运营可以直接维护“当日触发时间节点”，不需要改动整个规则编辑链路。</div>
+          <div class="notice">原型重点展示增量能力：在当前页面中新增 `当日` 枚举后，运营可以直接维护“当日触发时间”，不需要改动整个规则编辑链路。</div>
         </div>
       </section>
 
@@ -504,7 +504,7 @@
         </div>
         <div class="form-item">
           <div class="form-label">规则描述</div>
-          <div class="form-content"><textarea>客户命中周末激活场景时，在当日多个关键节点自动发送二次激活消息。</textarea></div>
+          <div class="form-content"><textarea>客户命中周末激活场景时，在当日固定时间自动发送二次激活消息。</textarea></div>
         </div>
 
         <div class="section-title">触发器配置</div>
@@ -574,12 +574,10 @@
               </div>
 
               <div id="sameDayPanel" style="margin-top: 14px;">
-                <div class="desc">新增能力：当选择 `当日` 时，可配置一个或多个“时间当日触发的时间节点”。</div>
-                <div class="inline-row" style="margin-top: 10px;">
-                  <div class="fixed"><input type="time" id="newTimeNode" value="10:00" /></div>
-                  <button class="btn btn-plain" id="addTimeNodeBtn">新增时间节点</button>
+                <div class="desc">新增能力：当选择 `当日` 时，配置一个当日触发时间。</div>
+                <div style="margin-top: 10px; max-width: 180px;">
+                  <input type="time" id="sameDayTime" value="10:00" />
                 </div>
-                <div class="time-node-list" id="timeNodeList"></div>
               </div>
 
               <div id="singleTimePanel" style="margin-top: 14px; display:none;">
@@ -609,7 +607,7 @@
           </div>
           <div class="preview-card">
             <div class="preview-label">保存校验</div>
-            <div class="preview-value" id="validationText">当日模式下至少保留 1 个时间节点，时间节点不可重复。</div>
+            <div class="preview-value" id="validationText">当日模式下必须选择 1 个触发时间。</div>
           </div>
         </div>
       </div>
@@ -623,8 +621,7 @@
   <script>
     const state = {
       scheduleType: "sameDay",
-      delayEnabled: true,
-      timeNodes: ["10:00", "15:30", "19:00"]
+      delayEnabled: true
     };
 
     const toast = document.getElementById("toast");
@@ -635,9 +632,9 @@
     const weeklyField = document.getElementById("weeklyField");
     const monthlyField = document.getElementById("monthlyField");
     const intervalField = document.getElementById("intervalField");
-    const timeNodeList = document.getElementById("timeNodeList");
     const timeSummary = document.getElementById("timeSummary");
     const validationText = document.getElementById("validationText");
+    const sameDayTime = document.getElementById("sameDayTime");
 
     document.querySelectorAll(".menu-item[data-page]").forEach(item => {
       item.addEventListener("click", () => {
@@ -669,22 +666,6 @@
       if (e.target === drawerMask) closeDrawer();
     });
 
-    function renderTimeNodes() {
-      timeNodeList.innerHTML = "";
-      state.timeNodes.forEach((node, index) => {
-        const item = document.createElement("div");
-        item.className = "time-node";
-        item.innerHTML = `<span>${node}</span><button data-index="${index}">×</button>`;
-        timeNodeList.appendChild(item);
-      });
-      timeNodeList.querySelectorAll("button").forEach(btn => {
-        btn.addEventListener("click", () => {
-          state.timeNodes.splice(Number(btn.dataset.index), 1);
-          renderTimeSection();
-        });
-      });
-    }
-
     function renderTimeSection() {
       sameDayPanel.style.display = state.scheduleType === "sameDay" ? "block" : "none";
       singleTimePanel.style.display = state.scheduleType === "sameDay" ? "none" : "block";
@@ -692,14 +673,9 @@
       monthlyField.style.display = state.scheduleType === "monthly" ? "block" : "none";
       intervalField.style.display = state.scheduleType === "interval" ? "block" : "none";
 
-      renderTimeNodes();
-
       if (state.scheduleType === "sameDay") {
-        const summary = state.timeNodes.length
-          ? `当前配置：当日命中后将在 ${state.timeNodes.join("、")} 这些时间节点触发。`
-          : "当前配置：请至少保留 1 个当日触发时间节点。";
-        timeSummary.textContent = summary;
-        validationText.textContent = "当日模式下至少保留 1 个时间节点，时间节点不可重复。";
+        timeSummary.textContent = `当前配置：当日命中后将在 ${sameDayTime.value} 触发。`;
+        validationText.textContent = "当日模式下必须选择 1 个触发时间。";
       } else if (state.scheduleType === "nextDay") {
         timeSummary.textContent = "当前配置：规则命中后顺延到次日固定时间触发。";
         validationText.textContent = "次日模式仅需维护单个时间值，保留现有交互即可。";
@@ -719,19 +695,10 @@
       state.scheduleType = e.target.value;
       renderTimeSection();
     });
-
-    document.getElementById("addTimeNodeBtn").addEventListener("click", () => {
-      const value = document.getElementById("newTimeNode").value;
-      if (!value) return;
-      if (!state.timeNodes.includes(value)) {
-        state.timeNodes.push(value);
-        state.timeNodes.sort();
-      }
-      renderTimeSection();
-    });
+    sameDayTime.addEventListener("change", renderTimeSection);
 
     document.getElementById("saveRuleBtn").addEventListener("click", () => {
-      showToast("规则已保存，已包含当日时间节点配置");
+      showToast("规则已保存，已包含当日触发时间配置");
       closeDrawer();
     });
 
