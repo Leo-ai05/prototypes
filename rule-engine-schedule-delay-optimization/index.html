@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>规则引擎定时触发器与全局延迟配置优化</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f7fb;
+      color: #1f2937;
+    }
+    .app { display: flex; min-height: 100vh; }
+    .sidebar {
+      width: 216px;
+      background: #243447;
+      color: #c6d0dc;
+      padding: 20px 0;
+      flex-shrink: 0;
+    }
+    .brand {
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      padding: 0 20px 18px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      margin-bottom: 10px;
+    }
+    .nav-item {
+      padding: 12px 20px;
+      cursor: pointer;
+      transition: 0.2s;
+      font-size: 14px;
+    }
+    .nav-item:hover { background: rgba(255,255,255,0.06); }
+    .nav-item.active {
+      background: #409eff;
+      color: #fff;
+    }
+    .main {
+      flex: 1;
+      padding: 24px;
+      min-width: 0;
+    }
+    .page { display: none; }
+    .page.active { display: block; }
+    .hero {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+    .hero-card, .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+    }
+    .hero-card {
+      padding: 18px 20px;
+      flex: 1;
+      min-width: 240px;
+    }
+    .hero-label {
+      color: #64748b;
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+    .hero-title {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .hero-desc {
+      font-size: 13px;
+      line-height: 1.7;
+      color: #475569;
+    }
+    .card { padding: 20px; margin-bottom: 18px; }
+    .section-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-title::before {
+      content: "";
+      width: 4px;
+      height: 16px;
+      border-radius: 999px;
+      background: #409eff;
+    }
+    .tips {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .tip {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .toolbar-right { margin-left: auto; }
+    input[type="text"], input[type="date"], input[type="time"], select, textarea {
+      width: 100%;
+      border: 1px solid #dbe2ea;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 14px;
+      outline: none;
+      background: #fff;
+      transition: 0.2s;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: #409eff;
+      box-shadow: 0 0 0 3px rgba(64, 158, 255, 0.12);
+    }
+    textarea {
+      min-height: 88px;
+      resize: vertical;
+      font-family: inherit;
+    }
+    .field-inline {
+      width: 220px;
+      max-width: 100%;
+    }
+    .btn {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .btn-primary {
+      background: #409eff;
+      color: #fff;
+    }
+    .btn-primary:hover { background: #2f8cf0; }
+    .btn-plain {
+      background: #fff;
+      border: 1px solid #dbe2ea;
+      color: #475569;
+    }
+    .btn-plain:hover { border-color: #409eff; color: #409eff; }
+    .btn-link {
+      background: transparent;
+      color: #409eff;
+      padding: 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    th, td {
+      padding: 14px 12px;
+      border-bottom: 1px solid #edf2f7;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      font-size: 12px;
+      color: #64748b;
+      background: #f8fafc;
+    }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      border: 1px solid transparent;
+      margin-right: 6px;
+      margin-bottom: 6px;
+    }
+    .tag-blue { background: #eff6ff; color: #2563eb; border-color: #bfdbfe; }
+    .tag-green { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
+    .tag-orange { background: #fff7ed; color: #c2410c; border-color: #fed7aa; }
+    .summary-box {
+      background: #f8fafc;
+      border: 1px dashed #cbd5e1;
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-size: 13px;
+      color: #475569;
+      line-height: 1.7;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .muted { color: #64748b; }
+    .drawer-mask {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.42);
+      display: none;
+      z-index: 10;
+    }
+    .drawer-mask.show { display: block; }
+    .drawer {
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: min(760px, 100vw);
+      height: 100%;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: 0.28s ease;
+    }
+    .drawer-mask.show .drawer { transform: translateX(0); }
+    .drawer-header, .drawer-footer {
+      padding: 18px 24px;
+      border-bottom: 1px solid #eef2f7;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+    .drawer-footer {
+      border-top: 1px solid #eef2f7;
+      border-bottom: 0;
+      margin-top: auto;
+      background: #fff;
+    }
+    .drawer-body {
+      padding: 24px;
+      overflow: auto;
+    }
+    .drawer-title {
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .close {
+      background: transparent;
+      border: 0;
+      font-size: 24px;
+      color: #94a3b8;
+      cursor: pointer;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 100px 1fr;
+      gap: 12px;
+      align-items: start;
+      margin-bottom: 16px;
+    }
+    .form-label {
+      line-height: 40px;
+      text-align: right;
+      color: #475569;
+      font-size: 14px;
+    }
+    .panel {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .panel-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .chip-group, .time-list, .weekday-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .chip {
+      padding: 9px 14px;
+      border-radius: 999px;
+      border: 1px solid #dbe2ea;
+      background: #fff;
+      cursor: pointer;
+      font-size: 13px;
+      color: #475569;
+      transition: 0.2s;
+    }
+    .chip.active {
+      border-color: #409eff;
+      background: #eff6ff;
+      color: #2563eb;
+      font-weight: 600;
+    }
+    .sub-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+    .sub-field {
+      min-width: 160px;
+      flex: 1;
+    }
+    .time-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+      font-size: 13px;
+    }
+    .time-pill button {
+      border: 0;
+      background: transparent;
+      color: #1d4ed8;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 0;
+    }
+    .alert {
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 13px;
+      line-height: 1.7;
+      margin-top: 12px;
+    }
+    .alert-warn {
+      background: #fff7ed;
+      color: #9a3412;
+      border: 1px solid #fed7aa;
+    }
+    .alert-info {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+    }
+    .switch-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 0;
+      border-bottom: 1px solid #eef2f7;
+    }
+    .switch-row:last-child { border-bottom: 0; }
+    .switch-meta { flex: 1; }
+    .switch-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .switch-desc {
+      font-size: 13px;
+      line-height: 1.7;
+      color: #64748b;
+    }
+    .switch {
+      width: 52px;
+      height: 30px;
+      border-radius: 999px;
+      background: #cbd5e1;
+      position: relative;
+      cursor: pointer;
+      transition: 0.2s;
+      flex-shrink: 0;
+    }
+    .switch::after {
+      content: "";
+      width: 24px;
+      height: 24px;
+      background: #fff;
+      border-radius: 50%;
+      position: absolute;
+      top: 3px;
+      left: 4px;
+      transition: 0.2s;
+      box-shadow: 0 3px 8px rgba(15, 23, 42, 0.15);
+    }
+    .switch.on { background: #409eff; }
+    .switch.on::after { left: 24px; }
+    .disabled-block {
+      opacity: 0.45;
+      pointer-events: none;
+      filter: grayscale(0.1);
+    }
+    .preview-board {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .preview-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 16px;
+      background: #fff;
+    }
+    .preview-label {
+      font-size: 12px;
+      color: #64748b;
+      margin-bottom: 8px;
+    }
+    .preview-value {
+      font-size: 14px;
+      line-height: 1.8;
+      color: #334155;
+    }
+    .toast {
+      position: fixed;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #16a34a;
+      color: #fff;
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-size: 13px;
+      display: none;
+      z-index: 20;
+      box-shadow: 0 8px 30px rgba(22, 163, 74, 0.28);
+    }
+    .toast.show { display: block; }
+    @media (max-width: 960px) {
+      .sidebar { display: none; }
+      .main { padding: 16px; }
+      .grid-2, .grid-3, .preview-board { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+      .form-label { text-align: left; line-height: 1.4; }
+    }
+  </style>
+</head>
+<body>
+  <div class="toast" id="toast">保存成功，原型已模拟配置生效</div>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">企微机器人后台</div>
+      <div class="nav-item active" data-page="page-rule">规则引擎</div>
+      <div class="nav-item" data-page="page-global">全局配置</div>
+      <div class="nav-item">AI员工明细</div>
+      <div class="nav-item">会话属性</div>
+    </aside>
+    <main class="main">
+      <section class="page active" id="page-rule">
+        <div class="hero">
+          <div class="hero-card">
+            <div class="hero-label">本次优化核心</div>
+            <div class="hero-title">定时任务触发器配置升级</div>
+            <div class="hero-desc">补齐“自定义时间点、单次或多次触发、循环触发、周末触发”四类能力，并在抽屉内给出自然语言预览、冲突提醒与生效范围说明。</div>
+          </div>
+          <div class="hero-card">
+            <div class="hero-label">交互目标</div>
+            <div class="hero-title">减少规则误配</div>
+            <div class="hero-desc">从“技术型时间配置”改成“业务型配置”：先选触发方式，再补充日期、周范围、时间点和循环间隔，最后统一生成摘要。</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-title">页面优化说明</div>
+          <div class="tips">
+            <div class="tip">支持单次 / 多次 / 循环触发</div>
+            <div class="tip">支持工作日 / 周末 / 自定义星期</div>
+            <div class="tip">支持多个自定义时间点</div>
+            <div class="tip">支持自然语言配置摘要</div>
+          </div>
+          <div class="toolbar">
+            <div class="field-inline"><input type="text" value="定时任务" /></div>
+            <div class="field-inline">
+              <select>
+                <option>全部触发类型</option>
+                <option selected>定时任务</option>
+              </select>
+            </div>
+            <div class="field-inline">
+              <select>
+                <option>全部状态</option>
+                <option selected>已启用</option>
+              </select>
+            </div>
+            <div class="toolbar-right">
+              <button class="btn btn-primary" id="openDrawerBtn">编辑规则</button>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>规则名称</th>
+                <th>触发方式</th>
+                <th>触发摘要</th>
+                <th>动作摘要</th>
+                <th>状态</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>周末未成单客户二次激活</td>
+                <td><span class="tag tag-blue">定时任务</span></td>
+                <td>每周末 10:00、18:00 触发；若客户已成交则跳过</td>
+                <td>发送二次激活话术 + 更新跟进变量</td>
+                <td><span class="tag tag-green">启用中</span></td>
+              </tr>
+              <tr>
+                <td>试听到课前提醒</td>
+                <td><span class="tag tag-blue">定时任务</span></td>
+                <td>单次触发：2026-03-28 19:30</td>
+                <td>发送试听提醒消息</td>
+                <td><span class="tag tag-orange">待启用</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="page" id="page-global">
+        <div class="hero">
+          <div class="hero-card">
+            <div class="hero-label">全局控制</div>
+            <div class="hero-title">延迟配置支持开关</div>
+            <div class="hero-desc">关闭时保持即时发送，开启后才展示延迟规则与时间校验，降低误触发概率，也让运营更清楚当前是否生效。</div>
+          </div>
+          <div class="hero-card">
+            <div class="hero-label">业务收益</div>
+            <div class="hero-title">减少误触与夜间骚扰</div>
+            <div class="hero-desc">将全局延迟规则拆为“禁发时间段 + 顺延目标 + 开关状态”三段式结构，支持直观看到是否真的启用。</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-title">触发器全局规则</div>
+          <div class="switch-row">
+            <div class="switch-meta">
+              <div class="switch-title">延迟发送配置开关</div>
+              <div class="switch-desc">控制“命中禁发时间段后，是否自动顺延到下一个允许时间点触发”。关闭后，系统不执行顺延逻辑，沿用即时触发。</div>
+            </div>
+            <div class="switch on" id="delaySwitch"></div>
+          </div>
+
+          <div id="delayPanel">
+            <div class="grid-3" style="margin-top: 18px;">
+              <div>
+                <div class="hero-label">禁发开始时间</div>
+                <input type="time" id="startTime" value="21:00" />
+              </div>
+              <div>
+                <div class="hero-label">禁发结束时间</div>
+                <input type="time" id="endTime" value="08:30" />
+              </div>
+              <div>
+                <div class="hero-label">顺延触发时间</div>
+                <input type="time" id="delayTime" value="09:30" />
+              </div>
+            </div>
+            <div class="alert alert-info" id="delaySummary">当前策略：每天 21:00 - 次日 08:30 为禁发时间，命中后统一顺延至 09:30 发送。</div>
+          </div>
+
+          <div class="preview-board">
+            <div class="preview-card">
+              <div class="preview-label">状态说明</div>
+              <div class="preview-value" id="delayStatusText">已开启。运营可修改禁发时间段和顺延时间，保存后对后续触发器统一生效。</div>
+            </div>
+            <div class="preview-card">
+              <div class="preview-label">交互规则</div>
+              <div class="preview-value">1. 开关关闭：下方时间项置灰且不参与保存校验。<br />2. 开关开启：顺延时间必填，且不得落在禁发区间内。<br />3. 保存后只影响新触发，不回溯历史任务。</div>
+            </div>
+          </div>
+
+          <div style="margin-top: 18px;">
+            <button class="btn btn-primary" id="saveGlobalBtn">保存全局配置</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="drawer-mask" id="drawerMask">
+    <div class="drawer">
+      <div class="drawer-header">
+        <div>
+          <div class="drawer-title">编辑规则：周末未成单客户二次激活</div>
+          <div class="muted" style="margin-top: 6px; font-size: 13px;">以更贴近业务语义的方式配置定时触发器</div>
+        </div>
+        <button class="close" id="closeDrawerBtn">&times;</button>
+      </div>
+      <div class="drawer-body">
+        <div class="panel">
+          <div class="panel-title">基本信息</div>
+          <div class="form-row">
+            <div class="form-label">规则名称</div>
+            <div><input type="text" value="周末未成单客户二次激活" /></div>
+          </div>
+          <div class="form-row">
+            <div class="form-label">规则说明</div>
+            <div><textarea>针对周末未成单客户，在高活跃时间点自动发送激活消息，并同步更新跟进变量。</textarea></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">定时任务触发器配置</div>
+          <div class="muted" style="margin-bottom: 10px;">先选触发方式，再补充日期或星期范围，最后配置一个或多个时间点。</div>
+
+          <div class="hero-label">1. 触发方式</div>
+          <div class="chip-group" id="scheduleModeGroup">
+            <div class="chip" data-mode="single">单次触发</div>
+            <div class="chip active" data-mode="multiple">多次触发</div>
+            <div class="chip" data-mode="loop">循环触发</div>
+          </div>
+
+          <div class="hero-label" style="margin-top: 16px;">2. 生效日期范围</div>
+          <div class="sub-row" id="singleDateRow" style="display:none;">
+            <div class="sub-field">
+              <div class="hero-label">触发日期</div>
+              <input type="date" id="singleDate" value="2026-03-29" />
+            </div>
+          </div>
+          <div class="sub-row" id="rangeDateRow">
+            <div class="sub-field">
+              <div class="hero-label">开始日期</div>
+              <input type="date" id="startDate" value="2026-03-29" />
+            </div>
+            <div class="sub-field">
+              <div class="hero-label">结束日期</div>
+              <input type="date" id="endDate" value="2026-05-31" />
+            </div>
+          </div>
+
+          <div class="hero-label" style="margin-top: 16px;">3. 触发星期范围</div>
+          <div class="chip-group" id="dayScopeGroup">
+            <div class="chip" data-scope="weekday">工作日</div>
+            <div class="chip active" data-scope="weekend">周末</div>
+            <div class="chip" data-scope="custom">自定义星期</div>
+          </div>
+          <div class="weekday-list" id="customWeekdays" style="display:none; margin-top: 12px;">
+            <div class="chip" data-day="1">周一</div>
+            <div class="chip" data-day="2">周二</div>
+            <div class="chip" data-day="3">周三</div>
+            <div class="chip" data-day="4">周四</div>
+            <div class="chip" data-day="5">周五</div>
+            <div class="chip" data-day="6">周六</div>
+            <div class="chip" data-day="7">周日</div>
+          </div>
+
+          <div id="loopExtra" style="display:none;">
+            <div class="hero-label" style="margin-top: 16px;">4. 循环间隔</div>
+            <div class="sub-row">
+              <div class="sub-field" style="max-width: 160px;">
+                <input type="text" id="loopEvery" value="2" />
+              </div>
+              <div class="sub-field" style="max-width: 180px;">
+                <select id="loopUnit">
+                  <option value="小时">小时</option>
+                  <option value="天">天</option>
+                  <option value="周">周</option>
+                </select>
+              </div>
+              <div class="muted">例如每 2 小时 / 每 3 天 / 每 1 周循环一次</div>
+            </div>
+          </div>
+
+          <div id="pointExtra">
+            <div class="hero-label" style="margin-top: 16px;">4. 自定义触发时间点</div>
+            <div class="sub-row">
+              <div class="sub-field" style="max-width: 180px;">
+                <input type="time" id="newTimePoint" value="10:00" />
+              </div>
+              <button class="btn btn-plain" id="addTimeBtn">新增时间点</button>
+            </div>
+            <div class="time-list" id="timeList" style="margin-top: 12px;"></div>
+          </div>
+
+          <div class="alert alert-warn" id="scheduleWarning">提示：当前为“多次触发 + 周末”模式，至少需要 2 个时间点，系统会自动校验重复时间。</div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">动作配置</div>
+          <div class="tag tag-blue">发送企业微信消息</div>
+          <div class="tag tag-green">更新变量：follow_up_stage = 二次激活</div>
+          <div style="margin-top: 12px;">
+            <textarea>【周末关怀】看到您最近还没有完成下单，我整理了一份试听建议，回复“1”即可领取。</textarea>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">配置摘要</div>
+          <div class="summary-box" id="scheduleSummary"></div>
+          <div class="preview-board">
+            <div class="preview-card">
+              <div class="preview-label">执行预览</div>
+              <div class="preview-value" id="executionPreview"></div>
+            </div>
+            <div class="preview-card">
+              <div class="preview-label">校验结果</div>
+              <div class="preview-value" id="validationPreview"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="drawer-footer">
+        <button class="btn btn-plain">测试规则</button>
+        <div style="display:flex; gap: 12px;">
+          <button class="btn btn-plain" id="cancelDrawerBtn">取消</button>
+          <button class="btn btn-primary" id="saveRuleBtn">保存规则</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const state = {
+      page: "page-rule",
+      scheduleMode: "multiple",
+      dayScope: "weekend",
+      customDays: [6, 7],
+      timePoints: ["10:00", "18:00"],
+      delayEnabled: true
+    };
+
+    const navItems = document.querySelectorAll(".nav-item[data-page]");
+    navItems.forEach(item => {
+      item.addEventListener("click", () => {
+        navItems.forEach(node => node.classList.remove("active"));
+        item.classList.add("active");
+        document.querySelectorAll(".page").forEach(page => page.classList.remove("active"));
+        document.getElementById(item.dataset.page).classList.add("active");
+      });
+    });
+
+    const drawerMask = document.getElementById("drawerMask");
+    const toast = document.getElementById("toast");
+    const openDrawer = () => drawerMask.classList.add("show");
+    const closeDrawer = () => drawerMask.classList.remove("show");
+    document.getElementById("openDrawerBtn").addEventListener("click", openDrawer);
+    document.getElementById("closeDrawerBtn").addEventListener("click", closeDrawer);
+    document.getElementById("cancelDrawerBtn").addEventListener("click", closeDrawer);
+    drawerMask.addEventListener("click", e => {
+      if (e.target === drawerMask) closeDrawer();
+    });
+
+    const timeList = document.getElementById("timeList");
+    const scheduleSummary = document.getElementById("scheduleSummary");
+    const executionPreview = document.getElementById("executionPreview");
+    const validationPreview = document.getElementById("validationPreview");
+    const scheduleWarning = document.getElementById("scheduleWarning");
+    const singleDateRow = document.getElementById("singleDateRow");
+    const rangeDateRow = document.getElementById("rangeDateRow");
+    const loopExtra = document.getElementById("loopExtra");
+    const pointExtra = document.getElementById("pointExtra");
+    const customWeekdays = document.getElementById("customWeekdays");
+
+    function dayScopeText() {
+      if (state.dayScope === "weekday") return "每周一至周五";
+      if (state.dayScope === "weekend") return "每周六、周日";
+      const labels = {
+        1: "周一", 2: "周二", 3: "周三", 4: "周四", 5: "周五", 6: "周六", 7: "周日"
+      };
+      return state.customDays.length ? state.customDays.map(day => labels[day]).join("、") : "未选择星期";
+    }
+
+    function renderTimeList() {
+      timeList.innerHTML = "";
+      state.timePoints.forEach((time, index) => {
+        const pill = document.createElement("div");
+        pill.className = "time-pill";
+        pill.innerHTML = `<span>${time}</span><button type="button" data-index="${index}">×</button>`;
+        timeList.appendChild(pill);
+      });
+      timeList.querySelectorAll("button").forEach(btn => {
+        btn.addEventListener("click", () => {
+          state.timePoints.splice(Number(btn.dataset.index), 1);
+          renderAll();
+        });
+      });
+    }
+
+    function renderChips() {
+      document.querySelectorAll("#scheduleModeGroup .chip").forEach(chip => {
+        chip.classList.toggle("active", chip.dataset.mode === state.scheduleMode);
+      });
+      document.querySelectorAll("#dayScopeGroup .chip").forEach(chip => {
+        chip.classList.toggle("active", chip.dataset.scope === state.dayScope);
+      });
+      document.querySelectorAll("#customWeekdays .chip").forEach(chip => {
+        chip.classList.toggle("active", state.customDays.includes(Number(chip.dataset.day)));
+      });
+    }
+
+    function renderScheduleLayout() {
+      singleDateRow.style.display = state.scheduleMode === "single" ? "flex" : "none";
+      rangeDateRow.style.display = state.scheduleMode === "single" ? "none" : "flex";
+      loopExtra.style.display = state.scheduleMode === "loop" ? "block" : "none";
+      pointExtra.style.display = state.scheduleMode === "loop" ? "none" : "block";
+      customWeekdays.style.display = state.dayScope === "custom" ? "flex" : "none";
+    }
+
+    function buildSummary() {
+      const singleDate = document.getElementById("singleDate").value;
+      const startDate = document.getElementById("startDate").value;
+      const endDate = document.getElementById("endDate").value;
+      const loopEvery = document.getElementById("loopEvery").value || "2";
+      const loopUnit = document.getElementById("loopUnit").value;
+      const timeText = state.timePoints.length ? state.timePoints.join("、") : "未配置时间点";
+
+      if (state.scheduleMode === "single") {
+        return `该规则将在 ${singleDate} ${timeText} 执行一次；若该日属于 ${dayScopeText()} 之外，则保存时提示运营调整日期或星期范围。`;
+      }
+      if (state.scheduleMode === "multiple") {
+        return `该规则将在 ${startDate} 至 ${endDate} 期间按 ${dayScopeText()} 生效，并在 ${timeText} 这些时间点分别触发。适合周末关怀、分时段催化等多次触达场景。`;
+      }
+      return `该规则将在 ${startDate} 至 ${endDate} 期间，按 ${dayScopeText()} 每 ${loopEvery}${loopUnit} 自动循环触发一次。适合长周期轮询、定时补偿等场景。`;
+    }
+
+    function buildValidation() {
+      const issues = [];
+      if (state.scheduleMode === "multiple" && state.timePoints.length < 2) {
+        issues.push("多次触发至少保留 2 个时间点。");
+      }
+      if ((state.scheduleMode === "single" || state.scheduleMode === "multiple") && !state.timePoints.length) {
+        issues.push("请至少配置 1 个触发时间点。");
+      }
+      const unique = new Set(state.timePoints);
+      if (unique.size !== state.timePoints.length) {
+        issues.push("时间点存在重复，请去重后保存。");
+      }
+      if (state.dayScope === "custom" && !state.customDays.length) {
+        issues.push("自定义星期至少选择 1 天。");
+      }
+      return issues.length ? issues.join("<br />") : "配置合法，可直接保存并进入规则测试。";
+    }
+
+    function renderSummary() {
+      scheduleSummary.innerHTML = buildSummary();
+      executionPreview.innerHTML = state.scheduleMode === "loop"
+        ? "系统会根据循环间隔持续创建执行计划，直到结束日期到期或规则被停用。"
+        : `计划任务会在每个时间点前生成待执行记录，共 ${state.timePoints.length || 0} 个计划节点。`;
+      validationPreview.innerHTML = buildValidation();
+      const warningMap = {
+        single: "提示：当前为“单次触发”模式，只会创建 1 个任务节点，适合预约提醒、限时通知。",
+        multiple: "提示：当前为“多次触发 + 周末”模式，至少需要 2 个时间点，系统会自动校验重复时间。",
+        loop: "提示：当前为“循环触发”模式，不再逐个维护时间点，改为按固定间隔自动生成计划。"
+      };
+      scheduleWarning.textContent = warningMap[state.scheduleMode];
+    }
+
+    function renderAll() {
+      renderTimeList();
+      renderChips();
+      renderScheduleLayout();
+      renderSummary();
+    }
+
+    document.querySelectorAll("#scheduleModeGroup .chip").forEach(chip => {
+      chip.addEventListener("click", () => {
+        state.scheduleMode = chip.dataset.mode;
+        renderAll();
+      });
+    });
+
+    document.querySelectorAll("#dayScopeGroup .chip").forEach(chip => {
+      chip.addEventListener("click", () => {
+        state.dayScope = chip.dataset.scope;
+        if (state.dayScope === "weekday") state.customDays = [1, 2, 3, 4, 5];
+        if (state.dayScope === "weekend") state.customDays = [6, 7];
+        renderAll();
+      });
+    });
+
+    document.querySelectorAll("#customWeekdays .chip").forEach(chip => {
+      chip.addEventListener("click", () => {
+        const day = Number(chip.dataset.day);
+        if (state.customDays.includes(day)) {
+          state.customDays = state.customDays.filter(item => item !== day);
+        } else {
+          state.customDays.push(day);
+          state.customDays.sort();
+        }
+        state.dayScope = "custom";
+        renderAll();
+      });
+    });
+
+    document.getElementById("addTimeBtn").addEventListener("click", () => {
+      const nextTime = document.getElementById("newTimePoint").value;
+      if (!nextTime) return;
+      state.timePoints.push(nextTime);
+      state.timePoints = Array.from(new Set(state.timePoints)).sort();
+      renderAll();
+    });
+
+    ["singleDate", "startDate", "endDate", "loopEvery", "loopUnit"].forEach(id => {
+      document.getElementById(id).addEventListener("change", renderSummary);
+      document.getElementById(id).addEventListener("input", renderSummary);
+    });
+
+    const delaySwitch = document.getElementById("delaySwitch");
+    const delayPanel = document.getElementById("delayPanel");
+    const delaySummary = document.getElementById("delaySummary");
+    const delayStatusText = document.getElementById("delayStatusText");
+    function renderDelay() {
+      delaySwitch.classList.toggle("on", state.delayEnabled);
+      if (state.delayEnabled) {
+        delayPanel.classList.remove("disabled-block");
+        delaySummary.textContent = `当前策略：每天 ${document.getElementById("startTime").value} - 次日 ${document.getElementById("endTime").value} 为禁发时间，命中后统一顺延至 ${document.getElementById("delayTime").value} 发送。`;
+        delayStatusText.innerHTML = "已开启。运营可修改禁发时间段和顺延时间，保存后对后续触发器统一生效。";
+      } else {
+        delayPanel.classList.add("disabled-block");
+        delaySummary.textContent = "当前策略：延迟发送已关闭，所有触发器按实时命中时间执行。";
+        delayStatusText.innerHTML = "已关闭。下方时间配置仅保留作历史参考，不参与提交校验与运行时计算。";
+      }
+    }
+
+    delaySwitch.addEventListener("click", () => {
+      state.delayEnabled = !state.delayEnabled;
+      renderDelay();
+    });
+    ["startTime", "endTime", "delayTime"].forEach(id => {
+      document.getElementById(id).addEventListener("change", renderDelay);
+    });
+
+    function showToast(text) {
+      toast.textContent = text;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 1800);
+    }
+
+    document.getElementById("saveRuleBtn").addEventListener("click", () => {
+      showToast("规则已保存，新的定时触发策略已生效");
+      closeDrawer();
+    });
+    document.getElementById("saveGlobalBtn").addEventListener("click", () => {
+      showToast(state.delayEnabled ? "全局延迟规则已开启并保存" : "全局延迟规则已关闭并保存");
+    });
+
+    renderAll();
+    renderDelay();
+  </script>
+</body>
+</html>
