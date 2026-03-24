@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>规则引擎定时触发器与全局延迟配置优化</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f7fa;
+      color: #303133;
+    }
+    .layout { display: flex; min-height: 100vh; }
+    .sidebar {
+      width: 220px;
+      background: #304156;
+      color: #bfcbd9;
+      padding-top: 18px;
+      flex-shrink: 0;
+    }
+    .brand {
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      padding: 0 18px 18px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      margin-bottom: 8px;
+    }
+    .menu-item {
+      padding: 12px 20px;
+      cursor: pointer;
+      transition: 0.2s;
+      font-size: 14px;
+    }
+    .menu-item:hover { background: rgba(255,255,255,0.06); }
+    .menu-item.active {
+      background: #409eff;
+      color: #fff;
+    }
+    .main {
+      flex: 1;
+      padding: 22px;
+      min-width: 0;
+    }
+    .page { display: none; }
+    .page.active { display: block; }
+    .card {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+      padding: 20px;
+      margin-bottom: 18px;
+    }
+    .title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .desc {
+      font-size: 13px;
+      color: #606266;
+      line-height: 1.8;
+    }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      border: 1px solid transparent;
+      margin-right: 8px;
+      margin-bottom: 8px;
+    }
+    .tag-blue { color: #409eff; background: #ecf5ff; border-color: #d9ecff; }
+    .tag-green { color: #67c23a; background: #f0f9eb; border-color: #e1f3d8; }
+    .tag-orange { color: #e6a23c; background: #fdf6ec; border-color: #faecd8; }
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin: 16px 0;
+    }
+    .toolbar-right { margin-left: auto; }
+    input[type="text"], input[type="time"], select, textarea {
+      width: 100%;
+      border: 1px solid #dcdfe6;
+      border-radius: 4px;
+      padding: 9px 12px;
+      font-size: 14px;
+      outline: none;
+      transition: 0.2s;
+      background: #fff;
+      color: #303133;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: #409eff;
+    }
+    textarea {
+      min-height: 88px;
+      resize: vertical;
+      font-family: inherit;
+    }
+    .input-inline { width: 220px; max-width: 100%; }
+    .btn {
+      border: none;
+      border-radius: 4px;
+      padding: 10px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .btn-primary {
+      background: #409eff;
+      color: #fff;
+    }
+    .btn-primary:hover { background: #66b1ff; }
+    .btn-plain {
+      background: #fff;
+      border: 1px solid #dcdfe6;
+      color: #606266;
+    }
+    .btn-plain:hover { border-color: #409eff; color: #409eff; }
+    .btn-link {
+      border: none;
+      background: transparent;
+      color: #409eff;
+      padding: 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    th, td {
+      text-align: left;
+      padding: 12px 10px;
+      border-bottom: 1px solid #ebeef5;
+      vertical-align: top;
+    }
+    th {
+      font-size: 12px;
+      color: #909399;
+      background: #fafafa;
+    }
+    .summary-box {
+      background: #f8fafc;
+      border: 1px dashed #d3dce6;
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: 13px;
+      color: #606266;
+      line-height: 1.8;
+    }
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 14px;
+      padding-left: 10px;
+      border-left: 4px solid #409eff;
+      line-height: 1.2;
+    }
+    .notice {
+      padding: 12px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      line-height: 1.7;
+      margin-top: 12px;
+      border: 1px solid #d9ecff;
+      background: #ecf5ff;
+      color: #409eff;
+    }
+    .drawer-mask {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      display: none;
+      z-index: 10;
+    }
+    .drawer-mask.show { display: block; }
+    .drawer {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      right: auto;
+      width: min(860px, calc(100vw - 32px));
+      max-height: calc(100vh - 32px);
+      height: auto;
+      background: #fff;
+      border-radius: 12px;
+      transform: translate(-50%, -46%);
+      transition: 0.28s ease;
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+    }
+    .drawer-mask.show .drawer {
+      transform: translate(-50%, -50%);
+      opacity: 1;
+    }
+    .drawer-header, .drawer-footer {
+      padding: 18px 24px;
+      border-bottom: 1px solid #ebeef5;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .drawer-footer {
+      border-top: 1px solid #ebeef5;
+      border-bottom: 0;
+      margin-top: auto;
+      background: #fff;
+    }
+    .drawer-title {
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .close {
+      font-size: 24px;
+      background: transparent;
+      border: none;
+      color: #909399;
+      cursor: pointer;
+    }
+    .drawer-body {
+      padding: 24px;
+      overflow: auto;
+    }
+    .form-item {
+      display: grid;
+      grid-template-columns: 100px 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+      align-items: start;
+    }
+    .form-label {
+      text-align: right;
+      color: #606266;
+      line-height: 40px;
+      font-size: 14px;
+    }
+    .form-content { min-width: 0; }
+    .sub-card {
+      background: #fafbfc;
+      border: 1px solid #ebeef5;
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .sub-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .time-node-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .time-node {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid #d9ecff;
+      background: #ecf5ff;
+      color: #409eff;
+      font-size: 13px;
+    }
+    .time-node button {
+      border: none;
+      background: transparent;
+      color: #409eff;
+      cursor: pointer;
+      padding: 0;
+      font-size: 14px;
+    }
+    .inline-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .inline-row .fixed { width: 180px; max-width: 100%; }
+    .preview-board {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+    .preview-card {
+      border: 1px solid #ebeef5;
+      border-radius: 8px;
+      padding: 14px;
+      background: #fff;
+    }
+    .preview-label {
+      color: #909399;
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+    .preview-value {
+      font-size: 13px;
+      line-height: 1.8;
+      color: #606266;
+    }
+    .config-section {
+      background: #fff;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .switch-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+    .switch-copy {
+      font-size: 13px;
+      color: #606266;
+      line-height: 1.7;
+    }
+    .switch {
+      width: 46px;
+      height: 24px;
+      border-radius: 999px;
+      background: #dcdfe6;
+      position: relative;
+      cursor: pointer;
+      transition: 0.2s;
+      flex-shrink: 0;
+    }
+    .switch::after {
+      content: "";
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #fff;
+      position: absolute;
+      top: 3px;
+      left: 4px;
+      transition: 0.2s;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+    }
+    .switch.on {
+      background: #409eff;
+    }
+    .switch.on::after {
+      left: 24px;
+    }
+    .disabled {
+      opacity: 0.45;
+      pointer-events: none;
+    }
+    .toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #67c23a;
+      color: #fff;
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-size: 13px;
+      display: none;
+      z-index: 20;
+      box-shadow: 0 6px 24px rgba(103,194,58,0.28);
+    }
+    .toast.show { display: block; }
+    @media (max-width: 960px) {
+      .sidebar { display: none; }
+      .main { padding: 16px; }
+      .form-item { grid-template-columns: 1fr; }
+      .form-label { text-align: left; line-height: 1.4; }
+      .grid-2, .preview-board { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="toast" id="toast">保存成功</div>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand">企微机器人后台</div>
+      <div class="menu-item active" data-page="rulePage">规则配置</div>
+      <div class="menu-item" data-page="globalPage">全局配置</div>
+      <div class="menu-item">会话属性</div>
+      <div class="menu-item">AI员工明细</div>
+    </aside>
+    <main class="main">
+      <section class="page active" id="rulePage">
+        <div class="card">
+          <div class="title">规则引擎优化方向</div>
+          <div class="desc">严格对齐当前 `规则配置` 页面内容和布局：保留列表页字段、顶部“新建规则”入口，以及 `基本信息 / 触发器配置 / 动作配置` 的编辑 Dialog，仅在 `补充触发时间` 内增加 `当日` 枚举。</div>
+          <div style="margin-top: 14px;">
+            <span class="tag tag-blue">保留现有页面结构</span>
+            <span class="tag tag-blue">新增 scheduleType = 当日</span>
+            <span class="tag tag-blue">当日仅支持单个触发时间</span>
+            <span class="tag tag-green">全局配置开关继续保留</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-title">规则列表</div>
+          <div class="toolbar">
+            <div class="toolbar-right">
+              <button class="btn btn-primary" id="openDrawerBtn">新建规则</button>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>规则名称</th>
+                <th>规则描述</th>
+                <th>触发类型</th>
+                <th>创建时间</th>
+                <th>更新时间</th>
+                <th>最后更新人</th>
+                <th>启用状态</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>101</td>
+                <td>周末未成交客户二次激活</td>
+                <td>针对周末仍未成交的高意向客户，在补充触发时间内执行二次激活动作。</td>
+                <td><span class="tag tag-blue">定时任务</span></td>
+                <td>2026-03-21 14:20:18</td>
+                <td>2026-03-24 09:12:44</td>
+                <td>张敏</td>
+                <td><span class="tag tag-green">已启用</span></td>
+                <td><button class="btn-link" id="tableEditBtn1">编辑</button></td>
+              </tr>
+              <tr>
+                <td>102</td>
+                <td>次日试听提醒</td>
+                <td>试听预约成功后在次日固定时间触达，保留现有次日规则能力。</td>
+                <td><span class="tag tag-blue">定时任务</span></td>
+                <td>2026-03-20 10:08:32</td>
+                <td>2026-03-23 18:25:11</td>
+                <td>王璐</td>
+                <td><span class="tag tag-orange">已禁用</span></td>
+                <td><button class="btn-link" id="tableEditBtn2">编辑</button></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="notice">原型重点展示增量能力：列表仍然沿用现网页面字段，编辑规则时只在 `补充触发时间` 中新增 `当日` 枚举，并限定为单个触发时间。</div>
+        </div>
+      </section>
+
+      <section class="page" id="globalPage">
+        <div class="card">
+          <div class="title">全局配置保留开关</div>
+          <div class="desc">严格对齐当前 `全局配置` 页面：保留 `触发器全局规则` 卡片、原句式输入方式和延迟开关，只强化开关联动说明。</div>
+        </div>
+
+        <div class="config-section">
+          <div class="section-title">触发器全局规则</div>
+          <div class="switch-row">
+            <div class="switch-copy">
+              <div style="font-size: 15px; font-weight: 600; color: #303133; margin-bottom: 4px;">延迟配置开关</div>
+              关闭时不执行顺延规则，开启时命中禁发时间段的触发器将统一顺延到指定时间发送。
+            </div>
+            <div class="switch on" id="delaySwitch"></div>
+          </div>
+
+          <div id="delayFields">
+            <div class="sub-card">
+              <div class="desc" style="margin-bottom: 10px;">触发时间:</div>
+              <div class="inline-row" style="align-items:center; flex-wrap: wrap;">
+                <span class="desc" style="margin:0;">若触发器命中时间范围为</span>
+                <div class="fixed"><input type="time" id="startTime" value="21:00" /></div>
+                <span class="desc" style="margin:0;">-</span>
+                <div class="fixed"><input type="time" id="endTime" value="08:30" /></div>
+                <span class="desc" style="margin:0;">顺延至</span>
+                <div class="fixed"><input type="time" id="delayTime" value="09:30" /></div>
+                <span class="desc" style="margin:0;">触发</span>
+              </div>
+            </div>
+            <div class="notice" id="delaySummary">当前策略：21:00 - 次日 08:30 为禁发时间，命中后顺延至 09:30 触发。</div>
+          </div>
+
+          <div style="margin-top: 18px;">
+            <button class="btn btn-primary" id="saveGlobalBtn">保存配置</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="drawer-mask" id="drawerMask">
+    <div class="drawer">
+      <div class="drawer-header">
+        <div>
+          <div class="drawer-title">编辑规则</div>
+          <div class="desc" style="margin-top: 6px;">Dialog 结构严格参考现网 `RuleDialog.vue`，仅在 `补充触发时间` 中增加 `当日`。</div>
+        </div>
+        <button class="close" id="closeDrawerBtn">&times;</button>
+      </div>
+      <div class="drawer-body">
+        <div class="section-title">基本信息</div>
+        <div class="form-item">
+          <div class="form-label">规则名称</div>
+          <div class="form-content"><input type="text" value="周末未成交客户二次激活" /></div>
+        </div>
+        <div class="form-item">
+          <div class="form-label">规则描述</div>
+          <div class="form-content"><textarea>客户命中周末激活场景时，在当日固定时间自动发送二次激活消息。</textarea></div>
+        </div>
+
+        <div class="section-title">触发器配置</div>
+        <div class="form-item">
+          <div class="form-label">触发器类型</div>
+          <div class="form-content">
+            <select>
+              <option>用户信息变更</option>
+              <option selected>定时任务</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-item">
+          <div class="form-label">触发条件</div>
+          <div class="form-content">
+              <div class="sub-card">
+                <div class="sub-title">如果</div>
+                <div class="summary-box">意向度 = 高 且 最近成交状态 = 未成交</div>
+            </div>
+          </div>
+        </div>
+        <div class="form-item">
+          <div class="form-label">补充触发时间</div>
+          <div class="form-content">
+              <div class="sub-card">
+                <div class="grid-2">
+                <div>
+                  <div class="desc" style="margin-bottom: 6px;">时间类型</div>
+                  <select id="scheduleType">
+                    <option value="daily">每日</option>
+                    <option value="sameDay" selected>当日</option>
+                    <option value="nextDay">次日</option>
+                    <option value="weekly">每周</option>
+                    <option value="monthly">每月</option>
+                    <option value="interval">间隔</option>
+                  </select>
+                </div>
+                <div id="weeklyField" style="display:none;">
+                  <div class="desc" style="margin-bottom: 6px;">周几</div>
+                  <select>
+                    <option>周一</option>
+                    <option>周二</option>
+                    <option selected>周六</option>
+                    <option>周日</option>
+                  </select>
+                </div>
+                <div id="monthlyField" style="display:none;">
+                  <div class="desc" style="margin-bottom: 6px;">每月日期</div>
+                  <select>
+                    <option>1日</option>
+                    <option>15日</option>
+                    <option selected>28日</option>
+                  </select>
+                </div>
+                <div id="intervalField" style="display:none;">
+                  <div class="desc" style="margin-bottom: 6px;">循环间隔</div>
+                  <div class="inline-row">
+                    <div class="fixed"><input type="text" value="2" /></div>
+                    <div class="fixed">
+                      <select>
+                        <option>小时</option>
+                        <option selected>天</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div id="sameDayPanel" style="margin-top: 14px;">
+                <div class="desc">新增能力：当选择 `当日` 时，只允许配置 1 个当日触发时间。</div>
+                <div style="margin-top: 10px; max-width: 180px;">
+                  <input type="time" id="sameDayTime" value="10:00" />
+                </div>
+              </div>
+
+              <div id="singleTimePanel" style="margin-top: 14px; display:none;">
+                <div class="desc">当前时间类型为非 `当日`，沿用单个时间选择方式。</div>
+                <div style="margin-top: 10px; max-width: 180px;">
+                  <input type="time" id="singleTimeValue" value="09:30" />
+                </div>
+              </div>
+
+              <div class="notice" id="timeSummary"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-title">动作配置</div>
+        <div class="form-item">
+          <div class="form-label">动作内容</div>
+          <div class="form-content">
+            <div class="summary-box">发送企业微信消息：<br />【周末关怀】今天仍可安排试听，回复“1”即可立即锁定名额。</div>
+          </div>
+        </div>
+
+        <div class="preview-board">
+          <div class="preview-card">
+            <div class="preview-label">设计意图</div>
+            <div class="preview-value">不改动现有表单结构，只在原有 `scheduleType` 基础上新增一个 `当日` 枚举，并保持列表页和弹窗布局与现网一致。</div>
+          </div>
+          <div class="preview-card">
+            <div class="preview-label">保存校验</div>
+            <div class="preview-value" id="validationText">当日模式下必须选择 1 个触发时间。</div>
+          </div>
+        </div>
+      </div>
+      <div class="drawer-footer">
+        <button class="btn btn-plain" id="cancelDrawerBtn">取消</button>
+        <button class="btn btn-primary" id="saveRuleBtn">保存规则</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const state = {
+      scheduleType: "sameDay",
+      delayEnabled: true
+    };
+
+    const toast = document.getElementById("toast");
+    const drawerMask = document.getElementById("drawerMask");
+    const scheduleType = document.getElementById("scheduleType");
+    const sameDayPanel = document.getElementById("sameDayPanel");
+    const singleTimePanel = document.getElementById("singleTimePanel");
+    const weeklyField = document.getElementById("weeklyField");
+    const monthlyField = document.getElementById("monthlyField");
+    const intervalField = document.getElementById("intervalField");
+    const timeSummary = document.getElementById("timeSummary");
+    const validationText = document.getElementById("validationText");
+    const sameDayTime = document.getElementById("sameDayTime");
+
+    document.querySelectorAll(".menu-item[data-page]").forEach(item => {
+      item.addEventListener("click", () => {
+        document.querySelectorAll(".menu-item[data-page]").forEach(node => node.classList.remove("active"));
+        item.classList.add("active");
+        document.querySelectorAll(".page").forEach(page => page.classList.remove("active"));
+        document.getElementById(item.dataset.page).classList.add("active");
+      });
+    });
+
+    function showToast(text) {
+      toast.textContent = text;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 1600);
+    }
+
+    function openDrawer() {
+      drawerMask.classList.add("show");
+    }
+
+    function closeDrawer() {
+      drawerMask.classList.remove("show");
+    }
+
+    document.getElementById("openDrawerBtn").addEventListener("click", openDrawer);
+    document.getElementById("tableEditBtn1").addEventListener("click", openDrawer);
+    document.getElementById("tableEditBtn2").addEventListener("click", openDrawer);
+    document.getElementById("closeDrawerBtn").addEventListener("click", closeDrawer);
+    document.getElementById("cancelDrawerBtn").addEventListener("click", closeDrawer);
+    drawerMask.addEventListener("click", e => {
+      if (e.target === drawerMask) closeDrawer();
+    });
+
+    function renderTimeSection() {
+      sameDayPanel.style.display = state.scheduleType === "sameDay" ? "block" : "none";
+      singleTimePanel.style.display = state.scheduleType === "sameDay" ? "none" : "block";
+      weeklyField.style.display = state.scheduleType === "weekly" ? "block" : "none";
+      monthlyField.style.display = state.scheduleType === "monthly" ? "block" : "none";
+      intervalField.style.display = state.scheduleType === "interval" ? "block" : "none";
+
+      if (state.scheduleType === "daily") {
+        timeSummary.textContent = "当前配置：规则将在每日固定时间触发。";
+        validationText.textContent = "每日模式保留现有单时间选择逻辑。";
+      } else if (state.scheduleType === "sameDay") {
+        timeSummary.textContent = `当前配置：当日命中后将在 ${sameDayTime.value} 触发。`;
+        validationText.textContent = "当日模式下必须选择 1 个触发时间。";
+      } else if (state.scheduleType === "nextDay") {
+        timeSummary.textContent = "当前配置：规则命中后顺延到次日固定时间触发。";
+        validationText.textContent = "次日模式仅需维护单个时间值，保留现有交互即可。";
+      } else if (state.scheduleType === "weekly") {
+        timeSummary.textContent = "当前配置：规则将在所选周几的固定时间触发。";
+        validationText.textContent = "每周模式保留现有周几 + 单时间选择结构。";
+      } else if (state.scheduleType === "monthly") {
+        timeSummary.textContent = "当前配置：规则将在每月指定日期的固定时间触发。";
+        validationText.textContent = "每月模式保留现有日期 + 单时间选择结构。";
+      } else {
+        timeSummary.textContent = "当前配置：规则按固定间隔循环触发。";
+        validationText.textContent = "间隔模式继续沿用间隔值 + 单位配置方式。";
+      }
+    }
+
+    scheduleType.addEventListener("change", e => {
+      state.scheduleType = e.target.value;
+      renderTimeSection();
+    });
+    sameDayTime.addEventListener("change", renderTimeSection);
+
+    document.getElementById("saveRuleBtn").addEventListener("click", () => {
+      showToast("规则已保存，已包含当日触发时间配置");
+      closeDrawer();
+    });
+
+    const delaySwitch = document.getElementById("delaySwitch");
+    const delayFields = document.getElementById("delayFields");
+    const delaySummary = document.getElementById("delaySummary");
+    function renderDelay() {
+      delaySwitch.classList.toggle("on", state.delayEnabled);
+      delayFields.classList.toggle("disabled", !state.delayEnabled);
+      const start = document.getElementById("startTime").value;
+      const end = document.getElementById("endTime").value;
+      const target = document.getElementById("delayTime").value;
+      delaySummary.textContent = state.delayEnabled
+        ? `当前策略：${start} - 次日 ${end} 为禁发时间，命中后顺延至 ${target} 触发。`
+        : "当前策略：延迟规则已关闭，触发器按命中时间即时发送。";
+    }
+    delaySwitch.addEventListener("click", () => {
+      state.delayEnabled = !state.delayEnabled;
+      renderDelay();
+    });
+    ["startTime", "endTime", "delayTime"].forEach(id => {
+      document.getElementById(id).addEventListener("change", renderDelay);
+    });
+    document.getElementById("saveGlobalBtn").addEventListener("click", () => {
+      showToast(state.delayEnabled ? "全局延迟配置已保存" : "全局延迟开关已关闭并保存");
+    });
+
+    renderTimeSection();
+    renderDelay();
+  </script>
+</body>
+</html>
