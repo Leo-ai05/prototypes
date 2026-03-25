@@ -6,17 +6,19 @@
   <title>渠道配置模型深度思考深度配置优化原型</title>
   <style>
     :root {
-      --bg: #f5f7fb;
+      --bg: #f5f7fa;
       --panel: #ffffff;
-      --line: #d9deea;
-      --text: #1f2937;
-      --muted: #667085;
-      --primary: #2563eb;
-      --primary-soft: #eff6ff;
-      --success: #16a34a;
-      --warning: #d97706;
-      --danger: #dc2626;
-      --shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+      --panel-soft: #fafbfc;
+      --line: #e5e7eb;
+      --line-strong: #d0d5dd;
+      --text: #101828;
+      --subtle: #667085;
+      --primary: #409eff;
+      --primary-soft: #ecf5ff;
+      --success: #67c23a;
+      --warning: #e6a23c;
+      --danger: #f56c6c;
+      --shadow: 0 16px 32px rgba(15, 23, 42, 0.12);
     }
     * {
       box-sizing: border-box;
@@ -37,84 +39,89 @@
       display: flex;
       min-height: 100vh;
     }
-    .sidebar {
-      width: 236px;
-      padding: 20px 16px;
-      background: #111827;
+    .side {
+      width: 220px;
+      background: #001529;
       color: #fff;
+      padding: 18px 0;
+      flex-shrink: 0;
     }
-    .brand {
-      margin-bottom: 24px;
+    .side-title {
+      padding: 0 20px 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
-    .brand h1 {
-      margin: 0 0 8px;
-      font-size: 18px;
+    .side-title strong {
+      display: block;
+      font-size: 16px;
+      margin-bottom: 6px;
     }
-    .brand p {
-      margin: 0;
-      color: #9ca3af;
+    .side-title span {
+      display: block;
+      color: rgba(255, 255, 255, 0.65);
       font-size: 12px;
       line-height: 1.6;
     }
-    .menu-group {
-      margin-bottom: 18px;
+    .nav-group {
+      padding: 16px 12px 0;
     }
-    .menu-group strong {
-      display: block;
-      margin-bottom: 8px;
-      color: #e5e7eb;
+    .nav-group-title {
+      padding: 0 8px 8px;
+      color: rgba(255, 255, 255, 0.55);
       font-size: 12px;
-      letter-spacing: 0.04em;
     }
-    .menu-item {
-      display: block;
+    .nav-item {
       width: 100%;
-      margin-bottom: 8px;
       border: 0;
-      border-radius: 12px;
-      padding: 12px;
-      background: rgba(255, 255, 255, 0.06);
-      color: #d1d5db;
+      border-radius: 6px;
+      padding: 11px 12px;
+      background: transparent;
+      color: rgba(255, 255, 255, 0.85);
       text-align: left;
       cursor: pointer;
     }
-    .menu-item.active {
+    .nav-item.active {
       background: var(--primary);
       color: #fff;
     }
     .main {
       flex: 1;
-      padding: 24px;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
     }
-    .header {
+    .topbar {
       display: flex;
       justify-content: space-between;
       gap: 16px;
-      align-items: flex-start;
-      margin-bottom: 18px;
+      align-items: center;
+      padding: 16px 24px;
+      background: #fff;
+      border-bottom: 1px solid var(--line);
     }
-    .header h2 {
-      margin: 0 0 8px;
-      font-size: 28px;
+    .crumb {
+      font-size: 13px;
+      color: var(--subtle);
     }
-    .header p {
-      margin: 0;
-      color: var(--muted);
-      line-height: 1.7;
-    }
-    .badge-row {
+    .scenario-tabs {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
-      justify-content: flex-end;
     }
-    .badge {
-      padding: 6px 10px;
+    .scenario-tab {
       border: 1px solid var(--line);
-      border-radius: 999px;
       background: #fff;
-      color: var(--muted);
-      font-size: 12px;
+      color: var(--subtle);
+      border-radius: 6px;
+      padding: 6px 12px;
+      cursor: pointer;
+    }
+    .scenario-tab.active {
+      color: var(--primary);
+      border-color: #b3d8ff;
+      background: var(--primary-soft);
+    }
+    .content-wrap {
+      padding: 20px 24px 28px;
     }
     .page {
       display: none;
@@ -122,107 +129,73 @@
     .page.active {
       display: block;
     }
-    .section {
+    .page-head {
       margin-bottom: 16px;
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      background: var(--panel);
-      box-shadow: var(--shadow);
-      overflow: hidden;
     }
-    .section-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-      padding: 16px 18px;
-      border-bottom: 1px solid var(--line);
-      background: #fafcff;
+    .page-head h1 {
+      margin: 0 0 8px;
+      font-size: 22px;
+      font-weight: 600;
     }
-    .section-head h3 {
-      margin: 0 0 4px;
-      font-size: 16px;
-    }
-    .section-head p {
+    .page-head p {
       margin: 0;
-      color: var(--muted);
-      font-size: 12px;
+      color: var(--subtle);
+      font-size: 13px;
       line-height: 1.6;
     }
-    .content {
-      padding: 18px;
-    }
-    .summary {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 12px;
-    }
-    .card {
+    .content-container {
+      background: var(--panel);
       border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 14px;
-      background: #fff;
-    }
-    .card strong {
-      display: block;
-      margin-bottom: 8px;
-      font-size: 14px;
-    }
-    .metric {
-      margin-top: 6px;
-      font-size: 24px;
-      font-weight: 700;
-    }
-    .muted {
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.6;
+      border-radius: 8px;
+      padding: 16px;
     }
     .toolbar {
       display: flex;
       justify-content: space-between;
+      align-items: center;
       gap: 12px;
-      margin-bottom: 14px;
       flex-wrap: wrap;
+      margin-bottom: 16px;
     }
     .toolbar-left,
     .toolbar-right {
       display: flex;
+      align-items: center;
       gap: 8px;
       flex-wrap: wrap;
-    }
-    .btn,
-    .ghost-btn {
-      border-radius: 10px;
-      padding: 9px 14px;
-      cursor: pointer;
     }
     .btn {
       border: 1px solid var(--primary);
       background: var(--primary);
       color: #fff;
+      border-radius: 4px;
+      padding: 8px 16px;
+      cursor: pointer;
     }
     .btn.secondary {
       background: #fff;
       color: var(--primary);
     }
-    .ghost-btn {
-      border: 1px solid var(--line);
-      background: #fff;
+    .btn.plain {
+      border-color: var(--line-strong);
       color: var(--text);
-    }
-    .filter-chip {
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      padding: 8px 12px;
       background: #fff;
-      font-size: 12px;
-      color: var(--muted);
     }
-    .filter-chip.active {
-      border-color: #bfdbfe;
-      background: var(--primary-soft);
-      color: var(--primary);
+    .btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+    .filter {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 10px;
+      height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: #fff;
+      color: var(--subtle);
+      font-size: 13px;
     }
     table {
       width: 100%;
@@ -231,118 +204,164 @@
     }
     th,
     td {
-      padding: 12px 10px;
-      border-bottom: 1px solid #edf1f7;
+      border-bottom: 1px solid var(--line);
+      padding: 11px 10px;
       text-align: left;
       vertical-align: top;
     }
     th {
-      background: #f8fafc;
-      color: var(--muted);
+      background: var(--panel-soft);
+      color: var(--subtle);
       font-weight: 600;
     }
-    .status {
+    .link {
+      border: 0;
+      background: transparent;
+      color: var(--primary);
+      padding: 0;
+      cursor: pointer;
+    }
+    .status-tag {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 4px 8px;
+      height: 24px;
+      padding: 0 10px;
       border-radius: 999px;
       font-size: 12px;
     }
-    .status.success {
-      background: #ecfdf3;
+    .status-tag.success {
+      background: #f0f9eb;
       color: var(--success);
     }
-    .status.warning {
-      background: #fff7ed;
+    .status-tag.warning {
+      background: #fdf6ec;
       color: var(--warning);
     }
-    .layout {
-      display: grid;
-      grid-template-columns: 1.2fr 0.9fr;
-      gap: 16px;
+    .status-tag.info {
+      background: #f4f4f5;
+      color: #606266;
+    }
+    .switch {
+      width: 40px;
+      height: 22px;
+      border-radius: 999px;
+      background: #d0d5dd;
+      position: relative;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .switch::after {
+      content: "";
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #fff;
+      position: absolute;
+      top: 2px;
+      left: 2px;
+    }
+    .switch.on {
+      background: var(--primary);
+    }
+    .switch.on::after {
+      left: 20px;
+    }
+    .dialog-mask {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.42);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      z-index: 20;
+    }
+    .dialog-mask.show {
+      display: flex;
     }
     .dialog {
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      overflow: hidden;
+      width: min(1100px, 100%);
+      max-height: calc(100vh - 48px);
+      overflow: auto;
       background: #fff;
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+    .dialog.small {
+      width: min(620px, 100%);
     }
     .dialog-head {
       display: flex;
       justify-content: space-between;
+      gap: 16px;
       align-items: center;
-      gap: 12px;
-      padding: 16px 18px;
+      padding: 16px 20px;
       border-bottom: 1px solid var(--line);
-      background: #f9fbff;
+      position: sticky;
+      top: 0;
+      background: #fff;
+      z-index: 1;
+    }
+    .dialog-head strong {
+      font-size: 18px;
     }
     .dialog-body {
-      padding: 18px;
-      display: grid;
-      gap: 18px;
+      padding: 20px;
     }
-    .grid-2 {
+    .dialog-foot {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 16px 20px;
+      border-top: 1px solid var(--line);
+      background: #fff;
+      position: sticky;
+      bottom: 0;
+    }
+    .grid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
+      gap: 16px;
+    }
+    .grid.two {
+      grid-template-columns: 1fr 1fr;
     }
     .field {
       display: grid;
-      gap: 6px;
+      gap: 8px;
     }
     .field label {
+      color: #344054;
       font-size: 13px;
       font-weight: 600;
     }
     .input,
+    .select,
     .textarea,
-    .select {
+    .number {
       width: 100%;
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      padding: 10px 12px;
+      border: 1px solid var(--line-strong);
+      border-radius: 4px;
+      padding: 8px 10px;
+      min-height: 34px;
       background: #fff;
     }
     .textarea {
-      min-height: 80px;
+      min-height: 88px;
       resize: vertical;
-    }
-    .switch-row,
-    .hint-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    .toggle {
-      position: relative;
-      width: 46px;
-      height: 26px;
-      border-radius: 999px;
-      background: #d1d5db;
-      cursor: pointer;
-    }
-    .toggle::after {
-      content: "";
-      position: absolute;
-      top: 3px;
-      left: 3px;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background: #fff;
-      transition: 0.2s;
-    }
-    .toggle.on {
-      background: var(--primary);
-    }
-    .toggle.on::after {
-      transform: translateX(20px);
     }
     .divider {
       height: 1px;
       background: var(--line);
+      margin: 4px 0 2px;
+    }
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .section-title strong {
+      font-size: 16px;
     }
     .radio-row,
     .seg-row {
@@ -350,747 +369,831 @@
       gap: 8px;
       flex-wrap: wrap;
     }
-    .radio,
-    .seg {
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      padding: 10px 12px;
+    .radio-item,
+    .seg-item {
+      border: 1px solid var(--line-strong);
       background: #fff;
+      border-radius: 4px;
+      padding: 8px 12px;
       cursor: pointer;
-      min-width: 90px;
-      text-align: center;
+      color: #344054;
     }
-    .radio.active,
-    .seg.active {
-      border-color: #93c5fd;
+    .radio-item.active,
+    .seg-item.active {
       background: var(--primary-soft);
+      border-color: #b3d8ff;
       color: var(--primary);
     }
-    .callout {
-      padding: 12px 14px;
-      border-radius: 12px;
-      border: 1px solid #bfdbfe;
-      background: #f8fbff;
-      color: #1d4ed8;
-      font-size: 13px;
-      line-height: 1.7;
-    }
-    .callout.warning {
-      border-color: #fed7aa;
-      background: #fff7ed;
-      color: #c2410c;
-    }
-    .callout.success {
-      border-color: #bbf7d0;
-      background: #f0fdf4;
-      color: #15803d;
-    }
-    .side-panel {
+    .thinking-grid {
       display: grid;
-      gap: 16px;
-      align-content: start;
-    }
-    .sticky {
-      position: sticky;
-      top: 24px;
-    }
-    .payload {
-      margin: 0;
-      padding: 14px;
-      border-radius: 14px;
-      background: #0f172a;
-      color: #e2e8f0;
-      overflow: auto;
-      font-size: 12px;
-      line-height: 1.7;
-    }
-    .option-list {
-      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 10px;
     }
-    .option-item {
-      border: 1px solid var(--line);
-      border-radius: 12px;
+    .thinking-item {
+      border: 1px solid var(--line-strong);
+      border-radius: 6px;
       padding: 12px;
       cursor: pointer;
       background: #fff;
     }
-    .option-item.active {
-      border-color: #93c5fd;
+    .thinking-item strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+    .thinking-item p {
+      margin: 0;
+      color: var(--subtle);
+      font-size: 12px;
+      line-height: 1.6;
+    }
+    .thinking-item.active {
+      border-color: #b3d8ff;
       background: var(--primary-soft);
     }
-    .option-item.disabled {
-      opacity: 0.55;
+    .thinking-item.disabled {
+      background: #f8fafc;
+      color: #98a2b3;
       cursor: not-allowed;
-      background: #f8fafc;
     }
-    .kefu-preview {
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: #fff;
-      overflow: hidden;
+    .thinking-item.disabled p {
+      color: #98a2b3;
     }
-    .chat-head {
-      padding: 14px 16px;
-      border-bottom: 1px solid var(--line);
-      background: #f8fafc;
-      font-weight: 600;
-    }
-    .chat-body {
-      padding: 16px;
-      display: grid;
-      gap: 12px;
-      background: #f6f8fb;
-    }
-    .bubble {
-      max-width: 78%;
-      padding: 12px 14px;
-      border-radius: 14px;
-      border: 1px solid var(--line);
-      background: #fff;
-      line-height: 1.7;
+    .tips {
+      border: 1px solid #d9ecff;
+      background: #f4faff;
+      color: #1d4ed8;
+      border-radius: 6px;
+      padding: 10px 12px;
       font-size: 13px;
+      line-height: 1.7;
     }
-    .bubble.self {
-      justify-self: end;
-      background: #2563eb;
-      border-color: #2563eb;
-      color: #fff;
+    .tips.warning {
+      border-color: #fcd9bd;
+      background: #fff7ed;
+      color: #c2410c;
     }
-    .footer-bar {
+    .tips.success {
+      border-color: #b7eb8f;
+      background: #f6ffed;
+      color: #389e0d;
+    }
+    .side-card {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--panel-soft);
+      padding: 12px;
+    }
+    .side-card strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+    .code {
+      margin: 0;
+      background: #101828;
+      color: #e4e7ec;
+      border-radius: 6px;
+      padding: 12px;
+      overflow: auto;
+      font-size: 12px;
+      line-height: 1.7;
+    }
+    .read-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .detail-panel {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 16px;
+      background: #fff;
+    }
+    .detail-row {
       display: flex;
       justify-content: space-between;
       gap: 12px;
-      align-items: center;
-      padding-top: 8px;
-    }
-    .toast {
-      display: none;
-      margin-top: 10px;
-      padding: 10px 12px;
-      border-radius: 12px;
-      background: #fef2f2;
-      color: var(--danger);
+      padding: 10px 0;
+      border-bottom: 1px dashed var(--line);
       font-size: 13px;
     }
-    .toast.show {
-      display: block;
+    .detail-row:last-child {
+      border-bottom: 0;
     }
-    .table-note {
-      display: inline-block;
-      margin-top: 6px;
-      color: var(--muted);
+    .chat-shell {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      background: #fff;
+    }
+    .chat-head {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel-soft);
+      font-weight: 600;
+    }
+    .chat-body {
+      background: #f2f4f7;
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+    }
+    .bubble {
+      max-width: 82%;
+      padding: 11px 14px;
+      border-radius: 10px;
+      background: #fff;
+      border: 1px solid var(--line);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+    .bubble.self {
+      justify-self: end;
+      background: #409eff;
+      color: #fff;
+      border-color: #409eff;
+    }
+    .note {
+      margin-top: 12px;
+      color: var(--subtle);
       font-size: 12px;
+      line-height: 1.7;
     }
     @media (max-width: 1280px) {
-      .summary,
-      .layout,
-      .grid-2 {
+      .grid.two,
+      .read-grid,
+      .thinking-grid {
         grid-template-columns: 1fr;
       }
-      .sidebar {
+      .side {
         display: none;
       }
-      .main {
-        padding: 16px;
+      .content-wrap,
+      .topbar {
+        padding-left: 16px;
+        padding-right: 16px;
       }
     }
   </style>
 </head>
 <body>
   <div class="app">
-    <aside class="sidebar">
-      <div class="brand">
-        <h1>客服系统原型</h1>
-        <p>基于 `kefu-console` 真实页面结构做增量设计，演示“深度思考深度”从模型能力管理到渠道配置再到接待效果的闭环。</p>
+    <aside class="side">
+      <div class="side-title">
+        <strong>客服后台原型</strong>
+        <span>按现有后台参考页面还原，只做新增字段与少量列表字段扩展。</span>
       </div>
-      <div class="menu-group">
-        <strong>机器人管理</strong>
-        <button class="menu-item active" data-page-target="page-channel">渠道管理</button>
+      <div class="nav-group">
+        <div class="nav-group-title">机器人管理</div>
+        <button class="nav-item active" data-page="channel">渠道管理</button>
       </div>
-      <div class="menu-group">
-        <strong>全局设置</strong>
-        <button class="menu-item" data-page-target="page-model">平台模型管理</button>
-        <button class="menu-item" data-page-target="page-verify">验证记录查看</button>
+      <div class="nav-group">
+        <div class="nav-group-title">全局设置</div>
+        <button class="nav-item" data-page="model">平台模型管理</button>
+        <button class="nav-item" data-page="verify">验证模型管理</button>
       </div>
-      <div class="menu-group">
-        <strong>客服 C 端</strong>
-        <button class="menu-item" data-page-target="page-customer">客户侧效果</button>
+      <div class="nav-group">
+        <div class="nav-group-title">客服 C 端</div>
+        <button class="nav-item" data-page="customer">客户侧效果</button>
       </div>
     </aside>
+
     <main class="main">
-      <div class="header">
-        <div>
-          <h2>渠道配置模型深度思考深度配置优化</h2>
-          <p>目标是在不重构现有“渠道管理”结构的前提下，为 AI 应答模型增加可控的“深度思考深度”配置，保障运营可按渠道调优回答质量，并通过模型能力标识避免误配。</p>
-        </div>
-        <div class="badge-row">
-          <span class="badge">作用页：`/ChannelManage`</span>
-          <span class="badge">新增字段：`thinkingDepth`</span>
-          <span class="badge">联动页：平台模型管理 / 验证记录</span>
+      <div class="topbar">
+        <div class="crumb">首页 / 客服系统 / 需求原型 / 渠道配置模型深度思考深度配置优化</div>
+        <div class="scenario-tabs">
+          <button class="scenario-tab active" data-page="channel">渠道管理</button>
+          <button class="scenario-tab" data-page="model">平台模型管理</button>
+          <button class="scenario-tab" data-page="verify">验证记录</button>
+          <button class="scenario-tab" data-page="customer">客户侧效果</button>
         </div>
       </div>
 
-      <section id="page-channel" class="page active">
-        <div class="section">
-          <div class="section-head">
-            <div>
-              <h3>方案总览</h3>
-              <p>新增模型能力标识后，渠道编辑弹窗仅在模型支持时展示“深度思考深度”，避免运营配置无效参数。</p>
-            </div>
+      <div class="content-wrap">
+        <section class="page active" id="page-channel">
+          <div class="page-head">
+            <h1>渠道管理</h1>
+            <p>保持现有列表页和 `ChannelInfoDialog` 弹窗结构，只新增“思考深度”列表字段以及 AI 应答区内的“深度思考深度”配置项。</p>
           </div>
-          <div class="content">
-            <div class="summary">
-              <div class="card">
-                <strong>配置入口</strong>
-                <div class="metric">1 个</div>
-                <div class="muted">位于“AI应答”表单，放在“平台模型”之后、“模型热度”之前。</div>
-              </div>
-              <div class="card">
-                <strong>配置范围</strong>
-                <div class="metric">渠道级</div>
-                <div class="muted">支持单渠道新增/编辑，也支持批量修改时选择“保持原值”。</div>
-              </div>
-              <div class="card">
-                <strong>推荐值</strong>
-                <div class="metric">标准</div>
-                <div class="muted">低延迟场景建议“浅度”，复杂咨询场景建议“标准/深度”。</div>
-              </div>
-              <div class="card">
-                <strong>C 端影响</strong>
-                <div class="metric">0 个新入口</div>
-                <div class="muted">`kefu-web-pc` 不新增前端页面，仅体现在回答耗时和回答细致度变化。</div>
-              </div>
-            </div>
-          </div>
-        </div>
 
-        <div class="section">
-          <div class="section-head">
-            <div>
-              <h3>渠道管理列表</h3>
-              <p>保留现有表格结构，在列表中补充“思考深度”列，便于排查不同渠道的模型策略差异。</p>
-            </div>
-            <div class="toolbar-right">
-              <button class="ghost-btn">批量修改</button>
-              <button class="btn">新增渠道</button>
-            </div>
-          </div>
-          <div class="content">
+          <div class="content-container">
             <div class="toolbar">
               <div class="toolbar-left">
-                <span class="filter-chip active">AI平台：豆包</span>
-                <span class="filter-chip">AI模型：Doubao-Reasoning-Pro</span>
-                <span class="filter-chip">流式生成：是</span>
-                <span class="filter-chip active">思考深度：标准</span>
+                <button class="btn plain" id="batchBtn">批量修改</button>
+                <button class="btn">新增渠道</button>
               </div>
               <div class="toolbar-right">
-                <button id="openEdit" class="btn secondary">查看编辑弹窗</button>
+                <div class="filter">流式生成：是</div>
+                <div class="filter">AI平台：豆包</div>
+                <div class="filter">AI模型：Doubao-Reasoning-Pro</div>
+                <div class="filter">思考深度：标准</div>
               </div>
             </div>
+
             <table>
               <thead>
                 <tr>
+                  <th style="width:44px;"><input type="checkbox" /></th>
                   <th>ID</th>
                   <th>渠道名称</th>
                   <th>渠道类型</th>
                   <th>AI平台</th>
-                  <th>平台模型</th>
+                  <th>AI模型</th>
                   <th>思考深度</th>
-                  <th>模型热度</th>
                   <th>流式生成</th>
-                  <th>应答模式</th>
+                  <th>AI答案模式</th>
+                  <th>创建时间</th>
                   <th>渠道开关</th>
+                  <th>操作</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
+                  <td><input type="checkbox" /></td>
                   <td>10241</td>
                   <td>考研咨询-PC</td>
                   <td>pc</td>
                   <td>豆包</td>
                   <td>Doubao-Reasoning-Pro</td>
-                  <td><span class="status success">标准</span></td>
-                  <td>0.2</td>
-                  <td>开启</td>
-                  <td>AI应答</td>
-                  <td>开启</td>
+                  <td><span class="status-tag success">标准</span></td>
+                  <td>是</td>
+                  <td>直接发送给客户</td>
+                  <td>2026-03-25 10:20:31</td>
+                  <td><span class="switch on"></span></td>
+                  <td>
+                    <button class="link" id="openChannelDialog">编辑</button>
+                    <button class="link">复制链接</button>
+                  </td>
                 </tr>
                 <tr>
+                  <td><input type="checkbox" /></td>
                   <td>10242</td>
                   <td>课程导购-移动端</td>
                   <td>mobile</td>
                   <td>OpenAI</td>
                   <td>GPT-4o-mini</td>
-                  <td><span class="status warning">不支持</span></td>
-                  <td>0.4</td>
-                  <td>开启</td>
-                  <td>AI应答</td>
-                  <td>开启</td>
+                  <td><span class="status-tag warning">不支持</span></td>
+                  <td>是</td>
+                  <td>不发送给客户</td>
+                  <td>2026-03-25 09:14:55</td>
+                  <td><span class="switch on"></span></td>
+                  <td>
+                    <button class="link open-unsupported">编辑</button>
+                    <button class="link">复制链接</button>
+                  </td>
                 </tr>
                 <tr>
+                  <td><input type="checkbox" /></td>
                   <td>10243</td>
                   <td>售后接待-PC</td>
                   <td>pc</td>
                   <td>-</td>
                   <td>-</td>
+                  <td><span class="status-tag info">-</span></td>
                   <td>-</td>
                   <td>-</td>
-                  <td>-</td>
-                  <td>向量应答</td>
-                  <td>关闭</td>
+                  <td>2026-03-24 18:02:19</td>
+                  <td><span class="switch"></span></td>
+                  <td>
+                    <button class="link">编辑</button>
+                    <button class="link">复制链接</button>
+                  </td>
                 </tr>
               </tbody>
             </table>
-            <span class="table-note">说明：仅 `AI应答` 渠道展示实际思考深度值；非 AI 应答显示 `-`；不支持深度思考的模型显示 `不支持`。</span>
-          </div>
-        </div>
 
-        <div class="layout">
-          <div class="dialog">
-            <div class="dialog-head">
+            <div class="note">列表改动控制在最小范围：只新增“思考深度”列和对应筛选项，不改变列表整体布局、按钮位置和操作区结构。</div>
+          </div>
+        </section>
+
+        <section class="page" id="page-model">
+          <div class="page-head">
+            <h1>平台模型管理</h1>
+            <p>继续沿用当前模型管理列表与弹窗，仅补充模型能力标识字段，为渠道页的动态展示提供依据。</p>
+          </div>
+
+          <div class="content-container">
+            <div class="toolbar">
+              <div class="toolbar-left">
+                <button class="btn" id="openModelDialog">新增模型</button>
+              </div>
+              <div class="toolbar-right">
+                <div class="filter">所属平台：全部</div>
+              </div>
+            </div>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>所属平台</th>
+                  <th>模型名称</th>
+                  <th>支持深度思考</th>
+                  <th>默认推荐深度</th>
+                  <th>创建人</th>
+                  <th>创建时间</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>301</td>
+                  <td>豆包</td>
+                  <td>Doubao-Reasoning-Pro</td>
+                  <td>是</td>
+                  <td>标准</td>
+                  <td>产品运营A</td>
+                  <td>2026-03-20 14:11:20</td>
+                  <td><button class="link open-model-edit">编辑</button></td>
+                </tr>
+                <tr>
+                  <td>302</td>
+                  <td>OpenAI</td>
+                  <td>GPT-4o-mini</td>
+                  <td>否</td>
+                  <td>-</td>
+                  <td>产品运营A</td>
+                  <td>2026-03-20 14:13:08</td>
+                  <td><button class="link open-model-edit">编辑</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="page" id="page-verify">
+          <div class="page-head">
+            <h1>验证模型管理</h1>
+            <p>保持“列表 + 配置快照详情”阅读方式，在只读详情中补充思考深度，便于复盘问题来源。</p>
+          </div>
+
+          <div class="content-container">
+            <div class="toolbar">
+              <div class="toolbar-left">
+                <div class="filter">渠道：考研咨询-PC</div>
+                <div class="filter">时间：最近7天</div>
+              </div>
+            </div>
+
+            <div class="read-grid">
               <div>
-                <strong>编辑渠道</strong>
-                <div class="muted">按现有 `ChannelInfoDialog` 的表单顺序增量插入新字段。</div>
-              </div>
-              <div class="switch-row">
-                <span class="muted">批量模式</span>
-                <div id="batchToggle" class="toggle"></div>
-              </div>
-            </div>
-            <div class="dialog-body">
-              <div class="grid-2">
-                <div class="field">
-                  <label>渠道名称</label>
-                  <input class="input" value="考研咨询-PC" />
-                </div>
-                <div class="field">
-                  <label>渠道类型</label>
-                  <select class="select">
-                    <option>PC端</option>
-                    <option>移动端</option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="divider"></div>
-
-              <div class="field">
-                <label>应答模式</label>
-                <div class="radio-row">
-                  <button class="radio active">AI应答</button>
-                  <button class="radio">向量应答</button>
-                  <button class="radio">匹配应答</button>
-                </div>
-              </div>
-
-              <div class="grid-2">
-                <div class="field">
-                  <label>AI平台</label>
-                  <select id="platformSelect" class="select">
-                    <option value="doubao">豆包</option>
-                    <option value="openai">OpenAI</option>
-                    <option value="anthropic">Anthropic</option>
-                  </select>
-                </div>
-                <div class="field">
-                  <label>平台模型</label>
-                  <select id="modelSelect" class="select"></select>
-                </div>
-              </div>
-
-              <div id="thinkingWrapper" class="field">
-                <label>深度思考深度</label>
-                <div id="thinkingOptions" class="option-list"></div>
-                <div id="thinkingHint" class="callout"></div>
-              </div>
-
-              <div class="grid-2">
-                <div class="field">
-                  <label>模型热度</label>
-                  <input id="temperatureInput" class="input" type="range" min="0" max="100" step="10" value="20" />
-                  <div class="muted">当前值：<span id="temperatureText">0.2</span>，热度越高回答越发散。</div>
-                </div>
-                <div class="field">
-                  <label>请求最大 token 长度</label>
-                  <input id="maxTokensInput" class="input" type="number" min="500" step="100" value="1500" />
-                </div>
-              </div>
-
-              <div class="grid-2">
-                <div class="field">
-                  <label>机器人角色预设</label>
-                  <textarea class="textarea">你是一名课程咨询顾问，需要在事实准确的前提下给出结构化回答。</textarea>
-                </div>
-                <div class="field">
-                  <label>机器人角色限制</label>
-                  <textarea class="textarea">不要承诺未发布政策；不要编造收费、班型、录取结果。</textarea>
-                </div>
-              </div>
-
-              <div class="footer-bar">
-                <div id="saveToast" class="toast">当前模型支持深度思考，必须选择思考深度后才可保存。</div>
-                <div class="toolbar-right">
-                  <button class="ghost-btn">取消</button>
-                  <button id="saveBtn" class="btn">保存渠道配置</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="side-panel sticky">
-            <div class="section">
-              <div class="section-head">
-                <div>
-                  <h3>提交参数预览</h3>
-                  <p>展示新增字段在渠道级配置中的落点，便于研发确认接口结构。</p>
-                </div>
-              </div>
-              <div class="content">
-                <pre id="payload" class="payload"></pre>
-              </div>
-            </div>
-
-            <div class="section">
-              <div class="section-head">
-                <div>
-                  <h3>交互规则</h3>
-                  <p>字段展示、默认值和批量修改逻辑在这里集中说明。</p>
-                </div>
-              </div>
-              <div class="content">
-                <div class="callout">
-                  1. 当模型不支持深度思考时，字段置灰并强制回写为“关闭”。<br />
-                  2. 单渠道新增/编辑时，支持模型默认值为“标准”。<br />
-                  3. 批量修改时，首项新增“保持原值”，避免误伤已有渠道策略。<br />
-                  4. 选择“深度”后，页面提示回答更细致但耗时可能增加。
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="page-model" class="page">
-        <div class="section">
-          <div class="section-head">
-            <div>
-              <h3>全局模型管理联动</h3>
-              <p>为了解决“渠道页可配但模型未必支持”的问题，在平台模型管理中补充模型能力标识。</p>
-            </div>
-          </div>
-          <div class="content">
-            <div class="layout">
-              <div class="card">
-                <strong>模型列表</strong>
                 <table>
                   <thead>
                     <tr>
-                      <th>所属平台</th>
-                      <th>模型名称</th>
-                      <th>支持深度思考</th>
-                      <th>默认推荐深度</th>
+                      <th>记录ID</th>
+                      <th>渠道</th>
+                      <th>模型</th>
+                      <th>首包耗时</th>
+                      <th>操作</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr>
-                      <td>豆包</td>
+                      <td>88021</td>
+                      <td>考研咨询-PC</td>
                       <td>Doubao-Reasoning-Pro</td>
-                      <td>是</td>
-                      <td>标准</td>
+                      <td>2.1s</td>
+                      <td><button class="link">查看</button></td>
                     </tr>
                     <tr>
-                      <td>OpenAI</td>
+                      <td>88018</td>
+                      <td>课程导购-移动端</td>
                       <td>GPT-4o-mini</td>
-                      <td>否</td>
-                      <td>-</td>
-                    </tr>
-                    <tr>
-                      <td>Anthropic</td>
-                      <td>Claude-Reasoning</td>
-                      <td>是</td>
-                      <td>深度</td>
+                      <td>1.0s</td>
+                      <td><button class="link">查看</button></td>
                     </tr>
                   </tbody>
                 </table>
               </div>
-              <div class="card">
-                <strong>新增/编辑模型弹窗</strong>
-                <div class="field">
-                  <label>所属平台</label>
-                  <select class="select">
-                    <option>豆包</option>
-                    <option>OpenAI</option>
-                    <option>Anthropic</option>
-                  </select>
-                </div>
-                <div class="field">
-                  <label>模型名称</label>
-                  <input class="input" value="Doubao-Reasoning-Pro" />
-                </div>
-                <div class="field">
-                  <label>支持深度思考</label>
-                  <div class="seg-row">
-                    <button class="seg active">支持</button>
-                    <button class="seg">不支持</button>
-                  </div>
-                </div>
-                <div class="field">
-                  <label>默认推荐深度</label>
-                  <div class="seg-row">
-                    <button class="seg">浅度</button>
-                    <button class="seg active">标准</button>
-                    <button class="seg">深度</button>
-                  </div>
-                </div>
-                <div class="callout">该能力配置将被渠道管理页读取，用于决定“深度思考深度”字段是否展示以及默认回填值。</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      <section id="page-verify" class="page">
-        <div class="section">
-          <div class="section-head">
-            <div>
-              <h3>验证记录只读展示</h3>
-              <p>沿用现有 `ChannelPlugin.vue` 的只读表单风格，补充“深度思考深度”，便于问题复盘。</p>
-            </div>
-          </div>
-          <div class="content">
-            <div class="grid-2">
-              <div class="card">
+              <div class="detail-panel">
                 <strong>渠道配置快照</strong>
-                <div class="simple-list">
-                  <div class="field">
-                    <label>AI平台</label>
-                    <input class="input" value="豆包" disabled />
-                  </div>
-                  <div class="field">
-                    <label>平台模型</label>
-                    <input class="input" value="Doubao-Reasoning-Pro" disabled />
-                  </div>
-                  <div class="field">
-                    <label>深度思考深度</label>
-                    <input class="input" value="标准" disabled />
-                  </div>
-                  <div class="field">
-                    <label>模型热度</label>
-                    <input class="input" value="0.2" disabled />
-                  </div>
-                </div>
-              </div>
-              <div class="card">
-                <strong>复盘说明</strong>
-                <div class="callout success">
-                  当投诉“回复太慢”时，可结合验证记录对比：<br />
-                  1. 是否启用了深度思考；<br />
-                  2. 当前深度是否设为“深度”；<br />
-                  3. 是否同时配置了较高 `maxTokens` 与较长上下文。
-                </div>
+                <div class="detail-row"><span>AI平台</span><span>豆包</span></div>
+                <div class="detail-row"><span>平台模型</span><span>Doubao-Reasoning-Pro</span></div>
+                <div class="detail-row"><span>深度思考深度</span><span>标准</span></div>
+                <div class="detail-row"><span>模型热度</span><span>0.2</span></div>
+                <div class="detail-row"><span>请求最大 token 长度</span><span>1500</span></div>
+                <div class="detail-row"><span>流式生成</span><span>开启</span></div>
+                <div class="note">与现有只读详情一致，以字段展示为主，不新增复杂交互。</div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section id="page-customer" class="page">
-        <div class="section">
-          <div class="section-head">
-            <div>
-              <h3>`kefu-web-pc` 客户侧效果</h3>
-              <p>C 端不新增设置页，仅通过最终回答耗时和细致度体现策略差异，仍由 `/web/config/:channel` 校验渠道进入会话。</p>
-            </div>
+        <section class="page" id="page-customer">
+          <div class="page-head">
+            <h1>客户侧效果说明</h1>
+            <p>`kefu-web-pc` 不增加新页面和新按钮，只通过回答速度与内容细致度体现配置效果，避免偏离当前会话页布局。</p>
           </div>
-          <div class="content">
-            <div class="layout">
-              <div class="kefu-preview">
+
+          <div class="content-container">
+            <div class="read-grid">
+              <div class="chat-shell">
                 <div class="chat-head">考研咨询助手</div>
                 <div class="chat-body">
                   <div class="bubble self">请帮我比较全程班和冲刺班的适用人群。</div>
-                  <div id="answerBubble" class="bubble">系统根据当前渠道配置生成回答。</div>
+                  <div class="bubble" id="answerBubble">建议从学习阶段和服务需求两方面判断：全程班适合基础薄弱、需要完整课程与督学服务的用户；冲刺班适合已有基础、希望短期聚焦提分的用户。</div>
                 </div>
               </div>
-              <div class="card">
-                <strong>效果说明</strong>
-                <div class="option-list">
-                  <div class="option-item active" data-customer-depth="shallow">
-                    <strong>浅度思考</strong>
-                    <div class="muted">回答更快，适合高频标准问答；内容结构较短。</div>
-                  </div>
-                  <div class="option-item" data-customer-depth="standard">
-                    <strong>标准思考</strong>
-                    <div class="muted">默认推荐，平衡回答时延和信息完整度。</div>
-                  </div>
-                  <div class="option-item" data-customer-depth="deep">
-                    <strong>深度思考</strong>
-                    <div class="muted">回答更细致，适合复杂咨询，但预计首包耗时更长。</div>
-                  </div>
+              <div class="detail-panel">
+                <strong>配置效果切换</strong>
+                <div class="seg-row">
+                  <button class="seg-item customer-depth active" data-depth="standard">标准</button>
+                  <button class="seg-item customer-depth" data-depth="deep">深度</button>
+                  <button class="seg-item customer-depth" data-depth="shallow">浅度</button>
                 </div>
-                <div class="callout warning" style="margin-top:12px;">
-                  PRD 约束：C 端前端页面不直接展示“思考深度”给用户，仅用于后台配置和复盘，不增加用户认知负担。
+                <div class="tips" style="margin-top:12px;">
+                  C 端页面不透出“思考深度”概念，不新增任何用户可感知的配置入口。本期只影响回答效果，不改聊天页结构。
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
     </main>
   </div>
 
+  <div class="dialog-mask" id="channelDialogMask">
+    <div class="dialog">
+      <div class="dialog-head">
+        <strong id="channelDialogTitle">编辑渠道</strong>
+        <button class="btn plain" id="closeChannelDialog">关闭</button>
+      </div>
+      <div class="dialog-body">
+        <div class="grid two">
+          <div class="grid">
+            <div class="field">
+              <label>渠道名称</label>
+              <input class="input" value="考研咨询-PC" />
+            </div>
+            <div class="field">
+              <label>渠道类型</label>
+              <select class="select">
+                <option>PC端</option>
+                <option>移动端</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>菜单方案名称</label>
+              <select class="select">
+                <option>IM默认方案</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>渠道开关</label>
+              <div><span class="switch on"></span></div>
+            </div>
+          </div>
+
+          <div class="side-card">
+            <strong>本次页面调整原则</strong>
+            <div class="note">
+              1. 保持现有弹窗结构与字段顺序。<br />
+              2. 新字段仅插入到 `平台模型` 与 `模型热度` 之间。<br />
+              3. 不改动“转人工规则配置”和“上下文配置”的布局方式。<br />
+              4. 批量修改仅增加“保持原值”，不重做交互。
+            </div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="section-title">
+          <strong>应答模式</strong>
+          <div class="radio-row">
+            <button class="radio-item active">AI应答</button>
+            <button class="radio-item">向量应答</button>
+            <button class="radio-item">匹配应答</button>
+          </div>
+        </div>
+
+        <div class="grid two">
+          <div class="field">
+            <label>AI平台</label>
+            <select class="select" id="platformSelect">
+              <option value="doubao">豆包</option>
+              <option value="openai">OpenAI</option>
+              <option value="anthropic">Anthropic</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>平台模型</label>
+            <select class="select" id="modelSelect"></select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>深度思考深度</label>
+          <div class="thinking-grid" id="thinkingGrid"></div>
+          <div class="tips" id="thinkingTips"></div>
+        </div>
+
+        <div class="grid two">
+          <div class="field">
+            <label>模型热度</label>
+            <input class="number" id="temperatureInput" type="range" min="0" max="100" step="10" value="20" />
+            <div class="note">当前值：<span id="temperatureText">0.2</span>，保持与现有 slider 配置含义一致。</div>
+          </div>
+          <div class="field">
+            <label>流式生成</label>
+            <div><span class="switch on"></span></div>
+          </div>
+          <div class="field">
+            <label>AI答案模式</label>
+            <div class="radio-row">
+              <button class="radio-item">不发送给客户</button>
+              <button class="radio-item active">直接发送给客户</button>
+            </div>
+          </div>
+          <div class="field">
+            <label>请求最大 token 长度</label>
+            <input class="number" id="maxTokensInput" type="number" value="1500" min="500" step="100" />
+          </div>
+        </div>
+
+        <div class="grid two">
+          <div class="field">
+            <label>机器人角色预设</label>
+            <textarea class="textarea">你是一名课程咨询顾问，需要在事实准确的前提下给出结构化回答。</textarea>
+          </div>
+          <div class="field">
+            <label>机器人角色限制</label>
+            <textarea class="textarea">不要承诺未发布政策；不要编造收费、班型、录取结果。</textarea>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="section-title">
+          <strong>上下文配置</strong>
+        </div>
+        <div class="grid two">
+          <div class="field">
+            <label>是否开启上下文清洗</label>
+            <div><span class="switch on"></span></div>
+          </div>
+          <div class="field">
+            <label>改写上下文轮次数</label>
+            <input class="number" type="number" value="5" />
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="section-title">
+          <strong>转人工规则配置</strong>
+        </div>
+        <div class="grid two">
+          <div class="field">
+            <label>直接转人工</label>
+            <div><span class="switch on"></span></div>
+          </div>
+          <div class="field">
+            <label>延迟显示转人工</label>
+            <div><span class="switch"></span></div>
+          </div>
+        </div>
+
+        <div class="grid two">
+          <div class="side-card">
+            <strong>提交参数预览</strong>
+            <pre class="code" id="payloadPreview"></pre>
+          </div>
+          <div class="side-card">
+            <strong>批量模式说明</strong>
+            <div class="note">
+              当前原型默认展示单渠道编辑。点击列表页“批量修改”后，本弹窗标题切为“批量修改”，并在思考深度选项中增加“保持原值”。
+            </div>
+            <div id="saveMessage" class="tips" style="margin-top:12px;">当前为支持深度思考的模型，可在 `关闭 / 浅度 / 标准 / 深度` 中选择。</div>
+          </div>
+        </div>
+      </div>
+      <div class="dialog-foot">
+        <button class="btn plain" id="cancelChannelDialog">取消</button>
+        <button class="btn" id="saveChannelDialog">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="dialog-mask" id="modelDialogMask">
+    <div class="dialog small">
+      <div class="dialog-head">
+        <strong>编辑模型</strong>
+        <button class="btn plain" id="closeModelDialog">关闭</button>
+      </div>
+      <div class="dialog-body">
+        <div class="grid">
+          <div class="field">
+            <label>所属平台</label>
+            <select class="select">
+              <option>豆包</option>
+              <option>OpenAI</option>
+              <option>Anthropic</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>模型名称</label>
+            <input class="input" value="Doubao-Reasoning-Pro" />
+          </div>
+          <div class="field">
+            <label>支持深度思考</label>
+            <div class="seg-row">
+              <button class="seg-item active">支持</button>
+              <button class="seg-item">不支持</button>
+            </div>
+          </div>
+          <div class="field">
+            <label>默认推荐深度</label>
+            <div class="seg-row">
+              <button class="seg-item">浅度</button>
+              <button class="seg-item active">标准</button>
+              <button class="seg-item">深度</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="dialog-foot">
+        <button class="btn plain">取消</button>
+        <button class="btn">确定</button>
+      </div>
+    </div>
+  </div>
+
   <script>
+    const navItems = document.querySelectorAll("[data-page]");
+    const scenarioTabs = document.querySelectorAll(".scenario-tab");
     const pages = document.querySelectorAll(".page");
-    const menuItems = document.querySelectorAll("[data-page-target]");
-    const openEdit = document.getElementById("openEdit");
-    const batchToggle = document.getElementById("batchToggle");
+    const channelDialogMask = document.getElementById("channelDialogMask");
+    const modelDialogMask = document.getElementById("modelDialogMask");
+    const openChannelDialog = document.getElementById("openChannelDialog");
+    const closeChannelDialog = document.getElementById("closeChannelDialog");
+    const cancelChannelDialog = document.getElementById("cancelChannelDialog");
+    const saveChannelDialog = document.getElementById("saveChannelDialog");
+    const openModelDialog = document.getElementById("openModelDialog");
+    const closeModelDialog = document.getElementById("closeModelDialog");
     const platformSelect = document.getElementById("platformSelect");
     const modelSelect = document.getElementById("modelSelect");
-    const thinkingOptions = document.getElementById("thinkingOptions");
-    const thinkingHint = document.getElementById("thinkingHint");
-    const payload = document.getElementById("payload");
+    const thinkingGrid = document.getElementById("thinkingGrid");
+    const thinkingTips = document.getElementById("thinkingTips");
+    const payloadPreview = document.getElementById("payloadPreview");
+    const saveMessage = document.getElementById("saveMessage");
+    const channelDialogTitle = document.getElementById("channelDialogTitle");
+    const batchBtn = document.getElementById("batchBtn");
     const temperatureInput = document.getElementById("temperatureInput");
     const temperatureText = document.getElementById("temperatureText");
     const maxTokensInput = document.getElementById("maxTokensInput");
-    const saveBtn = document.getElementById("saveBtn");
-    const saveToast = document.getElementById("saveToast");
     const answerBubble = document.getElementById("answerBubble");
-    const customerOptions = document.querySelectorAll("[data-customer-depth]");
+    const customerDepthButtons = document.querySelectorAll(".customer-depth");
+    const unsupportedButtons = document.querySelectorAll(".open-unsupported");
 
-    const modelMap = {
+    const modelOptions = {
       doubao: [
-        { id: "db-reasoning", name: "Doubao-Reasoning-Pro", supportThinking: true, recommended: "standard" },
-        { id: "db-lite", name: "Doubao-Lite", supportThinking: false, recommended: "off" }
+        { value: "db-reasoning", label: "Doubao-Reasoning-Pro", supportThinking: true, defaultDepth: "standard" },
+        { value: "db-lite", label: "Doubao-Lite", supportThinking: false, defaultDepth: "off" }
       ],
       openai: [
-        { id: "gpt-4o-mini", name: "GPT-4o-mini", supportThinking: false, recommended: "off" }
+        { value: "gpt-4o-mini", label: "GPT-4o-mini", supportThinking: false, defaultDepth: "off" }
       ],
       anthropic: [
-        { id: "claude-thinking", name: "Claude-Reasoning", supportThinking: true, recommended: "deep" }
+        { value: "claude-reasoning", label: "Claude-Reasoning", supportThinking: true, defaultDepth: "deep" }
       ]
     };
 
-    const depthMap = {
-      keep: { label: "保持原值", desc: "批量修改时不覆盖已有渠道配置。", value: "keep" },
-      off: { label: "关闭", desc: "不启用额外思考过程，优先响应速度。", value: "off" },
-      shallow: { label: "浅度", desc: "适合 FAQ、标准问答和高峰接待。", value: "shallow" },
-      standard: { label: "标准", desc: "兼顾回答完整度与响应时延，建议默认值。", value: "standard" },
-      deep: { label: "深度", desc: "适合复杂咨询和多条件比较场景，但耗时更长。", value: "deep" }
+    const depthOptions = {
+      keep: { label: "保持原值", desc: "仅批量修改可选，不覆盖已有渠道值。" },
+      off: { label: "关闭", desc: "不启用额外思考过程，优先响应速度。" },
+      shallow: { label: "浅度", desc: "适合 FAQ 和高峰接待场景。" },
+      standard: { label: "标准", desc: "默认推荐，平衡完整度与响应时延。" },
+      deep: { label: "深度", desc: "适合复杂咨询，回答更细致但更慢。" }
+    };
+
+    const customerAnswers = {
+      shallow: "全程班适合基础较弱、希望系统跟学的用户；冲刺班适合已有基础、希望短期提分的用户。",
+      standard: "建议从学习阶段和服务需求两方面判断：全程班适合基础薄弱、需要完整课程与督学服务的用户；冲刺班适合已有基础、希望短期聚焦提分的用户。",
+      deep: "可按备考阶段、学习习惯、预算和监督需求综合判断：如果用户基础薄弱、缺少复习节奏、需要长期答疑和阶段测评，更适合全程班；如果用户已完成基础复习、目标是冲刺提分、希望快速聚焦高频考点和技巧训练，则更适合冲刺班。建议继续追问目标院校、当前分数和可投入时长后再给出班型推荐。"
     };
 
     const state = {
       batchMode: false,
-      modelId: "db-reasoning",
       thinkingDepth: "standard",
-      customerDepth: "shallow"
+      page: "channel"
     };
 
-    function switchPage(targetId) {
-      pages.forEach(page => page.classList.toggle("active", page.id === targetId));
-      menuItems.forEach(item => item.classList.toggle("active", item.dataset.pageTarget === targetId));
+    function switchPage(page) {
+      state.page = page;
+      pages.forEach(item => item.classList.toggle("active", item.id === "page-" + page));
+      navItems.forEach(item => item.classList.toggle("active", item.dataset.page === page));
+      scenarioTabs.forEach(item => item.classList.toggle("active", item.dataset.page === page));
     }
 
-    menuItems.forEach(item => {
-      item.addEventListener("click", () => switchPage(item.dataset.pageTarget));
-    });
-
-    openEdit.addEventListener("click", () => {
-      switchPage("page-channel");
-      window.scrollTo({ top: document.body.scrollHeight * 0.25, behavior: "smooth" });
-    });
-
-    batchToggle.addEventListener("click", () => {
-      state.batchMode = !state.batchMode;
-      batchToggle.classList.toggle("on", state.batchMode);
-      renderThinkingOptions();
-      renderPayload();
-    });
-
-    function renderModels() {
-      const list = modelMap[platformSelect.value];
-      modelSelect.innerHTML = list.map(model => {
-        return '<option value="' + model.id + '">' + model.name + '</option>';
-      }).join("");
-      if (!list.some(model => model.id === state.modelId)) {
-        state.modelId = list[0].id;
-      }
-      modelSelect.value = state.modelId;
-      const current = getCurrentModel();
-      if (current.supportThinking && !["shallow", "standard", "deep"].includes(state.thinkingDepth)) {
-        state.thinkingDepth = current.recommended;
-      }
-      if (!current.supportThinking) {
-        state.thinkingDepth = state.batchMode ? "keep" : "off";
-      }
-      renderThinkingOptions();
-      renderPayload();
-    }
+    navItems.forEach(item => item.addEventListener("click", () => switchPage(item.dataset.page)));
+    scenarioTabs.forEach(item => item.addEventListener("click", () => switchPage(item.dataset.page)));
 
     function getCurrentModel() {
-      return modelMap[platformSelect.value].find(model => model.id === modelSelect.value);
+      const list = modelOptions[platformSelect.value];
+      return list.find(item => item.value === modelSelect.value) || list[0];
     }
 
-    function renderThinkingOptions() {
-      const current = getCurrentModel();
-      const keys = state.batchMode ? ["keep", "off", "shallow", "standard", "deep"] : ["off", "shallow", "standard", "deep"];
-      thinkingOptions.innerHTML = "";
+    function fillModelSelect(preferredValue) {
+      const list = modelOptions[platformSelect.value];
+      modelSelect.innerHTML = list.map(item => '<option value="' + item.value + '">' + item.label + '</option>').join("");
+      const exist = list.find(item => item.value === preferredValue);
+      modelSelect.value = exist ? preferredValue : list[0].value;
+    }
+
+    function renderThinkingDepth() {
+      const currentModel = getCurrentModel();
+      let keys = state.batchMode ? ["keep", "off", "shallow", "standard", "deep"] : ["off", "shallow", "standard", "deep"];
+      thinkingGrid.innerHTML = "";
 
       keys.forEach(key => {
-        const option = depthMap[key];
+        const disabled = !currentModel.supportThinking && key !== "off" && key !== "keep";
         const item = document.createElement("div");
-        const isDisabled = !current.supportThinking && key !== "off" && key !== "keep";
-        item.className = "option-item" + (state.thinkingDepth === key ? " active" : "") + (isDisabled ? " disabled" : "");
-        item.innerHTML = "<strong>" + option.label + "</strong><div class='muted'>" + option.desc + "</div>";
+        item.className = "thinking-item" + (state.thinkingDepth === key ? " active" : "") + (disabled ? " disabled" : "");
+        item.innerHTML = "<strong>" + depthOptions[key].label + "</strong><p>" + depthOptions[key].desc + "</p>";
         item.addEventListener("click", () => {
-          if (isDisabled) return;
+          if (disabled) return;
           state.thinkingDepth = key;
-          renderThinkingOptions();
+          renderThinkingDepth();
           renderPayload();
         });
-        thinkingOptions.appendChild(item);
+        thinkingGrid.appendChild(item);
       });
 
-      if (!current.supportThinking) {
-        thinkingHint.className = "callout warning";
-        thinkingHint.innerHTML = "当前模型不支持深度思考。字段保留在页面中用于说明原因，但实际仅可保存为“关闭”；如果是批量模式，可选择“保持原值”。";
+      if (!currentModel.supportThinking) {
+        if (!state.batchMode) state.thinkingDepth = "off";
+        thinkingTips.className = "tips warning";
+        thinkingTips.textContent = "当前模型不支持深度思考。页面保留字段位置以保持布局一致，但该模型只能按“关闭”保存；批量模式可选择“保持原值”。";
       } else if (state.thinkingDepth === "deep") {
-        thinkingHint.className = "callout warning";
-        thinkingHint.innerHTML = "已选择“深度”。预计回答更完整，但首包耗时会增加，建议搭配较低 `temperature` 使用。";
+        thinkingTips.className = "tips warning";
+        thinkingTips.textContent = "已选择“深度”。回答会更细致，但预计首包耗时更长，建议和 temperature、maxTokens 联合评估。";
       } else {
-        thinkingHint.className = "callout";
-        thinkingHint.innerHTML = "当前模型支持深度思考。系统默认推荐深度为“" + depthMap[current.recommended].label + "”，运营可按渠道咨询复杂度进行调整。";
+        thinkingTips.className = "tips";
+        thinkingTips.textContent = "当前模型支持深度思考，推荐默认值为“" + depthOptions[currentModel.defaultDepth].label + "”。";
       }
     }
 
     function renderPayload() {
-      const current = getCurrentModel();
-      const thinkingDepth = current.supportThinking ? state.thinkingDepth : (state.batchMode ? state.thinkingDepth : "off");
-      const payloadObj = {
+      const currentModel = getCurrentModel();
+      const realDepth = currentModel.supportThinking ? state.thinkingDepth : (state.batchMode ? state.thinkingDepth : "off");
+      const payload = {
         responseMode: "ai",
         channelAIConf: {
           platformId: platformSelect.value,
           aiModelId: modelSelect.value,
-          supportThinking: current.supportThinking,
-          thinkingDepth: thinkingDepth,
+          supportThinking: currentModel.supportThinking,
+          thinkingDepth: realDepth,
           temperature: Number(temperatureInput.value) / 100,
           maxTokens: Number(maxTokensInput.value),
           stream: true
-        },
-        listPageDisplay: current.supportThinking ? depthMap[thinkingDepth].label : "不支持"
+        }
       };
-      payload.textContent = JSON.stringify(payloadObj, null, 2);
+      payloadPreview.textContent = JSON.stringify(payload, null, 2);
     }
 
-    platformSelect.addEventListener("change", renderModels);
-    modelSelect.addEventListener("change", () => {
-      state.modelId = modelSelect.value;
-      const current = getCurrentModel();
-      if (!current.supportThinking) {
+    function openChannel(editUnsupported) {
+      channelDialogMask.classList.add("show");
+      if (editUnsupported) {
+        platformSelect.value = "openai";
+        fillModelSelect("gpt-4o-mini");
         state.thinkingDepth = state.batchMode ? "keep" : "off";
-      } else if (!["shallow", "standard", "deep"].includes(state.thinkingDepth)) {
-        state.thinkingDepth = current.recommended;
+      } else {
+        platformSelect.value = "doubao";
+        fillModelSelect("db-reasoning");
+        state.thinkingDepth = state.batchMode ? "keep" : "standard";
       }
-      renderThinkingOptions();
+      renderThinkingDepth();
+      renderPayload();
+    }
+
+    openChannelDialog.addEventListener("click", () => openChannel(false));
+    unsupportedButtons.forEach(item => item.addEventListener("click", () => openChannel(true)));
+    closeChannelDialog.addEventListener("click", () => channelDialogMask.classList.remove("show"));
+    cancelChannelDialog.addEventListener("click", () => channelDialogMask.classList.remove("show"));
+
+    batchBtn.addEventListener("click", () => {
+      state.batchMode = !state.batchMode;
+      batchBtn.classList.toggle("secondary", state.batchMode);
+      batchBtn.textContent = state.batchMode ? "退出批量修改" : "批量修改";
+      channelDialogTitle.textContent = state.batchMode ? "批量修改" : "编辑渠道";
+      saveMessage.textContent = state.batchMode
+        ? "批量修改模式下，思考深度首项增加“保持原值”，避免覆盖已有渠道配置。"
+        : "当前为支持深度思考的模型，可在 `关闭 / 浅度 / 标准 / 深度` 中选择。";
+    });
+
+    platformSelect.addEventListener("change", () => {
+      fillModelSelect();
+      const currentModel = getCurrentModel();
+      state.thinkingDepth = state.batchMode ? "keep" : currentModel.defaultDepth;
+      renderThinkingDepth();
+      renderPayload();
+    });
+
+    modelSelect.addEventListener("change", () => {
+      const currentModel = getCurrentModel();
+      state.thinkingDepth = state.batchMode ? "keep" : currentModel.defaultDepth;
+      renderThinkingDepth();
       renderPayload();
     });
 
@@ -1101,35 +1204,34 @@
 
     maxTokensInput.addEventListener("input", renderPayload);
 
-    saveBtn.addEventListener("click", () => {
-      const current = getCurrentModel();
-      const invalid = current.supportThinking && !state.thinkingDepth;
-      saveToast.classList.toggle("show", invalid);
-      if (!invalid) {
-        saveToast.className = "toast show";
-        saveToast.style.background = "#f0fdf4";
-        saveToast.style.color = "#15803d";
-        saveToast.textContent = "保存成功：渠道级“深度思考深度”已写入 `channelAIConf.thinkingDepth`。";
-      }
+    saveChannelDialog.addEventListener("click", () => {
+      saveMessage.className = "tips success";
+      saveMessage.textContent = "原型提示：已按当前参考页面结构保存，新增字段写入 `channelAIConf.thinkingDepth`。";
+      renderPayload();
     });
 
-    const customerTexts = {
-      shallow: "适合快速接待：全程班适合基础较弱、希望系统跟学的用户；冲刺班更适合已完成一轮复习、希望短期提分的用户。",
-      standard: "建议从学习阶段和服务需求两方面判断：全程班适合基础薄弱、需要完整课程+督学服务的用户；冲刺班适合基础较好、目标集中突破和查漏补缺的用户。",
-      deep: "可按备考阶段、学习习惯、预算和监督需求综合判断：如果用户基础薄弱、缺少复习节奏、需要长期答疑和阶段测评，更适合全程班；如果用户已完成基础复习、目标是冲刺提分、希望快速聚焦高频考点和技巧训练，则更适合冲刺班。建议客服继续追问目标院校、当前分数和可投入时长后再给出班型推荐。"
-    };
+    openModelDialog.addEventListener("click", () => modelDialogMask.classList.add("show"));
+    document.querySelectorAll(".open-model-edit").forEach(item => item.addEventListener("click", () => modelDialogMask.classList.add("show")));
+    closeModelDialog.addEventListener("click", () => modelDialogMask.classList.remove("show"));
+    modelDialogMask.addEventListener("click", (event) => {
+      if (event.target === modelDialogMask) modelDialogMask.classList.remove("show");
+    });
+    channelDialogMask.addEventListener("click", (event) => {
+      if (event.target === channelDialogMask) channelDialogMask.classList.remove("show");
+    });
 
-    customerOptions.forEach(option => {
-      option.addEventListener("click", () => {
-        customerOptions.forEach(item => item.classList.remove("active"));
-        option.classList.add("active");
-        state.customerDepth = option.dataset.customerDepth;
-        answerBubble.textContent = customerTexts[state.customerDepth];
+    customerDepthButtons.forEach(item => {
+      item.addEventListener("click", () => {
+        customerDepthButtons.forEach(btn => btn.classList.remove("active"));
+        item.classList.add("active");
+        answerBubble.textContent = customerAnswers[item.dataset.depth];
       });
     });
 
-    renderModels();
-    answerBubble.textContent = customerTexts[state.customerDepth];
+    fillModelSelect("db-reasoning");
+    renderThinkingDepth();
+    renderPayload();
+    switchPage("channel");
   </script>
 </body>
 </html>
