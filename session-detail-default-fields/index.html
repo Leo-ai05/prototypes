@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>会话明细默认字段扩展</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      background: #f5f7fa;
+      color: #303133;
+    }
+    .layout { display: flex; min-height: 100vh; }
+    .sidebar {
+      width: 220px;
+      background: #304156;
+      color: #c0c4cc;
+      padding-top: 16px;
+      flex-shrink: 0;
+    }
+    .sidebar-title {
+      padding: 0 20px 16px;
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .menu-item {
+      padding: 12px 20px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .menu-item.active {
+      background: #409eff;
+      color: #fff;
+    }
+    .main {
+      flex: 1;
+      padding: 20px;
+      min-width: 0;
+    }
+    .shell {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+      overflow: hidden;
+    }
+    .header {
+      padding: 16px 20px;
+      border-bottom: 1px solid #ebeef5;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+    }
+    .header-meta {
+      color: #909399;
+      font-size: 12px;
+      text-align: right;
+    }
+    .content {
+      display: flex;
+      min-height: calc(100vh - 120px);
+    }
+    .session-list {
+      width: 260px;
+      border-right: 1px solid #ebeef5;
+      background: #fafafa;
+      padding: 16px;
+      flex-shrink: 0;
+    }
+    .search-box {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1px solid #dcdfe6;
+      border-radius: 6px;
+      outline: none;
+      font-size: 13px;
+      margin-bottom: 12px;
+    }
+    .session-card {
+      border: 1px solid #e4e7ed;
+      background: #fff;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+    .session-card.active {
+      border-color: #409eff;
+      background: #ecf5ff;
+    }
+    .session-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #303133;
+      margin-bottom: 6px;
+    }
+    .session-desc {
+      font-size: 12px;
+      color: #909399;
+      line-height: 1.5;
+    }
+    .detail {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .detail-title {
+      padding: 16px 20px 8px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .tabs {
+      display: flex;
+      gap: 24px;
+      padding: 0 20px;
+      border-bottom: 1px solid #ebeef5;
+    }
+    .tab {
+      padding: 12px 0;
+      font-size: 14px;
+      color: #606266;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+    }
+    .tab.active {
+      color: #409eff;
+      border-bottom-color: #409eff;
+      font-weight: 600;
+    }
+    .toolbar {
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .toolbar-left,
+    .toolbar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .chip {
+      border: 1px solid #dcdfe6;
+      background: #fff;
+      color: #606266;
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .chip.active {
+      border-color: #409eff;
+      color: #409eff;
+      background: #ecf5ff;
+    }
+    .switch-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #606266;
+    }
+    .switch {
+      width: 42px;
+      height: 24px;
+      border-radius: 999px;
+      background: #dcdfe6;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .switch::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #fff;
+      transition: left 0.2s;
+    }
+    .switch.on {
+      background: #409eff;
+    }
+    .switch.on::after {
+      left: 21px;
+    }
+    .summary-card {
+      margin: 0 20px 16px;
+      padding: 14px 16px;
+      border-radius: 8px;
+      background: #f0f9eb;
+      border: 1px solid #e1f3d8;
+      font-size: 13px;
+      color: #606266;
+      line-height: 1.7;
+    }
+    .summary-card b {
+      color: #303133;
+    }
+    .table-wrap {
+      padding: 0 20px 20px;
+      overflow: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 980px;
+      background: #fff;
+      border: 1px solid #ebeef5;
+    }
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid #ebeef5;
+      text-align: left;
+      vertical-align: top;
+      font-size: 13px;
+    }
+    th {
+      background: #fafafa;
+      color: #606266;
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+    tr:hover td {
+      background: #fafcff;
+    }
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      margin-right: 6px;
+      margin-bottom: 4px;
+      white-space: nowrap;
+    }
+    .tag-default {
+      background: #f4f4f5;
+      color: #909399;
+      border: 1px solid #e9e9eb;
+    }
+    .tag-new {
+      background: #ecf5ff;
+      color: #409eff;
+      border: 1px solid #d9ecff;
+    }
+    .tag-group {
+      background: #fdf6ec;
+      color: #e6a23c;
+      border: 1px solid #faecd8;
+    }
+    .muted {
+      color: #909399;
+      font-size: 12px;
+    }
+    .empty {
+      padding: 60px 20px;
+      text-align: center;
+      color: #909399;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-title">企微机器人后台</div>
+      <div class="menu-item active">AI员工明细</div>
+      <div class="menu-item">会话属性</div>
+      <div class="menu-item">规则配置</div>
+      <div class="menu-item">全局配置</div>
+    </aside>
+    <main class="main">
+      <div class="shell">
+        <div class="header">
+          <h1>会话明细默认字段扩展</h1>
+          <div class="header-meta">
+            参考页面：企业微信 / AI员工明细 / 会话变量<br />
+            验证目标：新增 20 个系统默认字段并保持默认字段只读
+          </div>
+        </div>
+        <div class="content">
+          <div class="session-list">
+            <input class="search-box" value="李同学" readonly />
+            <div class="session-card active">
+              <div class="session-name">李同学（上海-英语）</div>
+              <div class="session-desc">最近消息：老师，我想看一下这一周的学习情况</div>
+            </div>
+            <div class="session-card">
+              <div class="session-name">王同学（数学提升）</div>
+              <div class="session-desc">最近消息：今天错题我还没整理完</div>
+            </div>
+            <div class="session-card">
+              <div class="session-name">赵同学（语文阅读）</div>
+              <div class="session-desc">最近消息：周总结卡片已经推送</div>
+            </div>
+          </div>
+          <div class="detail">
+            <div class="detail-title">李同学（上海-英语）的聊天</div>
+            <div class="tabs">
+              <div class="tab">聊天记录</div>
+              <div class="tab active">会话变量</div>
+              <div class="tab">任务执行明细</div>
+            </div>
+            <div class="toolbar">
+              <div class="toolbar-left">
+                <button class="chip active" data-filter="all">全部字段</button>
+                <button class="chip" data-filter="累计">累计类</button>
+                <button class="chip" data-filter="每日">每日类</button>
+                <button class="chip" data-filter="每周">每周类</button>
+              </div>
+              <div class="toolbar-right">
+                <span class="switch-wrap">
+                  <span>仅看本次新增</span>
+                  <span class="switch" id="onlyNewSwitch"></span>
+                </span>
+              </div>
+            </div>
+            <div class="summary-card">
+              <b>展示规则：</b> 会话变量页继续沿用现有 4 列结构：变量名称、变量定义（数据库命名）、变量描述、当前值。
+              本次仅新增系统默认字段，不开放编辑入口；若会话暂无数据，则当前值显示为 `-`。字段编码在原型中以“待后端补充”占位。
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="min-width: 240px;">变量名称</th>
+                    <th style="min-width: 220px;">变量定义（数据库命名）</th>
+                    <th style="min-width: 320px;">变量描述</th>
+                    <th style="min-width: 180px;">当前值</th>
+                  </tr>
+                </thead>
+                <tbody id="rows"></tbody>
+              </table>
+              <div class="empty" id="empty" style="display:none;">当前筛选条件下暂无字段</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script>
+    const baseRows = [
+      { name: "用户姓名", key: "user_name", desc: "企微用户姓名", value: "李同学", group: "基础", isNew: false },
+      { name: "注册时间", key: "regist_time", desc: "用户首次注册时间", value: "2026-03-01 10:23:15", group: "基础", isNew: false },
+      { name: "最后活跃时间", key: "last_active_time", desc: "最近一次消息时间", value: "2026-03-26 19:12:08", group: "基础", isNew: false },
+      { name: "意向标签", key: "intent_tag", desc: "用户当前意向分层", value: "高意向", group: "基础", isNew: false }
+    ];
+
+    const newRows = [
+      { name: "累积知识点数量", key: "待后端补充_01", desc: "用户累计完成学习的知识点总数", value: "286", group: "累计", isNew: true },
+      { name: "累计看题型数量", key: "待后端补充_02", desc: "用户累计查看过的题型数量", value: "41", group: "累计", isNew: true },
+      { name: "累积答题数量", key: "待后端补充_03", desc: "用户累计完成答题总次数", value: "1328", group: "累计", isNew: true },
+      { name: "答题正确率", key: "待后端补充_04", desc: "用户当前累计答题正确率", value: "82.4%", group: "累计", isNew: true },
+      { name: "累积时长", key: "待后端补充_05", desc: "用户累计学习总时长", value: "54小时20分", group: "累计", isNew: true },
+      { name: "每日-学科和时长", key: "待后端补充_06", desc: "按日汇总的学科学习分布与时长", value: "英语 45分 / 数学 35分", group: "每日", isNew: true },
+      { name: "每日-学科-亮点", key: "待后端补充_07", desc: "按日输出的学科亮点总结", value: "英语听力连对 12 题", group: "每日", isNew: true },
+      { name: "每日-学科-收获", key: "待后端补充_08", desc: "按日沉淀的学习收获内容", value: "掌握定语从句识别方法", group: "每日", isNew: true },
+      { name: "每日-学科-课程（知识点）", key: "待后端补充_09", desc: "按日学习课程及涉及知识点", value: "定语从句 / 宾语从句", group: "每日", isNew: true },
+      { name: "每日-学科-英语（知识点）", key: "待后端补充_10", desc: "按日英语学科知识点学习记录", value: "阅读长难句拆解", group: "每日", isNew: true },
+      { name: "每日-学科-诗卡（知识点）", key: "待后端补充_11", desc: "按日诗卡相关知识点学习记录", value: "-", group: "每日", isNew: true },
+      { name: "每日-学科-课程模版通用（知识点）", key: "待后端补充_12", desc: "按日通用课程模版产生的知识点记录", value: "错题回顾模版", group: "每日", isNew: true },
+      { name: "每日-学科-答题", key: "待后端补充_13", desc: "按日答题行为与结果汇总", value: "完成 56 题", group: "每日", isNew: true },
+      { name: "每日-学科-题型", key: "待后端补充_14", desc: "按日覆盖题型汇总", value: "完形填空 / 阅读理解", group: "每日", isNew: true },
+      { name: "每日-学科-试卷", key: "待后端补充_15", desc: "按日试卷练习情况", value: "英语周测卷 1 套", group: "每日", isNew: true },
+      { name: "每日-学科-错题情况", key: "待后端补充_16", desc: "按日错题数量与主要错因", value: "错 6 题，集中在时态", group: "每日", isNew: true },
+      { name: "每周-周总结", key: "待后端补充_17", desc: "按周生成的整体学习总结", value: "本周英语稳定进步，建议强化阅读", group: "每周", isNew: true },
+      { name: "每周-时长", key: "待后端补充_18", desc: "按周汇总学习时长", value: "6小时45分", group: "每周", isNew: true },
+      { name: "每周-课程和做题练习", key: "待后端补充_19", desc: "按周汇总课程学习和做题练习情况", value: "课程 5 节，练习 8 次", group: "每周", isNew: true },
+      { name: "每周-题型相关", key: "待后端补充_20", desc: "按周沉淀题型掌握情况", value: "阅读理解正确率提升 9%", group: "每周", isNew: true },
+      { name: "每周-弹出卡片", key: "待后端补充_21", desc: "按周向前台推送的总结卡片内容", value: "已生成并待发送", group: "每周", isNew: true }
+    ];
+
+    const allRows = baseRows.concat(newRows);
+    let activeGroup = "all";
+    let onlyNew = false;
+
+    function render() {
+      const tbody = document.getElementById("rows");
+      const empty = document.getElementById("empty");
+      const filtered = allRows.filter(row => {
+        const groupMatch = activeGroup === "all" || row.group === activeGroup;
+        const newMatch = !onlyNew || row.isNew;
+        return groupMatch && newMatch;
+      });
+
+      if (!filtered.length) {
+        tbody.innerHTML = "";
+        empty.style.display = "block";
+        return;
+      }
+
+      empty.style.display = "none";
+      tbody.innerHTML = filtered.map(row => `
+        <tr>
+          <td>
+            <div><span class="tag tag-default">系统默认字段</span>${row.isNew ? '<span class="tag tag-new">本次新增</span>' : ''}${row.group !== "基础" ? `<span class="tag tag-group">${row.group}</span>` : ""}</div>
+            <div style="margin-top:6px;font-weight:600;">${row.name}</div>
+          </td>
+          <td>
+            <div>${row.key}</div>
+            ${row.isNew ? '<div class="muted" style="margin-top:4px;">字段编码待后端最终确认</div>' : ""}
+          </td>
+          <td>${row.desc}</td>
+          <td>${row.value}</td>
+        </tr>
+      `).join("");
+    }
+
+    document.querySelectorAll("[data-filter]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        activeGroup = btn.getAttribute("data-filter");
+        document.querySelectorAll("[data-filter]").forEach(item => item.classList.remove("active"));
+        btn.classList.add("active");
+        render();
+      });
+    });
+
+    document.getElementById("onlyNewSwitch").addEventListener("click", function () {
+      onlyNew = !onlyNew;
+      this.classList.toggle("on", onlyNew);
+      render();
+    });
+
+    render();
+  </script>
+</body>
+</html>
