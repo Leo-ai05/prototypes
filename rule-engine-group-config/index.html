@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>规则引擎分组配置 - 可交互原型</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: #f5f7fa; color: #303133; font-size: 14px; }
+.app { display: flex; min-height: 100vh; }
+.sidebar { width: 220px; background: #1d1e1f; color: #fff; flex-shrink: 0; }
+.sidebar-logo { padding: 20px 16px; font-size: 16px; font-weight: 600; border-bottom: 1px solid #333; }
+.sidebar-menu { padding: 8px 0; }
+.sidebar-item { padding: 12px 20px; cursor: pointer; font-size: 14px; color: #bbb; transition: all .2s; }
+.sidebar-item:hover, .sidebar-item.active { background: #409eff; color: #fff; }
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.header { height: 50px; background: #fff; border-bottom: 1px solid #e4e7ed; display: flex; align-items: center; padding: 0 20px; }
+.header-title { font-size: 16px; font-weight: 500; }
+.content { flex: 1; padding: 20px; overflow-y: auto; }
+.card { background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.08); padding: 20px; margin-bottom: 20px; }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 4px; border: 1px solid #dcdfe6; cursor: pointer; font-size: 14px; transition: all .2s; background: #fff; }
+.btn-primary { background: #409eff; color: #fff; border-color: #409eff; }
+.btn-primary:hover { background: #66b1ff; }
+.btn-success { background: #67c23a; color: #fff; border-color: #67c23a; }
+.btn-danger { background: #fff; color: #f56c6c; border-color: #fbc4c4; }
+.btn-danger:hover { background: #f56c6c; color: #fff; }
+.btn-text { background: none; border: none; color: #409eff; padding: 4px 8px; }
+.btn-text.danger { color: #f56c6c; }
+.btn-sm { padding: 5px 12px; font-size: 12px; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* 表格 */
+.table { width: 100%; border-collapse: collapse; }
+.table th, .table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #ebeef5; font-size: 14px; }
+.table th { background: #fafafa; font-weight: 500; color: #909399; }
+.table tr:hover td { background: #f5f7fa; }
+
+/* 标签 */
+.tag { display: inline-block; padding: 2px 10px; border-radius: 4px; font-size: 12px; }
+.tag-success { background: #f0f9ff; color: #67c23a; border: 1px solid #c2e7b0; }
+.tag-info { background: #f4f4f5; color: #909399; border: 1px solid #d3d4d6; }
+.tag-primary { background: #ecf5ff; color: #409eff; border: 1px solid #b3d8ff; }
+
+/* 开关 */
+.switch { position: relative; width: 40px; height: 20px; background: #dcdfe6; border-radius: 10px; cursor: pointer; transition: .3s; display: inline-block; vertical-align: middle; }
+.switch.on { background: #409eff; }
+.switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: #fff; border-radius: 50%; transition: .3s; }
+.switch.on::after { left: 22px; }
+
+/* 弹窗 */
+.modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,.5); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+.modal { background: #fff; border-radius: 8px; width: 860px; max-height: 85vh; overflow-y: auto; box-shadow: 0 12px 32px rgba(0,0,0,.15); }
+.modal-header { padding: 20px 24px; border-bottom: 1px solid #ebeef5; display: flex; justify-content: space-between; align-items: center; }
+.modal-header h3 { font-size: 18px; font-weight: 500; }
+.modal-close { cursor: pointer; font-size: 20px; color: #909399; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 4px; }
+.modal-close:hover { background: #f5f5f5; }
+.modal-body { padding: 24px; }
+.modal-footer { padding: 16px 24px; border-top: 1px solid #ebeef5; display: flex; justify-content: flex-end; gap: 12px; }
+
+/* 表单 */
+.form-item { margin-bottom: 20px; }
+.form-label { display: block; font-size: 14px; color: #606266; margin-bottom: 8px; font-weight: 500; }
+.form-label .required { color: #f56c6c; margin-right: 4px; }
+.input { width: 100%; padding: 8px 12px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; outline: none; transition: border .2s; }
+.input:focus { border-color: #409eff; }
+.textarea { width: 100%; padding: 8px 12px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; outline: none; resize: vertical; min-height: 80px; }
+.select { padding: 8px 12px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; outline: none; background: #fff; min-width: 160px; }
+
+/* 分组相关 */
+.section-title { font-size: 16px; font-weight: 500; margin-bottom: 16px; padding-left: 10px; border-left: 4px solid #409eff; }
+.group-card { border: 1px solid #e4e7ed; border-radius: 8px; margin-bottom: 16px; overflow: hidden; }
+.group-header { padding: 14px 20px; background: #fafbfc; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ebeef5; cursor: pointer; }
+.group-header-left { display: flex; align-items: center; gap: 12px; }
+.group-header-left .group-name { font-size: 15px; font-weight: 500; }
+.group-header-left .group-desc { font-size: 12px; color: #909399; }
+.group-body { padding: 16px 20px; }
+.group-toggle { font-size: 12px; color: #909399; cursor: pointer; user-select: none; }
+
+/* 条件配置 */
+.condition-box { background: #fafbfc; border: 1px solid #ebeef5; border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+.condition-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.condition-row:last-child { margin-bottom: 0; }
+.conjunction-btn { display: inline-flex; align-items: center; padding: 2px 8px; background: #ecf5ff; color: #409eff; border-radius: 4px; font-size: 13px; cursor: pointer; }
+
+/* 动作配置 */
+.action-box { background: #f5f7fa; border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+
+/* Tab */
+.tabs { display: flex; border-bottom: 2px solid #e4e7ed; margin-bottom: 20px; }
+.tab-item { padding: 10px 20px; cursor: pointer; font-size: 14px; color: #606266; position: relative; }
+.tab-item.active { color: #409eff; }
+.tab-item.active::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 2px; background: #409eff; }
+
+/* 分组条件配置区 */
+.group-condition-section { background: #fff7e6; border: 1px solid #ffe58f; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+.group-condition-title { font-size: 14px; font-weight: 500; color: #d48806; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+.group-condition-title::before { content: ''; width: 4px; height: 14px; background: #faad14; border-radius: 2px; }
+
+/* 空状态 */
+.empty { text-align: center; padding: 40px 0; color: #909399; }
+.empty-icon { font-size: 48px; margin-bottom: 12px; }
+
+/* 拖拽排序 */
+.drag-handle { cursor: move; color: #c0c4cc; margin-right: 8px; }
+
+/* 分组列表布局 */
+.group-list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+
+/* 视图切换 */
+.view-hidden { display: none !important; }
+
+/* 优先级标签 */
+.priority-badge { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #409eff; color: #fff; font-size: 12px; font-weight: 500; }
+
+/* 确认弹窗 */
+.confirm-modal { width: 420px; }
+.confirm-body { padding: 20px 24px; display: flex; gap: 12px; }
+.confirm-icon { font-size: 24px; color: #e6a23c; flex-shrink: 0; }
+.confirm-text h4 { margin-bottom: 8px; font-size: 16px; }
+.confirm-text p { color: #606266; font-size: 14px; line-height: 1.6; }
+
+.flex { display: flex; }
+.items-center { align-items: center; }
+.gap-8 { gap: 8px; }
+.gap-12 { gap: 12px; }
+.gap-16 { gap: 16px; }
+.mb-8 { margin-bottom: 8px; }
+.mb-12 { margin-bottom: 12px; }
+.mb-16 { margin-bottom: 16px; }
+.mb-20 { margin-bottom: 20px; }
+.ml-auto { margin-left: auto; }
+.text-gray { color: #909399; }
+.text-sm { font-size: 12px; }
+.w-full { width: 100%; }
+
+.toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); padding: 12px 24px; border-radius: 8px; color: #fff; font-size: 14px; z-index: 9999; animation: fadeIn .3s; }
+.toast-success { background: #67c23a; }
+.toast-warning { background: #e6a23c; }
+.toast-error { background: #f56c6c; }
+@keyframes fadeIn { from { opacity: 0; transform: translateX(-50%) translateY(-10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+  <!-- 侧边栏 -->
+  <div class="sidebar">
+    <div class="sidebar-logo">CRM 管理后台</div>
+    <div class="sidebar-menu">
+      <div class="sidebar-item">工作台</div>
+      <div class="sidebar-item">客户管理</div>
+      <div class="sidebar-item active">企微机器人</div>
+      <div class="sidebar-item" style="padding-left:40px;">会话属性</div>
+      <div class="sidebar-item" style="padding-left:40px; background:#409eff; color:#fff;">规则引擎</div>
+      <div class="sidebar-item" style="padding-left:40px;">全局配置</div>
+      <div class="sidebar-item">积分商城</div>
+      <div class="sidebar-item">数据看板</div>
+    </div>
+  </div>
+
+  <!-- 主内容 -->
+  <div class="main">
+    <div class="header">
+      <span class="header-title">规则引擎配置</span>
+    </div>
+    <div class="content">
+      <!-- 视图1: 分组列表 -->
+      <div id="view-group-list">
+        <div class="card">
+          <div class="group-list-header">
+            <div class="section-title">规则分组</div>
+            <button class="btn btn-primary" onclick="showGroupDialog()">+ 新建分组</button>
+          </div>
+          <p class="text-sm text-gray mb-16">按优先级从高到低排列，命中分组条件后执行该分组下的规则，不再继续匹配后续分组</p>
+          <table class="table" id="group-table">
+            <thead>
+              <tr>
+                <th width="60">优先级</th>
+                <th width="80">ID</th>
+                <th>分组名称</th>
+                <th>分组描述</th>
+                <th width="100">命中条件数</th>
+                <th width="80">规则数</th>
+                <th width="120">更新时间</th>
+                <th width="100">启用状态</th>
+                <th width="180">操作</th>
+              </tr>
+            </thead>
+            <tbody id="group-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 视图2: 分组详情 - 规则列表 -->
+      <div id="view-group-detail" class="view-hidden">
+        <div class="card">
+          <div class="flex items-center gap-12 mb-20">
+            <button class="btn btn-sm" onclick="backToGroupList()">← 返回分组列表</button>
+            <span class="section-title" style="margin-bottom:0" id="detail-group-name">分组名称</span>
+            <span class="tag tag-primary" id="detail-group-tag">已启用</span>
+          </div>
+
+          <!-- 分组命中条件展示 -->
+          <div class="group-condition-section mb-20" id="detail-condition-section">
+            <div class="group-condition-title">分组命中条件</div>
+            <div id="detail-conditions-display"></div>
+          </div>
+
+          <div class="flex items-center gap-12 mb-16">
+            <button class="btn btn-primary" onclick="showRuleDialog()">+ 新建规则</button>
+          </div>
+
+          <table class="table">
+            <thead>
+              <tr>
+                <th width="60">ID</th>
+                <th>规则名称</th>
+                <th>规则描述</th>
+                <th width="100">触发类型</th>
+                <th width="150">创建时间</th>
+                <th width="150">更新时间</th>
+                <th width="100">更新人</th>
+                <th width="90">启用状态</th>
+                <th width="120">操作</th>
+              </tr>
+            </thead>
+            <tbody id="rule-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 新建/编辑分组弹窗 -->
+<div class="modal-overlay" id="group-dialog" style="display:none">
+  <div class="modal" style="width:700px;">
+    <div class="modal-header">
+      <h3 id="group-dialog-title">新建分组</h3>
+      <div class="modal-close" onclick="closeGroupDialog()">&times;</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-item">
+        <label class="form-label"><span class="required">*</span>分组名称</label>
+        <input class="input" id="group-name-input" placeholder="请输入分组名称" maxlength="30">
+      </div>
+      <div class="form-item">
+        <label class="form-label">分组描述</label>
+        <textarea class="textarea" id="group-desc-input" placeholder="请输入分组描述" maxlength="200"></textarea>
+      </div>
+
+      <div class="form-item">
+        <label class="form-label"><span class="required">*</span>分组命中条件</label>
+        <p class="text-sm text-gray mb-12">配置分组命中条件，当满足条件时才会进入该分组执行下属规则</p>
+        <div class="condition-box" id="group-conditions-box">
+          <div class="flex items-center gap-8 mb-12">
+            <span class="text-sm">条件关系：</span>
+            <select class="select" id="group-conjunction" style="min-width:80px;">
+              <option value="and">且（AND）</option>
+              <option value="or">或（OR）</option>
+            </select>
+          </div>
+          <div id="group-condition-rows"></div>
+          <button class="btn btn-text btn-sm" style="margin-top:8px" onclick="addGroupCondition()">+ 新增条件</button>
+        </div>
+      </div>
+
+      <div class="form-item">
+        <label class="form-label">优先级</label>
+        <p class="text-sm text-gray mb-8">数字越小优先级越高，优先级高的分组优先匹配</p>
+        <input class="input" type="number" id="group-priority-input" value="1" min="1" max="100" style="width:120px;">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeGroupDialog()">取消</button>
+      <button class="btn btn-primary" onclick="saveGroup()">确认</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新建/编辑规则弹窗 -->
+<div class="modal-overlay" id="rule-dialog" style="display:none">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="rule-dialog-title">新建规则</h3>
+      <div class="modal-close" onclick="closeRuleDialog()">&times;</div>
+    </div>
+    <div class="modal-body">
+      <div class="section-title mb-16">基本信息</div>
+      <div class="form-item">
+        <label class="form-label"><span class="required">*</span>规则名称</label>
+        <input class="input" id="rule-name-input" placeholder="请输入规则名称" maxlength="50">
+      </div>
+      <div class="form-item">
+        <label class="form-label"><span class="required">*</span>规则描述</label>
+        <textarea class="textarea" id="rule-desc-input" placeholder="请输入规则描述" maxlength="200"></textarea>
+      </div>
+
+      <div class="section-title mb-16">触发器配置</div>
+      <div class="form-item">
+        <label class="form-label"><span class="required">*</span>触发器类型</label>
+        <select class="select" id="rule-trigger-type">
+          <option value="user_change">用户信息变更</option>
+          <option value="scheduled">定时任务</option>
+        </select>
+      </div>
+      <div class="form-item">
+        <label class="form-label">触发条件</label>
+        <div class="condition-box">
+          <div class="flex items-center gap-8 mb-12">
+            <span class="conjunction-btn">且</span>
+          </div>
+          <div class="condition-row">
+            <select class="select" style="width:70px"><option>等于</option><option>不等于</option><option>包含</option><option>为空</option></select>
+            <select class="select" style="flex:1"><option value="">请选择条件字段</option><option>用户来源</option><option>用户身份</option><option>会员状态</option><option>注册天数</option></select>
+            <input class="input" style="flex:1" placeholder="输入或引用参数值">
+          </div>
+          <button class="btn btn-text btn-sm" style="margin-top:8px">+ 新增</button>
+        </div>
+      </div>
+
+      <div class="section-title mb-16">动作配置</div>
+      <div class="form-item">
+        <button class="btn btn-primary btn-sm mb-12" onclick="addDemoAction()">+ 添加动作</button>
+        <div id="rule-actions">
+          <div class="action-box">
+            <div class="flex items-center gap-12 mb-12">
+              <span>动作类型</span>
+              <select class="select" style="width:200px"><option>发送企业微信消息</option><option>更新变量</option><option>发送会员</option></select>
+              <button class="btn btn-danger btn-sm" style="margin-left:auto" onclick="this.parentElement.parentElement.remove()">删除</button>
+            </div>
+            <div>
+              <div class="flex items-center gap-4 mb-8">
+                <span>消息内容</span>
+                <span class="text-sm" style="color:#f56c6c">*（未上传素材时必填）</span>
+              </div>
+              <textarea class="textarea" placeholder="请输入消息内容" style="min-height:60px"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeRuleDialog()">取消</button>
+      <button class="btn btn-primary" onclick="saveRule()">确认</button>
+    </div>
+  </div>
+</div>
+
+<!-- 删除确认弹窗 -->
+<div class="modal-overlay" id="confirm-dialog" style="display:none">
+  <div class="modal confirm-modal">
+    <div class="modal-header">
+      <h3>提示</h3>
+      <div class="modal-close" onclick="closeConfirm()">&times;</div>
+    </div>
+    <div class="confirm-body">
+      <div class="confirm-icon">&#9888;</div>
+      <div class="confirm-text">
+        <h4 id="confirm-title">确定要删除吗？</h4>
+        <p id="confirm-desc">删除后不可恢复，该分组下的所有规则也将被移除。</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeConfirm()">取消</button>
+      <button class="btn btn-danger" id="confirm-ok-btn" onclick="confirmAction()">确定删除</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// 模拟数据
+const variableOptions = [
+  { label: '用户来源', value: 'source' },
+  { label: '用户身份', value: 'role' },
+  { label: '会员状态', value: 'membership_status' },
+  { label: '注册天数', value: 'register_days' },
+  { label: '最近活跃天数', value: 'last_active_days' },
+  { label: '用户归属', value: 'attribution' },
+  { label: '课程类型', value: 'course_type' },
+  { label: '购买次数', value: 'purchase_count' }
+];
+
+const operatorOptions = [
+  { label: '等于', value: 'equals' },
+  { label: '不等于', value: 'notEquals' },
+  { label: '大于', value: 'greaterThan' },
+  { label: '小于', value: 'lessThan' },
+  { label: '包含', value: 'contains' },
+  { label: '不包含', value: 'notContains' },
+  { label: '为空', value: 'isEmpty' },
+  { label: '不为空', value: 'isNotEmpty' }
+];
+
+let groups = [
+  {
+    id: 1, name: '新用户引导分组', description: '针对注册7天内的新用户触发引导消息和会员赠送',
+    priority: 1, status: 'enabled', updatedAt: '2026-04-08 14:30',
+    conditions: { conjunction: 'and', conditions: [
+      { fieldKey: 'register_days', operator: 'lessThan', value: '7' },
+      { fieldKey: 'membership_status', operator: 'equals', value: '未开通' }
+    ]},
+    rules: [
+      { id: 101, name: '新用户欢迎消息', description: '向新注册用户发送欢迎消息', triggerType: 'user_change', status: 'enabled', createdAt: '2026-04-01 10:00', updatedAt: '2026-04-08 14:30', creator: '张三' },
+      { id: 102, name: '新用户会员赠送', description: '新用户注册3天后赠送7天会员', triggerType: 'scheduled', status: 'enabled', createdAt: '2026-04-02 11:00', updatedAt: '2026-04-07 09:20', creator: '李四' }
+    ]
+  },
+  {
+    id: 2, name: '高价值用户维护分组', description: '针对购买3次以上的活跃用户进行维护',
+    priority: 2, status: 'enabled', updatedAt: '2026-04-07 16:45',
+    conditions: { conjunction: 'and', conditions: [
+      { fieldKey: 'purchase_count', operator: 'greaterThan', value: '3' },
+      { fieldKey: 'last_active_days', operator: 'lessThan', value: '30' }
+    ]},
+    rules: [
+      { id: 201, name: '活跃用户回访', description: '定期对高价值用户进行回访', triggerType: 'scheduled', status: 'enabled', createdAt: '2026-03-20 15:00', updatedAt: '2026-04-07 16:45', creator: '王五' }
+    ]
+  },
+  {
+    id: 3, name: '默认分组', description: '未命中以上分组的用户走默认规则',
+    priority: 99, status: 'enabled', updatedAt: '2026-04-05 10:00',
+    conditions: { conjunction: 'and', conditions: [] },
+    rules: [
+      { id: 301, name: '通用消息推送', description: '对所有用户推送通用消息', triggerType: 'user_change', status: 'enabled', createdAt: '2026-03-15 09:00', updatedAt: '2026-04-05 10:00', creator: '赵六' },
+      { id: 302, name: '用户属性更新', description: '当用户信息变更时同步更新属性', triggerType: 'user_change', status: 'disabled', createdAt: '2026-03-18 11:30', updatedAt: '2026-04-04 15:00', creator: '张三' }
+    ]
+  }
+];
+
+let currentGroupId = null;
+let editingGroupId = null;
+let groupConditionCount = 0;
+let pendingConfirmAction = null;
+
+// ========== 分组列表 ==========
+function renderGroupTable() {
+  const tbody = document.getElementById('group-table-body');
+  if (groups.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9"><div class="empty"><div class="empty-icon">&#128196;</div><p>暂无分组，请点击"新建分组"按钮创建</p></div></td></tr>';
+    return;
+  }
+  const sorted = [...groups].sort((a, b) => a.priority - b.priority);
+  tbody.innerHTML = sorted.map(g => `
+    <tr>
+      <td><span class="priority-badge">${g.priority}</span></td>
+      <td>${g.id}</td>
+      <td><a href="javascript:void(0)" onclick="enterGroupDetail(${g.id})" style="color:#409eff;text-decoration:none;font-weight:500">${g.name}</a></td>
+      <td style="color:#909399">${g.description}</td>
+      <td>${g.conditions.conditions.length > 0 ? g.conditions.conditions.length + ' 条' : '<span class=\'tag tag-info\'>无条件（兜底）</span>'}</td>
+      <td>${g.rules.length}</td>
+      <td>${g.updatedAt}</td>
+      <td><div class="switch ${g.status === 'enabled' ? 'on' : ''}" onclick="toggleGroup(${g.id})"></div></td>
+      <td>
+        <button class="btn btn-text btn-sm" onclick="enterGroupDetail(${g.id})">查看规则</button>
+        <button class="btn btn-text btn-sm" onclick="editGroup(${g.id})">编辑</button>
+        <button class="btn btn-text btn-sm danger" onclick="deleteGroup(${g.id})">删除</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function toggleGroup(id) {
+  const g = groups.find(g => g.id === id);
+  if (g) {
+    g.status = g.status === 'enabled' ? 'disabled' : 'enabled';
+    showToast(g.status === 'enabled' ? '已启用' : '已禁用', 'success');
+    renderGroupTable();
+  }
+}
+
+function deleteGroup(id) {
+  const g = groups.find(g => g.id === id);
+  document.getElementById('confirm-title').textContent = `确定要删除分组"${g.name}"吗？`;
+  document.getElementById('confirm-desc').textContent = `删除后不可恢复，该分组下的 ${g.rules.length} 条规则也将被移除。`;
+  pendingConfirmAction = () => {
+    groups = groups.filter(g => g.id !== id);
+    renderGroupTable();
+    showToast('删除成功', 'success');
+  };
+  document.getElementById('confirm-dialog').style.display = 'flex';
+}
+
+// ========== 分组弹窗 ==========
+function showGroupDialog(editId) {
+  editingGroupId = editId || null;
+  document.getElementById('group-dialog-title').textContent = editId ? '编辑分组' : '新建分组';
+  groupConditionCount = 0;
+
+  if (editId) {
+    const g = groups.find(g => g.id === editId);
+    document.getElementById('group-name-input').value = g.name;
+    document.getElementById('group-desc-input').value = g.description;
+    document.getElementById('group-priority-input').value = g.priority;
+    document.getElementById('group-conjunction').value = g.conditions.conjunction;
+    document.getElementById('group-condition-rows').innerHTML = '';
+    g.conditions.conditions.forEach(c => addGroupCondition(c));
+  } else {
+    document.getElementById('group-name-input').value = '';
+    document.getElementById('group-desc-input').value = '';
+    document.getElementById('group-priority-input').value = groups.length + 1;
+    document.getElementById('group-conjunction').value = 'and';
+    document.getElementById('group-condition-rows').innerHTML = '';
+    addGroupCondition();
+  }
+  document.getElementById('group-dialog').style.display = 'flex';
+}
+
+function closeGroupDialog() {
+  document.getElementById('group-dialog').style.display = 'none';
+}
+
+function addGroupCondition(preset) {
+  groupConditionCount++;
+  const container = document.getElementById('group-condition-rows');
+  const row = document.createElement('div');
+  row.className = 'condition-row';
+  row.id = `gc-row-${groupConditionCount}`;
+  const idx = groupConditionCount;
+
+  let fieldOptions = variableOptions.map(v =>
+    `<option value="${v.value}" ${preset && preset.fieldKey === v.value ? 'selected' : ''}>${v.label}</option>`
+  ).join('');
+
+  let opOptions = operatorOptions.map(o =>
+    `<option value="${o.value}" ${preset && preset.operator === o.value ? 'selected' : ''}>${o.label}</option>`
+  ).join('');
+
+  row.innerHTML = `
+    <select class="select" style="width:70px">${opOptions}</select>
+    <select class="select" style="flex:1"><option value="">请选择条件字段</option>${fieldOptions}</select>
+    <input class="input" style="flex:1" placeholder="输入条件值" value="${preset ? preset.value : ''}">
+    <button class="btn btn-text btn-sm danger" onclick="removeGroupCondition(${idx})" title="删除条件">✕</button>
+  `;
+  container.appendChild(row);
+}
+
+function removeGroupCondition(idx) {
+  const row = document.getElementById(`gc-row-${idx}`);
+  if (row) row.remove();
+}
+
+function saveGroup() {
+  const name = document.getElementById('group-name-input').value.trim();
+  if (!name) { showToast('请输入分组名称', 'warning'); return; }
+
+  const desc = document.getElementById('group-desc-input').value.trim();
+  const priority = parseInt(document.getElementById('group-priority-input').value) || 1;
+  const conjunction = document.getElementById('group-conjunction').value;
+
+  const rows = document.getElementById('group-condition-rows').querySelectorAll('.condition-row');
+  const conditions = [];
+  rows.forEach(row => {
+    const selects = row.querySelectorAll('select');
+    const input = row.querySelector('input');
+    if (selects[1].value) {
+      conditions.push({
+        operator: selects[0].value,
+        fieldKey: selects[1].value,
+        value: input.value
+      });
+    }
+  });
+
+  if (editingGroupId) {
+    const g = groups.find(g => g.id === editingGroupId);
+    g.name = name;
+    g.description = desc;
+    g.priority = priority;
+    g.conditions = { conjunction, conditions };
+    g.updatedAt = '2026-04-09 15:00';
+    showToast('更新成功', 'success');
+  } else {
+    const newId = Math.max(...groups.map(g => g.id), 0) + 1;
+    groups.push({
+      id: newId, name, description: desc, priority,
+      status: 'enabled', updatedAt: '2026-04-09 15:00',
+      conditions: { conjunction, conditions },
+      rules: []
+    });
+    showToast('创建成功', 'success');
+  }
+  closeGroupDialog();
+  renderGroupTable();
+}
+
+function editGroup(id) {
+  showGroupDialog(id);
+}
+
+// ========== 分组详情 ==========
+function enterGroupDetail(id) {
+  currentGroupId = id;
+  const g = groups.find(g => g.id === id);
+  document.getElementById('detail-group-name').textContent = g.name;
+  document.getElementById('detail-group-tag').textContent = g.status === 'enabled' ? '已启用' : '已禁用';
+  document.getElementById('detail-group-tag').className = g.status === 'enabled' ? 'tag tag-success' : 'tag tag-info';
+
+  // 渲染命中条件
+  const condDisplay = document.getElementById('detail-conditions-display');
+  if (g.conditions.conditions.length === 0) {
+    condDisplay.innerHTML = '<span class="text-sm text-gray">无命中条件（兜底分组，匹配所有未命中其他分组的请求）</span>';
+  } else {
+    const conjText = g.conditions.conjunction === 'and' ? '且' : '或';
+    condDisplay.innerHTML = g.conditions.conditions.map((c, i) => {
+      const fieldLabel = variableOptions.find(v => v.value === c.fieldKey)?.label || c.fieldKey;
+      const opLabel = operatorOptions.find(o => o.value === c.operator)?.label || c.operator;
+      return `<div class="flex items-center gap-8 mb-8">
+        ${i > 0 ? '<span class="conjunction-btn">' + conjText + '</span>' : '<span style="width:32px"></span>'}
+        <span class="tag tag-primary">${fieldLabel}</span>
+        <span>${opLabel}</span>
+        <span style="font-weight:500">${c.value}</span>
+      </div>`;
+    }).join('');
+  }
+
+  renderRuleTable(g);
+
+  document.getElementById('view-group-list').classList.add('view-hidden');
+  document.getElementById('view-group-detail').classList.remove('view-hidden');
+}
+
+function backToGroupList() {
+  document.getElementById('view-group-detail').classList.add('view-hidden');
+  document.getElementById('view-group-list').classList.remove('view-hidden');
+  renderGroupTable();
+}
+
+function renderRuleTable(group) {
+  const tbody = document.getElementById('rule-table-body');
+  if (group.rules.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9"><div class="empty"><div class="empty-icon">&#128196;</div><p>该分组下暂无规则，请点击"新建规则"按钮创建</p></div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = group.rules.map(r => `
+    <tr>
+      <td>${r.id}</td>
+      <td style="font-weight:500">${r.name}</td>
+      <td style="color:#909399">${r.description}</td>
+      <td>${r.triggerType === 'user_change' ? '用户信息变更' : '定时任务'}</td>
+      <td>${r.createdAt}</td>
+      <td>${r.updatedAt}</td>
+      <td>${r.creator}</td>
+      <td><div class="switch ${r.status === 'enabled' ? 'on' : ''}" onclick="toggleRule(${r.id})"></div></td>
+      <td>
+        <button class="btn btn-text btn-sm" onclick="showRuleDialog(${r.id})">编辑</button>
+        <button class="btn btn-text btn-sm danger" onclick="deleteRule(${r.id})">删除</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function toggleRule(id) {
+  const g = groups.find(g => g.id === currentGroupId);
+  const r = g.rules.find(r => r.id === id);
+  if (r) {
+    r.status = r.status === 'enabled' ? 'disabled' : 'enabled';
+    showToast(r.status === 'enabled' ? '已启用' : '已禁用', 'success');
+    renderRuleTable(g);
+  }
+}
+
+function deleteRule(id) {
+  const g = groups.find(g => g.id === currentGroupId);
+  const r = g.rules.find(r => r.id === id);
+  document.getElementById('confirm-title').textContent = `确定要删除规则"${r.name}"吗？`;
+  document.getElementById('confirm-desc').textContent = '删除后不可恢复。';
+  pendingConfirmAction = () => {
+    g.rules = g.rules.filter(r => r.id !== id);
+    renderRuleTable(g);
+    showToast('删除成功', 'success');
+  };
+  document.getElementById('confirm-dialog').style.display = 'flex';
+}
+
+// ========== 规则弹窗 ==========
+function showRuleDialog(editId) {
+  document.getElementById('rule-dialog-title').textContent = editId ? '编辑规则' : '新建规则';
+  if (!editId) {
+    document.getElementById('rule-name-input').value = '';
+    document.getElementById('rule-desc-input').value = '';
+  } else {
+    const g = groups.find(g => g.id === currentGroupId);
+    const r = g.rules.find(r => r.id === editId);
+    if (r) {
+      document.getElementById('rule-name-input').value = r.name;
+      document.getElementById('rule-desc-input').value = r.description;
+    }
+  }
+  document.getElementById('rule-dialog').style.display = 'flex';
+}
+
+function closeRuleDialog() {
+  document.getElementById('rule-dialog').style.display = 'none';
+}
+
+function saveRule() {
+  const name = document.getElementById('rule-name-input').value.trim();
+  if (!name) { showToast('请输入规则名称', 'warning'); return; }
+  const desc = document.getElementById('rule-desc-input').value.trim();
+  if (!desc) { showToast('请输入规则描述', 'warning'); return; }
+
+  const g = groups.find(g => g.id === currentGroupId);
+  const newId = Math.max(...g.rules.map(r => r.id), 0) + 1;
+  g.rules.push({
+    id: newId, name, description: desc, triggerType: 'user_change',
+    status: 'enabled', createdAt: '2026-04-09 15:00', updatedAt: '2026-04-09 15:00', creator: '当前用户'
+  });
+  closeRuleDialog();
+  renderRuleTable(g);
+  showToast('创建成功', 'success');
+}
+
+function addDemoAction() {
+  const container = document.getElementById('rule-actions');
+  const box = document.createElement('div');
+  box.className = 'action-box';
+  box.innerHTML = `
+    <div class="flex items-center gap-12 mb-12">
+      <span>动作类型</span>
+      <select class="select" style="width:200px"><option>发送企业微信消息</option><option>更新变量</option><option>发送会员</option></select>
+      <button class="btn btn-danger btn-sm" style="margin-left:auto" onclick="this.parentElement.parentElement.remove()">删除</button>
+    </div>
+    <div>
+      <div class="flex items-center gap-4 mb-8">
+        <span>消息内容</span>
+      </div>
+      <textarea class="textarea" placeholder="请输入消息内容" style="min-height:60px"></textarea>
+    </div>
+  `;
+  container.appendChild(box);
+}
+
+// ========== 确认弹窗 ==========
+function closeConfirm() {
+  document.getElementById('confirm-dialog').style.display = 'none';
+  pendingConfirmAction = null;
+}
+
+function confirmAction() {
+  if (pendingConfirmAction) pendingConfirmAction();
+  closeConfirm();
+}
+
+// ========== Toast ==========
+function showToast(msg, type) {
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type || 'success'}`;
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 2000);
+}
+
+// 初始化
+renderGroupTable();
+</script>
+</body>
+</html>
