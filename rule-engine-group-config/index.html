@@ -368,6 +368,58 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helv
   </div>
 </div>
 
+<!-- 复制分组弹窗 -->
+<div class="modal-overlay" id="copy-group-dialog" style="display:none">
+  <div class="modal" style="width:700px;">
+    <div class="modal-header">
+      <h3>复制分组</h3>
+      <div class="modal-close" onclick="closeCopyGroupDialog()">&times;</div>
+    </div>
+    <div class="modal-body">
+      <div style="background:#ecf5ff;border:1px solid #b3d8ff;border-radius:8px;padding:12px 16px;margin-bottom:20px;display:flex;align-items:center;gap:8px;">
+        <span style="color:#409eff;font-size:16px;">&#9432;</span>
+        <span style="color:#409eff;font-size:14px;" id="copy-source-info">将复制分组"新用户引导分组"及其下 2 条规则</span>
+      </div>
+      <div class="form-item">
+        <label class="form-label"><span class="required">*</span>分组名称</label>
+        <input class="input" id="copy-group-name-input" placeholder="请输入分组名称" maxlength="30">
+      </div>
+      <div class="form-item">
+        <label class="form-label">分组描述</label>
+        <textarea class="textarea" id="copy-group-desc-input" placeholder="请输入分组描述" maxlength="200"></textarea>
+      </div>
+      <div class="form-item">
+        <label class="form-label"><span class="required">*</span>分组命中条件</label>
+        <p class="text-sm text-gray mb-8">复制分组必须配置新的命中条件，且不能与已有分组的条件重复</p>
+        <div class="condition-box" id="copy-group-conditions-box">
+          <div class="flex items-center gap-8 mb-12">
+            <span class="text-sm">条件关系：</span>
+            <select class="select" id="copy-group-conjunction" style="min-width:80px;">
+              <option value="and">且（AND）</option>
+              <option value="or">或（OR）</option>
+            </select>
+          </div>
+          <div id="copy-group-condition-rows"></div>
+          <button class="btn btn-text btn-sm" style="margin-top:8px" onclick="addCopyGroupCondition()">+ 新增条件</button>
+        </div>
+      </div>
+      <div class="form-item">
+        <label class="form-label">优先级</label>
+        <p class="text-sm text-gray mb-8">数字越小优先级越高</p>
+        <input class="input" type="number" id="copy-group-priority-input" value="1" min="1" max="100" style="width:120px;">
+      </div>
+      <div style="background:#fff7e6;border:1px solid #ffe58f;border-radius:8px;padding:12px 16px;display:flex;align-items:center;gap:8px;">
+        <span style="color:#d48806;font-size:16px;">&#9888;</span>
+        <span style="color:#d48806;font-size:13px;">复制的新分组默认为"已禁用"状态，请确认配置无误后手动启用</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeCopyGroupDialog()">取消</button>
+      <button class="btn btn-primary" onclick="saveCopyGroup()">确认复制</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // 模拟数据
 const variableOptions = [
@@ -453,6 +505,7 @@ function renderGroupTable() {
       <td>
         <button class="btn btn-text btn-sm" onclick="enterGroupDetail(${g.id})">查看规则</button>
         <button class="btn btn-text btn-sm" onclick="editGroup(${g.id})">编辑</button>
+        <button class="btn btn-text btn-sm" onclick="showCopyGroupDialog(${g.id})">复制</button>
         <button class="btn btn-text btn-sm danger" onclick="deleteGroup(${g.id})">删除</button>
       </td>
     </tr>
@@ -561,6 +614,14 @@ function saveGroup() {
     }
   });
 
+  if (conditions.length > 0) {
+    const dupName = checkConditionDuplicate(conjunction, conditions, editingGroupId);
+    if (dupName) {
+      showToast(`命中条件与分组"${dupName}"重复，请修改`, 'error');
+      return;
+    }
+  }
+
   if (editingGroupId) {
     const g = groups.find(g => g.id === editingGroupId);
     g.name = name;
@@ -585,6 +646,150 @@ function saveGroup() {
 
 function editGroup(id) {
   showGroupDialog(id);
+}
+
+// ========== 复制分组 ==========
+let copySourceGroupId = null;
+let copyConditionCount = 0;
+
+function showCopyGroupDialog(id) {
+  copySourceGroupId = id;
+  copyConditionCount = 0;
+  const g = groups.find(g => g.id === id);
+
+  document.getElementById('copy-source-info').textContent = `将复制分组"${g.name}"及其下 ${g.rules.length} 条规则`;
+  document.getElementById('copy-group-name-input').value = g.name + '-副本';
+  document.getElementById('copy-group-desc-input').value = g.description;
+  document.getElementById('copy-group-priority-input').value = Math.max(...groups.map(g => g.priority), 0) + 1;
+  document.getElementById('copy-group-conjunction').value = 'and';
+  document.getElementById('copy-group-condition-rows').innerHTML = '';
+  addCopyGroupCondition();
+
+  document.getElementById('copy-group-dialog').style.display = 'flex';
+}
+
+function closeCopyGroupDialog() {
+  document.getElementById('copy-group-dialog').style.display = 'none';
+  copySourceGroupId = null;
+}
+
+function addCopyGroupCondition(preset) {
+  copyConditionCount++;
+  const container = document.getElementById('copy-group-condition-rows');
+  const row = document.createElement('div');
+  row.className = 'condition-row';
+  row.id = `cgc-row-${copyConditionCount}`;
+  const idx = copyConditionCount;
+
+  let fieldOptions = variableOptions.map(v =>
+    `<option value="${v.value}" ${preset && preset.fieldKey === v.value ? 'selected' : ''}>${v.label}</option>`
+  ).join('');
+
+  let opOptions = operatorOptions.map(o =>
+    `<option value="${o.value}" ${preset && preset.operator === o.value ? 'selected' : ''}>${o.label}</option>`
+  ).join('');
+
+  row.innerHTML = `
+    <select class="select" style="width:70px">${opOptions}</select>
+    <select class="select" style="flex:1"><option value="">请选择条件字段</option>${fieldOptions}</select>
+    <input class="input" style="flex:1" placeholder="输入条件值" value="${preset ? preset.value : ''}">
+    <button class="btn btn-text btn-sm danger" onclick="removeCopyGroupCondition(${idx})" title="删除条件">✕</button>
+  `;
+  container.appendChild(row);
+}
+
+function removeCopyGroupCondition(idx) {
+  const row = document.getElementById(`cgc-row-${idx}`);
+  if (row) row.remove();
+}
+
+function serializeConditions(conjunction, conditions) {
+  if (!conditions.length) return '';
+  const sorted = [...conditions].sort((a, b) => {
+    const k = a.fieldKey.localeCompare(b.fieldKey);
+    if (k !== 0) return k;
+    const o = a.operator.localeCompare(b.operator);
+    if (o !== 0) return o;
+    return (a.value || '').localeCompare(b.value || '');
+  });
+  return conjunction + '|' + sorted.map(c => `${c.fieldKey}:${c.operator}:${c.value}`).join(',');
+}
+
+function checkConditionDuplicate(conjunction, conditions, excludeGroupId) {
+  const newKey = serializeConditions(conjunction, conditions);
+  if (!newKey) return null;
+  for (const g of groups) {
+    if (g.id === excludeGroupId) continue;
+    const existingKey = serializeConditions(g.conditions.conjunction, g.conditions.conditions);
+    if (existingKey === newKey) return g.name;
+  }
+  return null;
+}
+
+function saveCopyGroup() {
+  const name = document.getElementById('copy-group-name-input').value.trim();
+  if (!name) { showToast('请输入分组名称', 'warning'); return; }
+
+  const desc = document.getElementById('copy-group-desc-input').value.trim();
+  const priority = parseInt(document.getElementById('copy-group-priority-input').value) || 1;
+  const conjunction = document.getElementById('copy-group-conjunction').value;
+
+  const rows = document.getElementById('copy-group-condition-rows').querySelectorAll('.condition-row');
+  const conditions = [];
+  let hasEmptyField = false;
+  rows.forEach((row, i) => {
+    const selects = row.querySelectorAll('select');
+    const input = row.querySelector('input');
+    if (selects[1].value) {
+      conditions.push({
+        operator: selects[0].value,
+        fieldKey: selects[1].value,
+        value: input.value
+      });
+    } else if (selects[1].value === '') {
+      hasEmptyField = true;
+    }
+  });
+
+  if (conditions.length === 0) {
+    showToast('复制分组必须配置命中条件', 'warning');
+    return;
+  }
+
+  const dupGroupName = checkConditionDuplicate(conjunction, conditions, null);
+  if (dupGroupName) {
+    showToast(`命中条件与分组"${dupGroupName}"重复，请修改`, 'error');
+    return;
+  }
+
+  const sourceGroup = groups.find(g => g.id === copySourceGroupId);
+  const newId = Math.max(...groups.map(g => g.id), 0) + 1;
+  const now = '2026-04-09 18:00';
+  const copiedRules = sourceGroup.rules.map((r, i) => ({
+    id: newId * 100 + i + 1,
+    name: r.name,
+    description: r.description,
+    triggerType: r.triggerType,
+    status: r.status,
+    createdAt: now,
+    updatedAt: now,
+    creator: '当前用户'
+  }));
+
+  groups.push({
+    id: newId,
+    name,
+    description: desc,
+    priority,
+    status: 'disabled',
+    updatedAt: now,
+    conditions: { conjunction, conditions },
+    rules: copiedRules
+  });
+
+  closeCopyGroupDialog();
+  renderGroupTable();
+  showToast('复制成功，新分组已创建（默认禁用）', 'success');
 }
 
 // ========== 分组详情 ==========
