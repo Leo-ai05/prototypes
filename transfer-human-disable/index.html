@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>全局配置 - 转人工禁用配置原型</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f0f2f5;color:#303133;font-size:14px}
+.app{display:flex;height:100vh}
+.sidebar{width:200px;background:#001529;color:#fff;flex-shrink:0;display:flex;flex-direction:column}
+.sidebar h1{font-size:16px;padding:20px 16px;border-bottom:1px solid rgba(255,255,255,.1);font-weight:600}
+.nav-item{padding:12px 16px 12px 24px;cursor:pointer;transition:background .2s;font-size:13px;color:rgba(255,255,255,.65)}
+.nav-item:hover{background:rgba(255,255,255,.08)}
+.nav-item.active{background:#1890ff;color:#fff}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:48px;background:#fff;border-bottom:1px solid #e8e8e8;display:flex;align-items:center;padding:0 20px;font-size:13px;color:#999}
+.topbar .crumb span{color:#409eff;cursor:pointer}
+.content{flex:1;overflow-y:auto;padding:20px}
+.config-section{background:#fff;border-radius:8px;padding:20px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.section-header{display:flex;align-items:center;margin-bottom:16px}
+.section-indicator{width:4px;height:16px;background:#409eff;border-radius:2px;margin-right:8px}
+.section-title{font-size:16px;font-weight:600;color:#303133}
+.section-content{padding-left:12px}
+.desc-text{font-size:14px;color:#606266;margin-bottom:8px;line-height:1.6}
+.form-row{display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-size:14px;color:#606266;margin-bottom:12px}
+.time-picker{border:1px solid #dcdfe6;border-radius:4px;padding:6px 12px;font-size:14px;width:140px;outline:none;transition:border-color .2s}
+.time-picker:focus{border-color:#409eff}
+.time-picker:disabled{background:#f5f7fa;color:#c0c4cc;cursor:not-allowed}
+.btn{padding:8px 20px;border-radius:4px;border:none;cursor:pointer;font-size:14px;transition:all .2s}
+.btn-primary{background:#409eff;color:#fff}
+.btn-primary:hover{background:#66b1ff}
+.btn-primary:disabled{background:#a0cfff;cursor:not-allowed}
+.switch-wrap{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.switch{width:44px;height:22px;border-radius:11px;background:#dcdfe6;position:relative;cursor:pointer;transition:background .3s;flex-shrink:0}
+.switch.on{background:#409eff}
+.switch .dot{width:18px;height:18px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;transition:left .3s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.switch.on .dot{left:24px}
+.switch.disabled{opacity:.6;cursor:not-allowed}
+.switch-label{font-size:14px;color:#303133;font-weight:500}
+.switch-status{font-size:12px;padding:2px 8px;border-radius:3px;margin-left:4px}
+.switch-status.on{background:#f0f9eb;color:#67c23a}
+.switch-status.off{background:#fef0f0;color:#f56c6c}
+.sub-config{background:#f8f9fb;border-radius:6px;padding:16px;margin-top:12px;border:1px solid #ebeef5}
+.sub-config-title{font-size:13px;font-weight:600;color:#606266;margin-bottom:12px}
+.radio-group{display:flex;gap:24px;margin-bottom:12px}
+.radio-item{display:flex;align-items:center;gap:6px;cursor:pointer;font-size:14px;color:#606266}
+.radio-item input[type=radio]{accent-color:#409eff;width:16px;height:16px}
+.tip-text{font-size:12px;color:#909399;margin-top:8px;line-height:1.6;padding:8px 12px;background:#fdf6ec;border-radius:4px;border-left:3px solid #e6a23c}
+.divider{height:1px;background:#ebeef5;margin:16px 0}
+
+.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:1000}
+.modal{background:#fff;border-radius:8px;width:420px;box-shadow:0 8px 32px rgba(0,0,0,.15)}
+.modal-header{padding:16px 20px;border-bottom:1px solid #ebeef5;display:flex;align-items:center;justify-content:space-between}
+.modal-header h3{font-size:16px;font-weight:600}
+.modal-close{cursor:pointer;font-size:20px;color:#909399;line-height:1}
+.modal-close:hover{color:#303133}
+.modal-body{padding:20px}
+.modal-body p{font-size:14px;color:#606266;line-height:1.6;margin-bottom:8px}
+.modal-footer{padding:12px 20px;border-top:1px solid #ebeef5;display:flex;justify-content:flex-end;gap:8px}
+.btn-default{background:#fff;color:#606266;border:1px solid #dcdfe6}
+.btn-default:hover{color:#409eff;border-color:#c6e2ff;background:#ecf5ff}
+.btn-danger{background:#f56c6c;color:#fff}
+.btn-danger:hover{background:#f78989}
+
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:6px;font-size:14px;z-index:2000;animation:toastIn .3s ease}
+.toast.success{background:#f0f9eb;color:#67c23a;border:1px solid #e1f3d8}
+.toast.warning{background:#fdf6ec;color:#e6a23c;border:1px solid #faecd8}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+.page-indicator{position:fixed;bottom:20px;right:20px;background:#409eff;color:#fff;padding:8px 16px;border-radius:20px;font-size:12px;box-shadow:0 2px 12px rgba(64,158,255,.4)}
+
+.scenario-tabs{display:flex;border-bottom:2px solid #ebeef5;margin-bottom:20px}
+.scenario-tab{padding:10px 20px;cursor:pointer;font-size:14px;color:#606266;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s}
+.scenario-tab.active{color:#409eff;border-bottom-color:#409eff;font-weight:500}
+.scenario-tab:hover{color:#409eff}
+
+.h5-mockup{max-width:375px;margin:0 auto;border:1px solid #e8e8e8;border-radius:12px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.08)}
+.h5-header{background:#07c160;color:#fff;padding:12px 16px;font-size:15px;font-weight:500;text-align:center}
+.h5-body{padding:20px 16px;background:#fff}
+.h5-card{background:#f8f9fa;border-radius:8px;padding:16px;margin-bottom:12px}
+.h5-card-title{font-size:13px;color:#999;margin-bottom:8px}
+.h5-card-value{font-size:15px;color:#303133;font-weight:500}
+.h5-btn{display:block;width:100%;padding:12px;border-radius:8px;border:none;font-size:15px;font-weight:500;cursor:pointer;transition:all .2s;text-align:center;margin-top:16px}
+.h5-btn.primary{background:#07c160;color:#fff}
+.h5-btn.primary:hover{background:#06ad56}
+.h5-btn.disabled{background:#e8e8e8;color:#999;cursor:not-allowed}
+.h5-tip{text-align:center;font-size:12px;color:#999;margin-top:12px;line-height:1.6}
+.h5-disabled-banner{background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.h5-disabled-banner .icon{font-size:18px}
+.h5-disabled-banner .text{font-size:13px;color:#856404;line-height:1.5}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <h1>企微机器人</h1>
+    <div class="nav-item" onclick="switchPage('ai')">AI员工明细</div>
+    <div class="nav-item" onclick="switchPage('rule')">规则配置</div>
+    <div class="nav-item" onclick="switchPage('attr')">会话属性</div>
+    <div class="nav-item active" id="nav-global" onclick="switchPage('global')">全局配置</div>
+  </aside>
+  <div class="main">
+    <div class="topbar">
+      <div class="crumb"><span>企微机器人</span> / 全局配置</div>
+    </div>
+    <div class="content" id="content"></div>
+  </div>
+</div>
+
+<div id="modal-container"></div>
+<div id="toast-container"></div>
+<div class="page-indicator" id="page-indicator">当前场景：全局配置 - 默认状态</div>
+
+<script>
+const state = {
+  page: 'global',
+  scenario: 'default',
+  transferDisabled: false,
+  disableScope: 'all',
+  noSendStartTime: '22:00:00',
+  noSendEndTime: '08:00:00',
+  delaySendTime: '08:30:00',
+  canEdit: true,
+  showConfirmModal: false,
+  pendingAction: null
+};
+
+function showToast(msg, type = 'success') {
+  const c = document.getElementById('toast-container');
+  c.innerHTML = `<div class="toast ${type}">${msg}</div>`;
+  setTimeout(() => c.innerHTML = '', 2500);
+}
+
+function showConfirm(title, message, onConfirm) {
+  state.showConfirmModal = true;
+  const c = document.getElementById('modal-container');
+  c.innerHTML = `
+    <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+      <div class="modal">
+        <div class="modal-header">
+          <h3>${title}</h3>
+          <span class="modal-close" onclick="closeModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+          <p>${message}</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-default" onclick="closeModal()">取消</button>
+          <button class="btn btn-danger" onclick="(${onConfirm.toString()})();closeModal()">确定</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function closeModal() {
+  document.getElementById('modal-container').innerHTML = '';
+  state.showConfirmModal = false;
+}
+
+function switchPage(page) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (page === 'global') {
+    document.getElementById('nav-global').classList.add('active');
+  }
+  state.page = page;
+  render();
+}
+
+function toggleTransferDisabled() {
+  if (!state.canEdit) return;
+  if (!state.transferDisabled) {
+    showConfirm(
+      '确认禁用转人工',
+      '禁用后，AI 将不会自动转人工，侧边栏「转为人工接待」按钮也将不可用。<br><br>已处于人工接待状态的会话不受影响，仍可继续人工服务。<br><br>确定要禁用转人工功能吗？',
+      function() {
+        state.transferDisabled = true;
+        showToast('转人工功能已禁用', 'warning');
+        render();
+      }
+    );
+  } else {
+    state.transferDisabled = false;
+    showToast('转人工功能已启用');
+    render();
+  }
+}
+
+function setDisableScope(scope) {
+  state.disableScope = scope;
+  render();
+}
+
+function switchScenario(s) {
+  state.scenario = s;
+  if (s === 'default') {
+    state.transferDisabled = false;
+  } else if (s === 'disabled-all') {
+    state.transferDisabled = true;
+    state.disableScope = 'all';
+  } else if (s === 'disabled-ai') {
+    state.transferDisabled = true;
+    state.disableScope = 'ai_only';
+  } else if (s === 'h5-normal') {
+    state.transferDisabled = false;
+  } else if (s === 'h5-disabled') {
+    state.transferDisabled = true;
+    state.disableScope = 'all';
+  }
+  render();
+}
+
+function handleSave() {
+  showToast('保存配置成功');
+}
+
+function render() {
+  const content = document.getElementById('content');
+  const indicator = document.getElementById('page-indicator');
+
+  if (state.page !== 'global') {
+    content.innerHTML = `<div style="text-align:center;padding:80px 20px;color:#909399;"><p style="font-size:48px;margin-bottom:16px;">📋</p><p style="font-size:16px;">请点击左侧「全局配置」查看原型</p></div>`;
+    indicator.textContent = '请切换到全局配置页面';
+    return;
+  }
+
+  const scenarioLabels = {
+    'default': '全局配置 - 默认状态（转人工已启用）',
+    'disabled-all': '全局配置 - 转人工已禁用（全部禁用）',
+    'disabled-ai': '全局配置 - 转人工已禁用（仅禁用AI侧）',
+    'h5-normal': '侧边栏H5 - 转人工正常可用',
+    'h5-disabled': '侧边栏H5 - 转人工已被全局禁用'
+  };
+  indicator.textContent = '当前场景：' + (scenarioLabels[state.scenario] || '');
+
+  const isH5 = state.scenario === 'h5-normal' || state.scenario === 'h5-disabled';
+
+  content.innerHTML = `
+    <div class="scenario-tabs">
+      <div class="scenario-tab ${state.scenario === 'default' ? 'active' : ''}" onclick="switchScenario('default')">默认状态</div>
+      <div class="scenario-tab ${state.scenario === 'disabled-all' ? 'active' : ''}" onclick="switchScenario('disabled-all')">禁用-全部</div>
+      <div class="scenario-tab ${state.scenario === 'disabled-ai' ? 'active' : ''}" onclick="switchScenario('disabled-ai')">禁用-仅AI侧</div>
+      <div class="scenario-tab ${state.scenario === 'h5-normal' ? 'active' : ''}" onclick="switchScenario('h5-normal')">H5-正常</div>
+      <div class="scenario-tab ${state.scenario === 'h5-disabled' ? 'active' : ''}" onclick="switchScenario('h5-disabled')">H5-已禁用</div>
+    </div>
+    ${isH5 ? renderH5() : renderGlobalConfig()}
+  `;
+}
+
+function renderGlobalConfig() {
+  return `
+    <!-- 转人工禁用配置 -->
+    <div class="config-section">
+      <div class="section-header">
+        <div class="section-indicator"></div>
+        <span class="section-title">转人工禁用配置</span>
+      </div>
+      <div class="section-content">
+        <div class="desc-text">控制是否允许会话从 AI 托管状态转为人工接待。禁用后，相关转人工入口将不可用。</div>
+
+        <div class="switch-wrap">
+          <div class="switch ${state.transferDisabled ? 'on' : ''} ${!state.canEdit ? 'disabled' : ''}" onclick="toggleTransferDisabled()">
+            <div class="dot"></div>
+          </div>
+          <span class="switch-label">禁用转人工</span>
+          <span class="switch-status ${state.transferDisabled ? 'off' : 'on'}">${state.transferDisabled ? '已禁用' : '未禁用'}</span>
+        </div>
+
+        ${state.transferDisabled ? `
+        <div class="sub-config">
+          <div class="sub-config-title">禁用范围</div>
+          <div class="radio-group">
+            <label class="radio-item" onclick="setDisableScope('all')">
+              <input type="radio" name="scope" ${state.disableScope === 'all' ? 'checked' : ''} ${!state.canEdit ? 'disabled' : ''}>
+              全部禁用
+            </label>
+            <label class="radio-item" onclick="setDisableScope('ai_only')">
+              <input type="radio" name="scope" ${state.disableScope === 'ai_only' ? 'checked' : ''} ${!state.canEdit ? 'disabled' : ''}>
+              仅禁用 AI 侧自动转人工
+            </label>
+          </div>
+
+          <div class="desc-text" style="margin-bottom:0">
+            ${state.disableScope === 'all'
+              ? '全部禁用：AI 不会自动转人工，侧边栏「转为人工接待」按钮也不可用。'
+              : '仅禁用 AI 侧：AI 不会自动转人工，但员工仍可通过侧边栏手动切换为人工接待。'}
+          </div>
+
+          <div class="tip-text">
+            ⚠️ 已处于人工接待状态的会话不受此配置影响，仍可继续人工服务直至手动切换回 AI 托管。
+          </div>
+        </div>
+        ` : `
+        <div class="tip-text" style="margin-top:12px">
+          当前转人工功能正常启用。AI 可自动转人工，员工也可通过侧边栏手动切换接待模式。
+        </div>
+        `}
+      </div>
+    </div>
+
+    <!-- 触发器全局规则 -->
+    <div class="config-section">
+      <div class="section-header">
+        <div class="section-indicator"></div>
+        <span class="section-title">触发器全局规则</span>
+      </div>
+      <div class="section-content">
+        <div class="desc-text" style="margin-bottom:12px">触发时间:</div>
+        <div class="form-row">
+          <span>若触发器命中时间范围为</span>
+          <input type="text" class="time-picker" value="${state.noSendStartTime}" ${!state.canEdit ? 'disabled' : ''} placeholder="开始时间">
+          <span>-</span>
+          <input type="text" class="time-picker" value="${state.noSendEndTime}" ${!state.canEdit ? 'disabled' : ''} placeholder="结束时间">
+          <span>顺延至</span>
+          <input type="text" class="time-picker" value="${state.delaySendTime}" ${!state.canEdit ? 'disabled' : ''} placeholder="触发时间" style="width:160px">
+          <span>触发</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 保存按钮 -->
+    ${state.canEdit ? `
+    <div style="margin-top:24px">
+      <button class="btn btn-primary" onclick="handleSave()">保存配置</button>
+    </div>
+    ` : ''}
+  `;
+}
+
+function renderH5() {
+  const isDisabled = state.transferDisabled && state.disableScope === 'all';
+  const isAiMode = true;
+
+  return `
+    <div style="padding:20px 0">
+      <div class="h5-mockup">
+        <div class="h5-header">AI 助理</div>
+        <div class="h5-body">
+          ${isDisabled ? `
+          <div class="h5-disabled-banner">
+            <span class="icon">⚠️</span>
+            <span class="text">转人工功能已被管理员全局禁用，当前无法切换接待模式。</span>
+          </div>
+          ` : ''}
+
+          <div class="h5-card">
+            <div class="h5-card-title">当前联系人</div>
+            <div class="h5-card-value">张小明（家长）</div>
+          </div>
+
+          <div class="h5-card">
+            <div class="h5-card-title">当前接待模式</div>
+            <div class="h5-card-value" style="color:${isAiMode ? '#409eff' : '#67c23a'}">
+              ${isAiMode ? '🤖 AI 托管中' : '👤 人工接待中'}
+            </div>
+          </div>
+
+          <div class="h5-card">
+            <div class="h5-card-title">最近互动</div>
+            <div class="h5-card-value" style="font-size:13px">2026-04-13 14:32 — AI 回复了学习计划咨询</div>
+          </div>
+
+          <button class="h5-btn ${isDisabled ? 'disabled' : 'primary'}" ${isDisabled ? 'disabled' : `onclick="showToast('已切换为人工接待')"`}>
+            ${isDisabled ? '转为人工接待（已禁用）' : '转为人工接待'}
+          </button>
+
+          ${isDisabled ? `
+          <div class="h5-tip">管理员已全局禁用转人工功能。<br>如需启用，请联系管理员在「全局配置」中操作。</div>
+          ` : `
+          <div class="h5-tip">切换后 AI 将暂停自动回复，由人工接待该联系人。</div>
+          `}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+render();
+</script>
+</body>
+</html>
