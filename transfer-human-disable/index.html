@@ -30,53 +30,55 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hira
 .btn{padding:8px 20px;border-radius:4px;border:none;cursor:pointer;font-size:14px;transition:all .2s}
 .btn-primary{background:#409eff;color:#fff}
 .btn-primary:hover{background:#66b1ff}
-.btn-primary:disabled{background:#a0cfff;cursor:not-allowed}
 .switch-wrap{display:flex;align-items:center;gap:12px;margin-bottom:12px}
 .switch{width:44px;height:22px;border-radius:11px;background:#dcdfe6;position:relative;cursor:pointer;transition:background .3s;flex-shrink:0}
 .switch.on{background:#409eff}
 .switch .dot{width:18px;height:18px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;transition:left .3s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
 .switch.on .dot{left:24px}
-.switch.disabled{opacity:.6;cursor:not-allowed}
+.switch.disabled{opacity:.5;cursor:not-allowed}
 .switch-label{font-size:14px;color:#303133;font-weight:500}
 .switch-status{font-size:12px;padding:2px 8px;border-radius:3px;margin-left:4px}
 .switch-status.on{background:#f0f9eb;color:#67c23a}
 .switch-status.off{background:#fef0f0;color:#f56c6c}
 .tip-text{font-size:12px;color:#909399;margin-top:8px;line-height:1.6;padding:8px 12px;background:#fdf6ec;border-radius:4px;border-left:3px solid #e6a23c}
 .info-text{font-size:12px;color:#909399;margin-top:8px;line-height:1.6;padding:8px 12px;background:#ecf5ff;border-radius:4px;border-left:3px solid #409eff}
+.sub-config{background:#f8f9fb;border-radius:6px;padding:16px;margin-top:14px;border:1px solid #ebeef5}
+.sub-config-title{font-size:13px;font-weight:600;color:#606266;margin-bottom:12px}
+.sub-desc{font-size:13px;color:#909399;line-height:1.6;margin-bottom:10px}
+.divider{height:1px;background:#ebeef5;margin:14px 0}
 
 .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:6px;font-size:14px;z-index:2000;animation:toastIn .3s ease}
 .toast.success{background:#f0f9eb;color:#67c23a;border:1px solid #e1f3d8}
-.toast.warning{background:#fdf6ec;color:#e6a23c;border:1px solid #faecd8}
 @keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 
-.page-indicator{position:fixed;bottom:20px;right:20px;background:#409eff;color:#fff;padding:8px 16px;border-radius:20px;font-size:12px;box-shadow:0 2px 12px rgba(64,158,255,.4);max-width:400px}
+.page-indicator{position:fixed;bottom:20px;right:20px;background:#409eff;color:#fff;padding:8px 16px;border-radius:20px;font-size:12px;box-shadow:0 2px 12px rgba(64,158,255,.4);max-width:480px}
 
-.scenario-tabs{display:flex;border-bottom:2px solid #ebeef5;margin-bottom:20px}
-.scenario-tab{padding:10px 20px;cursor:pointer;font-size:14px;color:#606266;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s}
+.scenario-tabs{display:flex;border-bottom:2px solid #ebeef5;margin-bottom:20px;flex-wrap:wrap;gap:0}
+.scenario-tab{padding:10px 16px;cursor:pointer;font-size:13px;color:#606266;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap}
 .scenario-tab.active{color:#409eff;border-bottom-color:#409eff;font-weight:500}
 .scenario-tab:hover{color:#409eff}
 
-.example-block{background:#f8f9fb;border-radius:6px;padding:16px;margin-top:12px;border:1px solid #ebeef5}
+.example-block{background:#f8f9fb;border-radius:6px;padding:16px;margin-top:16px;border:1px solid #ebeef5}
 .example-title{font-size:13px;font-weight:600;color:#606266;margin-bottom:10px}
-.example-row{display:flex;align-items:center;gap:8px;font-size:13px;color:#606266;padding:6px 0;border-bottom:1px dashed #ebeef5}
+.example-row{display:flex;align-items:center;gap:6px;font-size:12px;color:#606266;padding:6px 0;border-bottom:1px dashed #ebeef5;flex-wrap:wrap}
 .example-row:last-child{border-bottom:none}
-.example-tag{font-size:11px;padding:2px 6px;border-radius:3px;white-space:nowrap}
+.tag{font-size:11px;padding:2px 6px;border-radius:3px;white-space:nowrap}
 .tag-human{background:#fef0f0;color:#f56c6c}
 .tag-ai{background:#ecf5ff;color:#409eff}
 .tag-skip{background:#fdf6ec;color:#e6a23c}
 .tag-fire{background:#f0f9eb;color:#67c23a}
-.tag-disabled{background:#f4f4f5;color:#909399}
-.arrow{color:#c0c4cc;font-size:16px}
+.tag-delay{background:#f4f4f5;color:#909399}
+.arrow{color:#c0c4cc;font-size:14px}
 </style>
 </head>
 <body>
 <div class="app">
   <aside class="sidebar">
     <h1>企微机器人</h1>
-    <div class="nav-item" onclick="switchPage('ai')">AI员工明细</div>
-    <div class="nav-item" onclick="switchPage('rule')">规则配置</div>
-    <div class="nav-item" onclick="switchPage('attr')">会话属性</div>
-    <div class="nav-item active" id="nav-global" onclick="switchPage('global')">全局配置</div>
+    <div class="nav-item">AI员工明细</div>
+    <div class="nav-item">规则配置</div>
+    <div class="nav-item">会话属性</div>
+    <div class="nav-item active" id="nav-global">全局配置</div>
   </aside>
   <div class="main">
     <div class="topbar">
@@ -87,173 +89,190 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hira
 </div>
 
 <div id="toast-container"></div>
-<div class="page-indicator" id="page-indicator">当前场景：默认状态</div>
+<div class="page-indicator" id="page-indicator"></div>
 
 <script>
-const state = {
-  page: 'global',
+var state = {
   scenario: 'off',
-  transferRuleDisabled: false,
-  canEdit: true,
-  noSendStartTime: '22:00:00',
-  noSendEndTime: '08:00:00',
-  delaySendTime: '08:30:00'
+  ruleDisabled: false,
+  delayEnabled: false
 };
 
-function showToast(msg, type = 'success') {
-  const c = document.getElementById('toast-container');
-  c.innerHTML = '<div class="toast ' + type + '">' + msg + '</div>';
+function showToast(msg) {
+  var c = document.getElementById('toast-container');
+  c.innerHTML = '<div class="toast success">' + msg + '</div>';
   setTimeout(function() { c.innerHTML = ''; }, 2500);
 }
 
-function switchPage(page) {
-  document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
-  if (page === 'global') document.getElementById('nav-global').classList.add('active');
-  state.page = page;
+function toggleRuleDisabled() {
+  state.ruleDisabled = !state.ruleDisabled;
+  if (!state.ruleDisabled) state.delayEnabled = false;
   render();
 }
 
-function toggleSwitch() {
-  if (!state.canEdit) return;
-  state.transferRuleDisabled = !state.transferRuleDisabled;
+function toggleDelayEnabled() {
+  if (!state.ruleDisabled) return;
+  state.delayEnabled = !state.delayEnabled;
   render();
 }
 
 function switchScenario(s) {
   state.scenario = s;
-  state.transferRuleDisabled = (s !== 'off');
+  if (s === 'off') { state.ruleDisabled = false; state.delayEnabled = false; }
+  else if (s === 'on-skip') { state.ruleDisabled = true; state.delayEnabled = false; }
+  else if (s === 'on-delay') { state.ruleDisabled = true; state.delayEnabled = true; }
+  else if (s === 'example') { state.ruleDisabled = true; state.delayEnabled = true; }
   render();
-}
-
-function handleSave() {
-  showToast('保存配置成功');
 }
 
 function render() {
   var content = document.getElementById('content');
   var indicator = document.getElementById('page-indicator');
-
-  if (state.page !== 'global') {
-    content.innerHTML = '<div style="text-align:center;padding:80px 20px;color:#909399;"><p style="font-size:48px;margin-bottom:16px;">📋</p><p style="font-size:16px;">请点击左侧「全局配置」查看原型</p></div>';
-    indicator.textContent = '请切换到全局配置页面';
-    return;
-  }
-
-  var scenarioLabels = {
-    'off': '开关关闭 — 转人工状态的会话仍触发规则（当前行为）',
-    'on': '开关开启 — 转人工状态的会话跳过所有规则触发',
-    'example': '开关开启 — 触发判断示意图'
+  var labels = {
+    'off': '全部关闭 — 所有会话正常触发（当前默认行为）',
+    'on-skip': '禁用规则已开启 + 延迟发送关闭 — 转人工会话直接跳过规则',
+    'on-delay': '禁用规则已开启 + 延迟发送已开启 — 销售回复后延迟触发器消息',
+    'example': '触发判断示例 — 不同状态会话的规则处理对比'
   };
-  indicator.textContent = '当前场景：' + (scenarioLabels[state.scenario] || '');
+  indicator.textContent = '当前场景：' + (labels[state.scenario] || '');
 
-  content.innerHTML = '\
-    <div class="scenario-tabs">\
-      <div class="scenario-tab ' + (state.scenario === 'off' ? 'active' : '') + '" onclick="switchScenario(\'off\')">开关关闭</div>\
-      <div class="scenario-tab ' + (state.scenario === 'on' ? 'active' : '') + '" onclick="switchScenario(\'on\')">开关开启</div>\
-      <div class="scenario-tab ' + (state.scenario === 'example' ? 'active' : '') + '" onclick="switchScenario(\'example\')">触发判断示例</div>\
-    </div>\
-    ' + renderGlobalConfig();
+  content.innerHTML =
+    '<div class="scenario-tabs">' +
+      '<div class="scenario-tab ' + (state.scenario==='off'?'active':'') + '" onclick="switchScenario(\'off\')">全部关闭</div>' +
+      '<div class="scenario-tab ' + (state.scenario==='on-skip'?'active':'') + '" onclick="switchScenario(\'on-skip\')">禁用规则（跳过）</div>' +
+      '<div class="scenario-tab ' + (state.scenario==='on-delay'?'active':'') + '" onclick="switchScenario(\'on-delay\')">禁用规则 + 延迟发送</div>' +
+      '<div class="scenario-tab ' + (state.scenario==='example'?'active':'') + '" onclick="switchScenario(\'example\')">触发判断示例</div>' +
+    '</div>' +
+    renderConfig() +
+    (state.scenario === 'example' ? renderExample() : '');
 }
 
-function renderGlobalConfig() {
-  var switchOn = state.transferRuleDisabled;
+function renderConfig() {
+  var on = state.ruleDisabled;
+  var delay = state.delayEnabled;
 
-  var exampleHtml = '';
-  if (state.scenario === 'example') {
-    exampleHtml = '\
-    <div class="example-block" style="margin-top:20px">\
-      <div class="example-title">规则触发判断示例（开关已开启时）</div>\
-      <div class="example-row">\
-        <span class="example-tag tag-ai">AI托管</span>\
-        <span>用户「张小明」的会话 →</span>\
-        <span>规则「试听课结束发消息」命中条件 →</span>\
-        <span class="arrow">→</span>\
-        <span class="example-tag tag-fire">正常触发</span>\
-        <span style="color:#67c23a">发送消息</span>\
-      </div>\
-      <div class="example-row">\
-        <span class="example-tag tag-human">转人工</span>\
-        <span>用户「李家长」的会话 →</span>\
-        <span>规则「试听课结束发消息」命中条件 →</span>\
-        <span class="arrow">→</span>\
-        <span class="example-tag tag-skip">跳过触发</span>\
-        <span style="color:#e6a23c">不发送</span>\
-      </div>\
-      <div class="example-row">\
-        <span class="example-tag tag-human">转人工</span>\
-        <span>用户「王同学」的会话 →</span>\
-        <span>定时规则「每日9点发学习提醒」→</span>\
-        <span class="arrow">→</span>\
-        <span class="example-tag tag-skip">跳过触发</span>\
-        <span style="color:#e6a23c">不发送</span>\
-      </div>\
-      <div class="example-row">\
-        <span class="example-tag tag-ai">AI托管</span>\
-        <span>用户「赵同学」的会话 →</span>\
-        <span>定时规则「每日9点发学习提醒」→</span>\
-        <span class="arrow">→</span>\
-        <span class="example-tag tag-fire">正常触发</span>\
-        <span style="color:#67c23a">发送消息</span>\
-      </div>\
-      <div class="example-row">\
-        <span class="example-tag tag-human">转人工</span>\
-        <span>用户「李家长」转回AI托管后 →</span>\
-        <span>规则重新命中条件 →</span>\
-        <span class="arrow">→</span>\
-        <span class="example-tag tag-fire">恢复触发</span>\
-        <span style="color:#67c23a">正常执行</span>\
-      </div>\
-    </div>';
+  var delayHtml = '';
+  if (on) {
+    delayHtml =
+      '<div class="sub-config">' +
+        '<div class="sub-config-title">销售回复 · 延迟触发器消息发送</div>' +
+        '<div class="sub-desc">开启后，转人工期间被跳过的触发器消息不会丢弃，而是延迟至会话切回 AI 托管后按顺序补发。</div>' +
+        '<div class="switch-wrap">' +
+          '<div class="switch ' + (delay?'on':'') + '" onclick="toggleDelayEnabled()">' +
+            '<div class="dot"></div>' +
+          '</div>' +
+          '<span class="switch-label">延迟触发器消息发送</span>' +
+          '<span class="switch-status ' + (delay?'on':'off') + '">' + (delay?'已开启':'未开启') + '</span>' +
+        '</div>' +
+        (delay ?
+          '<div class="tip-text">⚠️ 已开启：转人工期间命中的触发器消息将进入延迟队列，待会话切回 AI 托管后按触发时间顺序逐条补发。如果会话长时间处于转人工状态，积压消息可能集中补发。</div>'
+        :
+          '<div class="info-text">ℹ️ 未开启：转人工期间命中的触发器消息直接跳过，不发送、不保留。</div>'
+        ) +
+      '</div>';
   }
 
-  return '\
-    <!-- 转人工禁用规则配置 -->\
-    <div class="config-section">\
-      <div class="section-header">\
-        <div class="section-indicator"></div>\
-        <span class="section-title">转人工禁用规则配置</span>\
-      </div>\
-      <div class="section-content">\
-        <div class="desc-text">当会话处于「转人工」状态时，是否禁止规则引擎对该会话触发规则。开启后，所有处于人工接待状态的会话将不再被规则命中和执行。</div>\
-        <div class="switch-wrap">\
-          <div class="switch ' + (switchOn ? 'on' : '') + ' ' + (!state.canEdit ? 'disabled' : '') + '" onclick="toggleSwitch()">\
-            <div class="dot"></div>\
-          </div>\
-          <span class="switch-label">转人工状态禁用规则</span>\
-          <span class="switch-status ' + (switchOn ? 'on' : 'off') + '">' + (switchOn ? '已开启' : '未开启') + '</span>\
-        </div>\
-        ' + (switchOn ?
-        '<div class="tip-text">\
-          ⚠️ 已开启：当会话的「转人工」状态变量为转人工时，该会话的所有规则触发（用户信息变更触发、定时触发）将被跳过，不执行任何动作（不发消息、不更新变量）。当会话切回 AI 托管后，规则自动恢复触发。\
-        </div>'
+  return (
+    '<div class="config-section">' +
+      '<div class="section-header">' +
+        '<div class="section-indicator"></div>' +
+        '<span class="section-title">转人工禁用规则配置</span>' +
+      '</div>' +
+      '<div class="section-content">' +
+        '<div class="desc-text">当会话处于「转人工」状态时，是否禁止规则引擎对该会话触发规则。开启后，所有处于人工接待状态的会话将不再被规则命中和执行。</div>' +
+        '<div class="switch-wrap">' +
+          '<div class="switch ' + (on?'on':'') + '" onclick="toggleRuleDisabled()">' +
+            '<div class="dot"></div>' +
+          '</div>' +
+          '<span class="switch-label">转人工状态禁用规则</span>' +
+          '<span class="switch-status ' + (on?'on':'off') + '">' + (on?'已开启':'未开启') + '</span>' +
+        '</div>' +
+        (on ?
+          '<div class="tip-text">⚠️ 已开启：转人工状态的会话将跳过所有规则触发（用户信息变更触发、定时触发），不执行任何动作。切回 AI 托管后规则自动恢复。</div>'
         :
-        '<div class="info-text">\
-          ℹ️ 未开启：规则引擎不判断会话的转人工状态，所有会话均按规则条件正常触发。\
-        </div>')
-    + '\
-      </div>\
-    </div>\
-    ' + exampleHtml + '\
-    <!-- 触发器全局规则 -->\
-    <div class="config-section">\
-      <div class="section-header">\
-        <div class="section-indicator"></div>\
-        <span class="section-title">触发器全局规则</span>\
-      </div>\
-      <div class="section-content">\
-        <div class="desc-text" style="margin-bottom:12px">触发时间:</div>\
-        <div class="form-row">\
-          <span>若触发器命中时间范围为</span>\
-          <input type="text" class="time-picker" value="' + state.noSendStartTime + '" ' + (!state.canEdit ? 'disabled' : '') + ' placeholder="开始时间">\
-          <span>-</span>\
-          <input type="text" class="time-picker" value="' + state.noSendEndTime + '" ' + (!state.canEdit ? 'disabled' : '') + ' placeholder="结束时间">\
-          <span>顺延至</span>\
-          <input type="text" class="time-picker" value="' + state.delaySendTime + '" ' + (!state.canEdit ? 'disabled' : '') + ' placeholder="触发时间" style="width:160px">\
-          <span>触发</span>\
-        </div>\
-      </div>\
-    </div>\
-    ' + (state.canEdit ? '<div style="margin-top:24px"><button class="btn btn-primary" onclick="handleSave()">保存配置</button></div>' : '');
+          '<div class="info-text">ℹ️ 未开启：规则引擎不判断会话的转人工状态，所有会话均按规则条件正常触发。</div>'
+        ) +
+        delayHtml +
+      '</div>' +
+    '</div>' +
+    '<div class="config-section">' +
+      '<div class="section-header">' +
+        '<div class="section-indicator"></div>' +
+        '<span class="section-title">触发器全局规则</span>' +
+      '</div>' +
+      '<div class="section-content">' +
+        '<div class="desc-text" style="margin-bottom:12px">触发时间:</div>' +
+        '<div class="form-row">' +
+          '<span>若触发器命中时间范围为</span>' +
+          '<input type="text" class="time-picker" value="22:00:00" placeholder="开始时间">' +
+          '<span>-</span>' +
+          '<input type="text" class="time-picker" value="08:00:00" placeholder="结束时间">' +
+          '<span>顺延至</span>' +
+          '<input type="text" class="time-picker" value="08:30:00" placeholder="触发时间" style="width:160px">' +
+          '<span>触发</span>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div style="margin-top:24px"><button class="btn btn-primary" onclick="showToast(\'保存配置成功\')">保存配置</button></div>'
+  );
+}
+
+function renderExample() {
+  return (
+    '<div class="example-block">' +
+      '<div class="example-title">规则触发判断示例（禁用规则已开启 + 延迟发送已开启）</div>' +
+      '<div class="example-row">' +
+        '<span class="tag tag-ai">AI托管</span>' +
+        '<span>张小明 →</span>' +
+        '<span>规则「试听课结束发消息」命中</span>' +
+        '<span class="arrow">→</span>' +
+        '<span class="tag tag-fire">正常触发</span>' +
+        '<span style="color:#67c23a">立即发送</span>' +
+      '</div>' +
+      '<div class="example-row">' +
+        '<span class="tag tag-human">转人工</span>' +
+        '<span>李家长 → 销售正在回复中 →</span>' +
+        '<span>规则「试听课结束发消息」命中</span>' +
+        '<span class="arrow">→</span>' +
+        '<span class="tag tag-delay">延迟队列</span>' +
+        '<span style="color:#909399">暂不发送，等待切回AI</span>' +
+      '</div>' +
+      '<div class="example-row">' +
+        '<span class="tag tag-human">转人工</span>' +
+        '<span>王同学 →</span>' +
+        '<span>定时规则「每日9点发学习提醒」命中</span>' +
+        '<span class="arrow">→</span>' +
+        '<span class="tag tag-delay">延迟队列</span>' +
+        '<span style="color:#909399">暂不发送，等待切回AI</span>' +
+      '</div>' +
+      '<div class="example-row">' +
+        '<span class="tag tag-ai">AI托管</span>' +
+        '<span>赵同学 →</span>' +
+        '<span>定时规则「每日9点发学习提醒」命中</span>' +
+        '<span class="arrow">→</span>' +
+        '<span class="tag tag-fire">正常触发</span>' +
+        '<span style="color:#67c23a">立即发送</span>' +
+      '</div>' +
+      '<div class="example-row">' +
+        '<span class="tag tag-ai">切回AI</span>' +
+        '<span>李家长 → 人工服务结束，切回AI →</span>' +
+        '<span>延迟队列中有1条待发消息</span>' +
+        '<span class="arrow">→</span>' +
+        '<span class="tag tag-fire">补发触发</span>' +
+        '<span style="color:#67c23a">按顺序补发</span>' +
+      '</div>' +
+      '<div class="divider"></div>' +
+      '<div class="example-title">对比：禁用规则已开启 + 延迟发送<b>未</b>开启</div>' +
+      '<div class="example-row">' +
+        '<span class="tag tag-human">转人工</span>' +
+        '<span>李家长 →</span>' +
+        '<span>规则「试听课结束发消息」命中</span>' +
+        '<span class="arrow">→</span>' +
+        '<span class="tag tag-skip">直接跳过</span>' +
+        '<span style="color:#e6a23c">不发送、不保留</span>' +
+      '</div>' +
+    '</div>'
+  );
 }
 
 render();
