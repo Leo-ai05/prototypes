@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>全局配置 - 转人工禁用规则配置原型</title>
+<title>转人工禁用规则配置 - 可交互原型</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;background:#f0f2f5;color:#303133;font-size:14px}
@@ -17,6 +17,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hira
 .topbar{height:48px;background:#fff;border-bottom:1px solid #e8e8e8;display:flex;align-items:center;padding:0 20px;font-size:13px;color:#999}
 .topbar .crumb span{color:#409eff;cursor:pointer}
 .content{flex:1;overflow-y:auto;padding:20px}
+
+/* 全局配置页 */
 .config-section{background:#fff;border-radius:8px;padding:20px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
 .section-header{display:flex;align-items:center;margin-bottom:16px}
 .section-indicator{width:4px;height:16px;background:#409eff;border-radius:2px;margin-right:8px}
@@ -25,7 +27,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hira
 .desc-text{font-size:14px;color:#606266;margin-bottom:8px;line-height:1.6}
 .form-row{display:flex;align-items:center;flex-wrap:wrap;gap:8px;font-size:14px;color:#606266;margin-bottom:12px}
 .time-picker{border:1px solid #dcdfe6;border-radius:4px;padding:6px 12px;font-size:14px;width:140px;outline:none}
-.time-picker:disabled{background:#f5f7fa;color:#c0c4cc;cursor:not-allowed}
 .btn{padding:8px 20px;border-radius:4px;border:none;cursor:pointer;font-size:14px;transition:all .2s}
 .btn-primary{background:#409eff;color:#fff}
 .btn-primary:hover{background:#66b1ff}
@@ -40,9 +41,72 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hira
 .switch-status.off{background:#fef0f0;color:#f56c6c}
 .tip-text{font-size:12px;color:#909399;margin-top:8px;line-height:1.6;padding:8px 12px;background:#fdf6ec;border-radius:4px;border-left:3px solid #e6a23c}
 .info-text{font-size:12px;color:#909399;margin-top:8px;line-height:1.6;padding:8px 12px;background:#ecf5ff;border-radius:4px;border-left:3px solid #409eff}
-.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:6px;font-size:14px;z-index:2000;animation:toastIn .3s ease;background:#f0f9eb;color:#67c23a;border:1px solid #e1f3d8}
-@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
-.page-indicator{position:fixed;bottom:20px;right:20px;background:#409eff;color:#fff;padding:8px 16px;border-radius:20px;font-size:12px;box-shadow:0 2px 12px rgba(64,158,255,.4)}
+
+/* AI员工明细页 */
+.ai-detail-layout{display:flex;height:calc(100vh - 48px);overflow:hidden}
+.ai-col-left{width:200px;border-right:1px solid #e5e5e5;background:#fff;flex-shrink:0;overflow-y:auto}
+.ai-col-mid{width:240px;border-right:1px solid #e5e5e5;background:#fff;flex-shrink:0;overflow-y:auto}
+.ai-col-right{flex:1;background:#fff;display:flex;flex-direction:column;overflow:hidden}
+.col-header{padding:12px 16px;font-size:13px;font-weight:600;color:#303133;border-bottom:1px solid #ebeef5;background:#fafafa}
+.emp-item,.session-item{padding:10px 16px;cursor:pointer;border-bottom:1px solid #f5f5f5;transition:background .15s}
+.emp-item:hover,.session-item:hover{background:#f5f7fa}
+.emp-item.active,.session-item.active{background:#ecf5ff;border-left:3px solid #409eff}
+.emp-name{font-size:13px;font-weight:500;color:#303133}
+.emp-sub{font-size:11px;color:#909399;margin-top:2px}
+.session-name{font-size:13px;color:#303133;font-weight:500}
+.session-msg{font-size:11px;color:#909399;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.session-tag{display:inline-block;font-size:10px;padding:1px 5px;border-radius:3px;margin-left:6px}
+
+/* tabs */
+.detail-tabs{display:flex;border-bottom:1px solid #e5e5e5;flex-shrink:0;background:#fff}
+.detail-tab{padding:10px 20px;font-size:13px;color:#606266;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+.detail-tab.active{color:#409eff;border-bottom-color:#409eff;font-weight:500}
+.detail-tab:hover{color:#409eff}
+
+/* task cards */
+.task-panel{flex:1;overflow-y:auto;padding:16px}
+.task-filter{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.task-filter select{border:1px solid #dcdfe6;border-radius:4px;padding:6px 28px 6px 10px;font-size:13px;outline:none;appearance:none;-webkit-appearance:none;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23909399'/%3E%3C/svg%3E") no-repeat right 10px center #fff;cursor:pointer}
+.task-count{font-size:12px;color:#909399}
+.task-card{border:1px solid #ebeef5;border-radius:8px;margin-bottom:10px;overflow:hidden;transition:box-shadow .2s}
+.task-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.task-card-hd{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;cursor:pointer;transition:background .15s}
+.task-card-hd:hover{background:#f9fafc}
+.task-left{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+.status-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:12px;border:1px solid;font-size:12px;white-space:nowrap;flex-shrink:0}
+.badge-executed{background:#f0f9eb;border-color:#e1f3d8;color:#67c23a}
+.badge-pending{background:#f4f4f5;border-color:#e9e9eb;color:#909399}
+.badge-delayed{background:#fdf6ec;border-color:#faecd8;color:#e6a23c}
+.badge-skipped{background:#fef0f0;border-color:#fde2e2;color:#f56c6c}
+.task-name{font-size:13px;font-weight:500;color:#303133;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.task-desc-text{font-size:11px;color:#909399;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.task-right{display:flex;align-items:center;gap:14px;flex-shrink:0}
+.cond-prog{font-size:11px;color:#606266}
+.exec-time{font-size:11px;color:#909399}
+.arrow-icon{color:#c0c4cc;transition:transform .3s;font-size:12px}
+.arrow-icon.open{transform:rotate(180deg)}
+
+/* expanded body */
+.task-card-bd{padding:0 16px 14px;border-top:1px solid #f0f0f0}
+.cond-title{font-size:12px;font-weight:500;color:#606266;padding:10px 0 6px}
+.cond-row{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-radius:6px;margin-bottom:6px;border:1px solid}
+.cond-ok{background:#f0f9eb;border-color:#e1f3d8}
+.cond-fail{background:#fef0f0;border-color:#fde2e2}
+.cond-icon{flex-shrink:0;font-size:14px;padding-top:1px}
+.cond-body{flex:1;font-size:12px;color:#606266;line-height:1.6}
+.cond-field{font-weight:500;color:#303133}
+.cond-key{color:#c0c4cc;font-size:11px;margin-left:4px}
+.cond-val-ok{color:#67c23a;font-weight:500}
+.cond-val-fail{color:#f56c6c;font-weight:500}
+
+/* execution record */
+.exec-record{display:flex;align-items:center;gap:6px;margin-top:10px;padding:8px 10px;border-radius:6px;font-size:12px;border:1px solid}
+.exec-record.ok{background:#f0f9eb;border-color:#e1f3d8;color:#606266}
+.exec-record.pending{background:#f4f4f5;border-color:#e9e9eb;color:#909399}
+.exec-record.skipped{background:#fef0f0;border-color:#fde2e2;color:#f56c6c}
+.exec-record strong{color:#303133}
+
+/* scenario tabs */
 .scenario-tabs{display:flex;border-bottom:2px solid #ebeef5;margin-bottom:20px}
 .scenario-tab{padding:10px 20px;cursor:pointer;font-size:13px;color:#606266;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;white-space:nowrap}
 .scenario-tab.active{color:#409eff;border-bottom-color:#409eff;font-weight:500}
@@ -56,19 +120,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hira
 .tag-ai{background:#ecf5ff;color:#409eff}
 .tag-skip{background:#fdf6ec;color:#e6a23c}
 .tag-fire{background:#f0f9eb;color:#67c23a}
+
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:6px;font-size:14px;z-index:2000;animation:toastIn .3s ease;background:#f0f9eb;color:#67c23a;border:1px solid #e1f3d8}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.page-indicator{position:fixed;bottom:20px;right:20px;background:#409eff;color:#fff;padding:8px 16px;border-radius:20px;font-size:12px;box-shadow:0 2px 12px rgba(64,158,255,.4);z-index:100}
 </style>
 </head>
 <body>
 <div class="app">
   <aside class="sidebar">
     <h1>企微机器人</h1>
-    <div class="nav-item">AI员工明细</div>
+    <div class="nav-item" id="nav-ai" onclick="switchPage('ai')">AI员工明细</div>
     <div class="nav-item">规则配置</div>
     <div class="nav-item">会话属性</div>
-    <div class="nav-item active">全局配置</div>
+    <div class="nav-item" id="nav-gc" onclick="switchPage('gc')">全局配置</div>
   </aside>
   <div class="main">
-    <div class="topbar"><div class="crumb"><span>企微机器人</span> / 全局配置</div></div>
+    <div class="topbar"><div class="crumb" id="crumb"></div></div>
     <div class="content" id="content"></div>
   </div>
 </div>
@@ -76,42 +144,53 @@ body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hira
 <div class="page-indicator" id="indicator"></div>
 
 <script>
-var S = { sc:'off', on:false };
+var page='gc', S={sc:'off',on:false}, expanded={}, detailTab='taskExecution', taskFilter='';
 
-function toast(m){ var c=document.getElementById('toast-container'); c.innerHTML='<div class="toast">'+m+'</div>'; setTimeout(function(){c.innerHTML='';},2500); }
-
-function setScene(s){
-  S.sc=s;
-  S.on = (s!=='off');
+function switchPage(p){
+  page=p;
+  document.getElementById('nav-ai').className='nav-item'+(p==='ai'?' active':'');
+  document.getElementById('nav-gc').className='nav-item'+(p==='gc'?' active':'');
   render();
 }
 
-function toggle(){ S.on=!S.on; render(); }
+function toast(m){var c=document.getElementById('toast-container');c.innerHTML='<div class="toast">'+m+'</div>';setTimeout(function(){c.innerHTML='';},2500);}
+
+function setScene(s){S.sc=s;S.on=(s==='on'||s==='example');render();}
+function toggle(){S.on=!S.on;render();}
+function toggleTask(id){expanded[id]=!expanded[id];render();}
+function setDetailTab(t){detailTab=t;render();}
+function setTaskFilter(v){taskFilter=v;render();}
 
 function render(){
   var c=document.getElementById('content');
   var ind=document.getElementById('indicator');
-  var labels={
-    'off':'开关关闭 — 所有会话正常触发（当前默认行为）',
-    'on':'开关开启 — 转人工会话跳过所有规则触发',
-    'example':'触发判断示例'
-  };
-  ind.textContent='当前场景：'+(labels[S.sc]||'');
+  var crumb=document.getElementById('crumb');
+  c.style.padding = page==='gc'?'20px':'0';
+  c.style.overflow = page==='gc'?'auto':'hidden';
 
-  c.innerHTML=
-    '<div class="scenario-tabs">'+
-      tab('off','开关关闭')+tab('on','开关开启')+tab('example','触发判断示例')+
-    '</div>'+
-    configHtml()+
-    (S.sc==='example'?exampleHtml():'');
+  if(page==='gc'){
+    crumb.innerHTML='<span>企微机器人</span> / 全局配置';
+    var labels={'off':'开关关闭','on':'开关开启','example':'触发判断示例'};
+    ind.textContent='全局配置 — '+(labels[S.sc]||'');
+    c.innerHTML=scenarioTabs()+configHtml()+(S.sc==='example'?exampleHtml():'');
+  } else {
+    crumb.innerHTML='<span>企微机器人</span> / AI员工明细';
+    ind.textContent='AI员工明细 — 任务执行明细（含转人工禁用跳过状态）';
+    c.innerHTML=aiDetailHtml();
+  }
 }
 
-function tab(id,label){ return '<div class="scenario-tab '+(S.sc===id?'active':'')+'" onclick="setScene(\''+id+'\')">'+label+'</div>'; }
+// ========== 全局配置页 ==========
+function scenarioTabs(){
+  return '<div class="scenario-tabs">'+
+    stab('off','开关关闭')+stab('on','开关开启')+stab('example','触发判断示例')+
+  '</div>';
+}
+function stab(id,label){return '<div class="scenario-tab '+(S.sc===id?'active':'')+'" onclick="setScene(\''+id+'\')">'+label+'</div>';}
 
 function configHtml(){
   var on=S.on;
-  return ''+
-  '<div class="config-section">'+
+  return '<div class="config-section">'+
     '<div class="section-header"><div class="section-indicator"></div><span class="section-title">转人工禁用规则配置</span></div>'+
     '<div class="section-content">'+
       '<div class="desc-text">当会话处于「转人工」状态时，是否禁止规则引擎对该会话触发规则。开启后，所有处于人工接待状态的会话将不再被规则命中和执行。</div>'+
@@ -148,14 +227,14 @@ function configHtml(){
 function exampleHtml(){
   return '<div class="example-block">'+
     '<div class="example-title">开关已开启时的触发判断示例</div>'+
-    r('tag-ai','AI托管','张小明','规则「试听课结束发消息」命中','tag-fire','正常触发','立即发送','#67c23a')+
-    r('tag-human','转人工','李家长','规则「试听课结束发消息」命中','tag-skip','跳过触发','不发送','#e6a23c')+
-    r('tag-human','转人工','王同学','定时规则「每日9点学习提醒」命中','tag-skip','跳过触发','不发送','#e6a23c')+
-    r('tag-ai','AI托管','赵同学','定时规则「每日9点学习提醒」命中','tag-fire','正常触发','立即发送','#67c23a')+
-    r('tag-ai','切回AI','李家长 → 人工服务结束，切回AI','后续规则重新命中','tag-fire','恢复触发','正常执行','#67c23a')+
+    erow('tag-ai','AI托管','张小明','规则「试听课结束发消息」命中','tag-fire','正常触发','立即发送','#67c23a')+
+    erow('tag-human','转人工','李家长','规则「试听课结束发消息」命中','tag-skip','跳过触发','不发送','#e6a23c')+
+    erow('tag-human','转人工','王同学','定时规则「每日9点学习提醒」命中','tag-skip','跳过触发','不发送','#e6a23c')+
+    erow('tag-ai','AI托管','赵同学','定时规则「每日9点学习提醒」命中','tag-fire','正常触发','立即发送','#67c23a')+
+    erow('tag-ai','切回AI','李家长 → 人工服务结束，切回AI','后续规则重新命中','tag-fire','恢复触发','正常执行','#67c23a')+
   '</div>';
 }
-function r(t1,s1,name,rule,t2,s2,result,color){
+function erow(t1,s1,name,rule,t2,s2,result,color){
   return '<div class="example-row">'+
     '<span class="tag '+t1+'">'+s1+'</span>'+
     '<span>'+name+' →</span>'+
@@ -164,7 +243,150 @@ function r(t1,s1,name,rule,t2,s2,result,color){
     '<span style="color:'+color+'">'+result+'</span>'+
   '</div>';
 }
-render();
+
+// ========== AI员工明细页 ==========
+var employees=[
+  {name:'张老师',sub:'在线 · corpA',id:'e1'},
+  {name:'王老师',sub:'在线 · corpB',id:'e2'}
+];
+var sessions=[
+  {name:'李家长',remark:'李妈妈',msg:'好的谢谢老师','tag':'转人工','tagCls':'tag-human',id:'s1'},
+  {name:'赵同学',remark:'',msg:'什么时候上课','tag':'AI托管','tagCls':'tag-ai',id:'s2'},
+  {name:'张小明',remark:'张爸爸',msg:'我想了解一下课程','tag':'AI托管','tagCls':'tag-ai',id:'s3'}
+];
+
+var tasks=[
+  {id:1,name:'试听课结束发消息',desc:'试听课状态变更为已结束时，发送企微消息',status:'skipped',
+   conds:[{f:'试听课状态',k:'trial_status',op:'等于',ev:'已结束',cv:'已结束',ok:true},{f:'转人工',k:'transfer_human',op:'等于',ev:'否',cv:'是',ok:false}],
+   sat:1,total:2,time:null,
+   reason:'当前会话处于「转人工」状态，全局配置已开启「转人工状态禁用规则」，规则触发被跳过，未执行任何动作。'},
+  {id:2,name:'课程到期续费提醒',desc:'课程剩余天数<=7天，发送续费提醒消息',status:'skipped',
+   conds:[{f:'课程剩余天数',k:'course_remain_days',op:'小于等于',ev:'7',cv:'3',ok:true},{f:'续费状态',k:'renew_status',op:'等于',ev:'未续费',cv:'未续费',ok:true}],
+   sat:2,total:2,time:null,
+   reason:'当前会话处于「转人工」状态，全局配置已开启「转人工状态禁用规则」，规则触发被跳过，未执行任何动作。'},
+  {id:3,name:'每日9点学习提醒',desc:'每日定时9:00发送学习打卡提醒',status:'executed',
+   conds:[{f:'课程状态',k:'course_status',op:'等于',ev:'学习中',cv:'学习中',ok:true}],
+   sat:1,total:1,time:'2026-04-13 09:00:12',reason:null},
+  {id:4,name:'未回复24小时跟进',desc:'客户发消息后24小时未回复，触发跟进提醒',status:'pending',
+   conds:[{f:'最后回复间隔',k:'last_reply_gap_hours',op:'大于',ev:'24',cv:'18',ok:false}],
+   sat:0,total:1,time:null,reason:null}
+];
+
+function aiDetailHtml(){
+  return '<div class="ai-detail-layout">'+
+    '<div class="ai-col-left">'+
+      '<div class="col-header">AI员工列表</div>'+
+      employees.map(function(e,i){
+        return '<div class="emp-item'+(i===0?' active':'')+'">'+
+          '<div class="emp-name">'+e.name+'</div>'+
+          '<div class="emp-sub">'+e.sub+'</div></div>';
+      }).join('')+
+    '</div>'+
+    '<div class="ai-col-mid">'+
+      '<div class="col-header">会话列表</div>'+
+      sessions.map(function(s,i){
+        return '<div class="session-item'+(i===0?' active':'')+'">'+
+          '<div class="session-name">'+s.name+(s.remark?'（'+s.remark+'）':'')+
+            '<span class="session-tag '+s.tagCls+'" style="background:'+(s.tagCls==='tag-human'?'#fef0f0':'#ecf5ff')+';color:'+(s.tagCls==='tag-human'?'#f56c6c':'#409eff')+'">'+s.tag+'</span>'+
+          '</div>'+
+          '<div class="session-msg">'+s.msg+'</div></div>';
+      }).join('')+
+    '</div>'+
+    '<div class="ai-col-right">'+
+      '<div style="padding:12px 16px;border-bottom:1px solid #e5e5e5;font-size:15px;font-weight:500">李家长（李妈妈）的聊天</div>'+
+      detailTabsHtml()+
+      (detailTab==='taskExecution'?taskPanelHtml():
+       detailTab==='chat'?'<div style="flex:1;display:flex;align-items:center;justify-content:center;color:#909399">聊天记录区域（略）</div>':
+       '<div style="flex:1;display:flex;align-items:center;justify-content:center;color:#909399">会话变量区域（略）</div>'
+      )+
+    '</div>'+
+  '</div>';
+}
+
+function detailTabsHtml(){
+  return '<div class="detail-tabs">'+
+    dtab('chat','聊天记录')+dtab('sessionAttr','会话变量')+dtab('taskExecution','任务执行明细')+
+  '</div>';
+}
+function dtab(id,label){return '<div class="detail-tab '+(detailTab===id?'active':'')+'" onclick="setDetailTab(\''+id+'\')">'+label+'</div>';}
+
+function taskPanelHtml(){
+  var filtered=tasks;
+  if(taskFilter){filtered=tasks.filter(function(t){return t.status===taskFilter;});}
+  return '<div class="task-panel">'+
+    '<div class="task-filter">'+
+      '<select onchange="setTaskFilter(this.value)">'+
+        '<option value=""'+(taskFilter===''?' selected':'')+'>全部状态</option>'+
+        '<option value="executed"'+(taskFilter==='executed'?' selected':'')+'>已执行</option>'+
+        '<option value="pending"'+(taskFilter==='pending'?' selected':'')+'>待执行</option>'+
+        '<option value="delayed"'+(taskFilter==='delayed'?' selected':'')+'>延迟执行</option>'+
+        '<option value="skipped"'+(taskFilter==='skipped'?' selected':'')+'>转人工跳过</option>'+
+      '</select>'+
+      '<span class="task-count">共 '+filtered.length+' 条任务</span>'+
+    '</div>'+
+    filtered.map(taskCardHtml).join('')+
+    (filtered.length===0?'<div style="text-align:center;color:#909399;padding:40px 0">暂无匹配的任务</div>':'')+
+  '</div>';
+}
+
+function taskCardHtml(t){
+  var exp=expanded[t.id];
+  var badgeCls={'executed':'badge-executed','pending':'badge-pending','delayed':'badge-delayed','skipped':'badge-skipped'};
+  var badgeLbl={'executed':'已执行','pending':'待执行','delayed':'延迟执行','skipped':'转人工跳过'};
+  var badgeIcon={'executed':'✓','pending':'⏱','delayed':'⚠','skipped':'✕'};
+
+  var html='<div class="task-card" style="'+(exp?'border-color:#409eff;box-shadow:0 2px 12px rgba(64,158,255,.1)':'')+'">'+
+    '<div class="task-card-hd" onclick="toggleTask('+t.id+')">'+
+      '<div class="task-left">'+
+        '<span class="status-badge '+(badgeCls[t.status]||'badge-pending')+'">'+
+          (badgeIcon[t.status]||'?')+' '+(badgeLbl[t.status]||'未知')+
+        '</span>'+
+        '<div style="min-width:0;flex:1">'+
+          '<div class="task-name">'+t.name+'</div>'+
+          '<div class="task-desc-text">'+t.desc+'</div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="task-right">'+
+        '<span class="cond-prog">条件：'+t.sat+'/'+t.total+'</span>'+
+        (t.time?'<span class="exec-time">'+t.time+'</span>':'')+
+        '<span class="arrow-icon'+(exp?' open':'')+'">▼</span>'+
+      '</div>'+
+    '</div>';
+
+  if(exp){
+    html+='<div class="task-card-bd">'+
+      '<div class="cond-title">配置条件详情</div>'+
+      t.conds.map(function(c){
+        return '<div class="cond-row '+(c.ok?'cond-ok':'cond-fail')+'">'+
+          '<span class="cond-icon">'+(c.ok?'✅':'❌')+'</span>'+
+          '<div class="cond-body">'+
+            '<div><span class="cond-field">'+c.f+'</span><span class="cond-key">('+c.k+')</span></div>'+
+            '<div>'+c.op+(c.ev?' 「'+c.ev+'」':'')+'</div>'+
+            '<div>当前值：<span class="'+(c.ok?'cond-val-ok':'cond-val-fail')+'">'+c.cv+'</span></div>'+
+          '</div></div>';
+      }).join('');
+
+    if(t.status==='skipped'){
+      html+='<div class="exec-record skipped">'+
+        '✕ <span>'+t.reason+'</span>'+
+      '</div>';
+    } else if(t.status==='executed'){
+      html+='<div class="exec-record ok">'+
+        '✓ <span>任务于 <strong>'+t.time+'</strong> 执行成功</span>'+
+      '</div>';
+    } else {
+      html+='<div class="exec-record pending">'+
+        '⏱ <span>任务尚未执行，无执行时间记录</span>'+
+      '</div>';
+    }
+    html+='</div>';
+  }
+  html+='</div>';
+  return html;
+}
+
+// init
+switchPage('ai');
 </script>
 </body>
 </html>
