@@ -5,264 +5,194 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>帮助中心客服弹窗优化 - 可交互原型</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif; background: #f5f5f5; color: #333; }
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:#f0f2f5;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px 16px}
 
-  .tab-bar { display: flex; position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: #fff; border-bottom: 1px solid #eee; }
-  .tab-bar .tab { flex: 1; text-align: center; padding: 14px 0; font-size: 15px; color: #999; cursor: pointer; transition: all .2s; position: relative; }
-  .tab-bar .tab.active { color: #1677ff; font-weight: 600; }
-  .tab-bar .tab.active::after { content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 24px; height: 3px; background: #1677ff; border-radius: 2px; }
+h2.page-title{font-size:18px;color:#333;margin-bottom:20px;text-align:center}
 
-  .page { display: none; padding-top: 50px; min-height: 100vh; }
-  .page.active { display: block; }
+.compare-row{display:flex;gap:32px;justify-content:center;flex-wrap:wrap;width:100%;max-width:800px}
+.compare-col{display:flex;flex-direction:column;align-items:center;gap:12px}
+.label{font-size:14px;font-weight:600;padding:4px 16px;border-radius:20px;display:inline-flex;align-items:center;gap:4px}
+.label-before{background:#fff0f0;color:#e74c3c}
+.label-after{background:#e8f8e8;color:#27ae60}
 
-  /* 帮助中心页面 */
-  .help-page { background: #f2f2f2; }
-  .help-header { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 40px 20px 30px; text-align: center; color: #fff; }
-  .help-header h1 { font-size: 20px; margin-bottom: 16px; }
-  .help-search { background: #fff; border-radius: 20px; padding: 10px 16px; display: flex; align-items: center; gap: 8px; }
-  .help-search input { border: none; outline: none; flex: 1; font-size: 14px; color: #333; }
-  .help-search .icon { color: #999; font-size: 16px; }
+/* 手机壳 */
+.phone{width:320px;height:580px;border:3px solid #222;border-radius:36px;overflow:hidden;background:#fff;position:relative;box-shadow:0 8px 30px rgba(0,0,0,.15)}
+.phone-notch{width:120px;height:22px;background:#222;border-radius:0 0 14px 14px;position:absolute;top:0;left:50%;transform:translateX(-50%);z-index:10}
+.phone-screen{width:100%;height:100%;overflow:auto;position:relative;background:#f2f2f2}
 
-  .help-section { background: #fff; margin-top: 10px; padding: 16px; }
-  .help-section-title { font-size: 16px; font-weight: 600; margin-bottom: 12px; }
-  .hot-list { display: flex; flex-direction: column; gap: 12px; }
-  .hot-item { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #333; cursor: pointer; }
-  .hot-item .num { width: 20px; height: 20px; background: #ff6b35; color: #fff; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; }
-  .hot-item:nth-child(n+4) .num { background: #ccc; }
+/* 帮助中心页面 */
+.help-nav{background:#fff;padding:38px 16px 12px;text-align:center;font-size:17px;font-weight:500;color:#333;border-bottom:1px solid #f0f0f0;position:sticky;top:0;z-index:5}
+.search-bar{margin:12px 16px;background:#fff;border-radius:20px;padding:8px 14px;display:flex;align-items:center;gap:6px;font-size:13px;color:#bbb}
+.search-icon{font-size:14px}
+.section{background:#fff;margin-top:8px;padding:14px 16px}
+.section-title{font-size:15px;font-weight:600;margin-bottom:10px}
+.q-item{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:13px;color:#333}
+.q-num{min-width:18px;height:18px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff}
+.q-num.hot{background:#ff6b35}
+.q-num.normal{background:#ccc}
 
-  .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; padding: 16px 24px 28px; display: flex; align-items: center; justify-content: space-evenly; gap: 16px; border-top: 1px solid #f0f0f0; }
-  .bottom-btn { flex: 1; height: 44px; border-radius: 22px; border: none; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
-  .btn-feedback { background: #fff3e6; color: #ff8c00; }
-  .btn-consult { background: #e6f4ff; color: #1677ff; }
-  .divider-v { width: 1px; height: 44px; background: #e5e5e5; }
+/* 底部按钮 */
+.bottom-btns{position:absolute;bottom:0;left:0;right:0;background:#fff;padding:12px 20px 24px;display:flex;align-items:center;justify-content:center;gap:12px;border-top:1px solid #f0f0f0}
+.bottom-btn-img{height:40px;border-radius:20px;padding:0 20px;display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;gap:4px}
+.btn-fb{background:#fff3e6;color:#ff8c00}
+.btn-cs{background:#e6f4ff;color:#1677ff}
+.btn-divider{width:1px;height:36px;background:#e5e5e5}
 
-  /* 弹窗遮罩 */
-  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; align-items: center; justify-content: center; }
-  .overlay.show { display: flex; }
+/* 弹窗遮罩 */
+.overlay{display:none;position:absolute;inset:0;background:rgba(0,0,0,.55);z-index:20;align-items:center;justify-content:center}
+.overlay.show{display:flex}
 
-  /* 弹窗公共样式 */
-  .dialog { background: #fff; border-radius: 16px; width: 300px; max-width: 85vw; overflow: hidden; animation: fadeIn .25s ease; }
-  @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+/* van-dialog 风格弹窗 */
+.dialog{background:#fff;border-radius:16px;width:270px;overflow:hidden;animation:popIn .2s ease}
+@keyframes popIn{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
 
-  .dialog-close { display: flex; justify-content: flex-end; padding: 10px 10px 0; }
-  .dialog-close span { font-size: 18px; color: #969799; cursor: pointer; line-height: 1; }
+.dialog-close{display:flex;justify-content:flex-end;padding:8px 10px 0}
+.dialog-close span{font-size:18px;color:#969799;cursor:pointer;display:flex;align-items:center;justify-content:center;width:24px;height:24px}
 
-  .dialog-icon { text-align: center; padding: 10px 0 16px; }
-  .dialog-icon .avatar { width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); display: inline-flex; align-items: center; justify-content: center; }
-  .dialog-icon .avatar svg { width: 44px; height: 44px; fill: #fff; }
+.dialog-avatar{text-align:center;padding:8px 0 12px}
+.dialog-avatar .avatar-circle{display:inline-block;width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#a78bfa,#7c3aed);position:relative}
+.avatar-circle::after{content:"";position:absolute;inset:6px;border-radius:50%;background:url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>') center/70% no-repeat}
 
-  /* --- 调整前弹窗 --- */
-  .dialog-old .dialog-title { text-align: center; font-size: 18px; font-weight: 500; margin-bottom: 16px; }
-  .dialog-old .dialog-content { text-align: center; font-size: 14px; color: #969799; line-height: 20px; padding: 0 30px; margin-bottom: 4px; }
-  .dialog-old .dialog-footer { padding: 20px; display: flex; justify-content: center; }
-  .dialog-old .dialog-btn { width: 120px; height: 35px; border-radius: 18px; border: none; background: #1677ff; color: #fff; font-size: 14px; cursor: pointer; }
+/* 调整前 - 弹窗内容 */
+.old-dialog .d-body{text-align:center;padding:0 20px 4px}
+.old-dialog .d-title{font-size:18px;font-weight:500;color:#323233;margin-bottom:14px}
+.old-dialog .d-content{font-size:14px;color:#969799;line-height:20px;padding:0 10px;margin-bottom:4px}
+.old-dialog .d-footer{padding:16px 0 20px;display:flex;justify-content:center}
+.old-dialog .d-btn{width:120px;height:35px;border-radius:18px;border:none;background:#1989fa;color:#fff;font-size:14px;cursor:pointer}
 
-  /* --- 调整后弹窗 --- */
-  .dialog-new .dialog-btn-area { padding: 8px 30px 0; display: flex; justify-content: center; }
-  .dialog-new .dialog-btn { width: 200px; height: 44px; border-radius: 22px; border: none; background: #1677ff; color: #fff; font-size: 16px; font-weight: 500; cursor: pointer; letter-spacing: 1px; }
-  .dialog-new .dialog-title { text-align: center; font-size: 16px; font-weight: 500; margin-top: 16px; margin-bottom: 8px; }
-  .dialog-new .dialog-content { text-align: center; font-size: 12px; color: #b0b0b0; line-height: 18px; padding: 0 30px; margin-bottom: 4px; }
-  .dialog-new .dialog-footer { padding: 16px 20px 20px; }
+/* 调整后 - 弹窗内容 */
+.new-dialog .d-title-area{text-align:center;padding:0 20px 10px}
+.new-dialog .d-title{font-size:15px;font-weight:500;color:#323233}
+.new-dialog .d-btn-area{padding:0 24px;display:flex;justify-content:center}
+.new-dialog .d-btn{width:220px;height:48px;border-radius:24px;border:none;background:#1989fa;color:#fff;font-size:17px;font-weight:500;cursor:pointer;letter-spacing:1px;box-shadow:0 4px 12px rgba(25,137,250,.3)}
+.new-dialog .d-body{text-align:center;padding:10px 20px 18px}
+.new-dialog .d-content{font-size:12px;color:#b0b0b0;line-height:17px;padding:0 8px}
 
-  /* 标注 */
-  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; margin-left: 6px; vertical-align: middle; }
-  .badge-old { background: #fff1f0; color: #ff4d4f; }
-  .badge-new { background: #f0fff0; color: #52c41a; }
+/* 变更标注箭头 */
+.change-arrow{position:absolute;z-index:30}
 
-  .annotation { position: relative; }
-  .annotation::before { content: attr(data-note); position: absolute; right: -8px; top: 50%; transform: translate(100%, -50%); background: #ff4d4f; color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 3px; white-space: nowrap; z-index: 5; }
-  .anno-new::before { background: #52c41a; }
+/* 底部说明 */
+.notes{max-width:800px;width:100%;margin-top:28px;background:#fff;border-radius:12px;padding:20px;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.notes h3{font-size:15px;margin-bottom:14px;color:#333}
+.note-item{display:flex;align-items:flex-start;gap:8px;margin-bottom:10px;font-size:13px;line-height:1.7;color:#555}
+.note-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:7px}
+.dot-red{background:#e74c3c}
+.dot-green{background:#27ae60}
+.note-item strong{color:#333}
 
-  .compare-label { text-align: center; padding: 12px 0 4px; font-size: 13px; color: #999; }
-  .compare-label strong { font-size: 15px; }
-
-  /* 变更说明区域 */
-  .change-notes { background: #fff; margin: 0 16px 16px; border-radius: 12px; padding: 16px; }
-  .change-notes h3 { font-size: 15px; margin-bottom: 12px; color: #333; }
-  .change-item { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 10px; font-size: 13px; line-height: 1.6; }
-  .change-item .dot { width: 6px; height: 6px; border-radius: 50%; background: #1677ff; flex-shrink: 0; margin-top: 7px; }
-
-  .help-content-area { padding-bottom: 90px; }
+/* 标注气泡 */
+.annotation{position:absolute;z-index:25;pointer-events:none}
+.anno-bubble{background:#ff4757;color:#fff;font-size:10px;padding:3px 8px;border-radius:4px;white-space:nowrap;position:relative}
+.anno-bubble::after{content:'';position:absolute;left:50%;transform:translateX(-50%);border:5px solid transparent}
+.anno-bubble.arrow-down::after{bottom:-9px;border-top-color:#ff4757}
+.anno-bubble.arrow-up::after{top:-9px;border-bottom-color:#27ae60}
+.anno-bubble.green{background:#27ae60}
 </style>
 </head>
 <body>
 
-<div class="tab-bar">
-  <div class="tab active" onclick="switchTab(0)">调整前</div>
-  <div class="tab" onclick="switchTab(1)">调整后</div>
-  <div class="tab" onclick="switchTab(2)">对比说明</div>
-</div>
+<h2 class="page-title">帮助中心 - 客服弹窗优化 对比</h2>
 
-<!-- 调整前页面 -->
-<div class="page active" id="page0">
-  <div class="help-page">
-    <div class="help-header">
-      <h1>帮助中心</h1>
-      <div class="help-search">
-        <span class="icon">&#128269;</span>
-        <input type="text" placeholder="请输入关键词搜索" readonly>
-      </div>
-    </div>
-    <div class="help-content-area">
-      <div class="help-section">
-        <div class="help-section-title">&#128293; 热门问题</div>
-        <div class="hot-list">
-          <div class="hot-item"><span class="num">1</span>如何修改登录密码？</div>
-          <div class="hot-item"><span class="num">2</span>课程播放卡顿怎么办？</div>
-          <div class="hot-item"><span class="num">3</span>如何申请退款？</div>
-          <div class="hot-item"><span class="num">4</span>如何查看学习报告？</div>
-          <div class="hot-item"><span class="num">5</span>如何联系班主任？</div>
+<div class="compare-row">
+
+  <!-- 调整前 -->
+  <div class="compare-col">
+    <span class="label label-before">调整前</span>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-screen" id="screen-old">
+        <div class="help-nav">帮助中心</div>
+        <div class="search-bar"><span class="search-icon">&#128269;</span>请输入关键词搜索</div>
+        <div class="section">
+          <div class="section-title">&#128293; 热门问题</div>
+          <div class="q-item"><span class="q-num hot">1</span>如何修改登录密码？</div>
+          <div class="q-item"><span class="q-num hot">2</span>课程播放卡顿怎么办？</div>
+          <div class="q-item"><span class="q-num hot">3</span>如何申请退款？</div>
+          <div class="q-item"><span class="q-num normal">4</span>如何查看学习报告？</div>
+          <div class="q-item"><span class="q-num normal">5</span>如何联系班主任？</div>
         </div>
-      </div>
-    </div>
-    <div class="bottom-bar">
-      <div class="bottom-btn btn-feedback">&#9997;&#65039; 意见反馈</div>
-      <div class="divider-v"></div>
-      <div class="bottom-btn btn-consult" onclick="showDialog('old')">&#128172; 咨询客服</div>
-    </div>
-  </div>
-
-  <div class="overlay" id="overlay-old">
-    <div class="dialog dialog-old">
-      <div class="dialog-close"><span onclick="hideDialog('old')">&times;</span></div>
-      <div class="dialog-icon">
-        <div class="avatar">
-          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+        <div style="height:100px"></div>
+        <div class="bottom-btns">
+          <div class="bottom-btn-img btn-fb">&#9997;&#65039; 意见反馈</div>
+          <div class="btn-divider"></div>
+          <div class="bottom-btn-img btn-cs" onclick="toggleDialog('old')">&#128172; 咨询客服</div>
         </div>
-      </div>
-      <div class="dialog-title">咨询客服</div>
-      <div class="dialog-content">如有任何问题，请联系在线客服为您解答，服务时间：工作日 9:00-18:00</div>
-      <div class="dialog-footer">
-        <button class="dialog-btn" onclick="alert('跳转到在线客服聊天页')">在线咨询</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- 调整后页面 -->
-<div class="page" id="page1">
-  <div class="help-page">
-    <div class="help-header">
-      <h1>帮助中心</h1>
-      <div class="help-search">
-        <span class="icon">&#128269;</span>
-        <input type="text" placeholder="请输入关键词搜索" readonly>
-      </div>
-    </div>
-    <div class="help-content-area">
-      <div class="help-section">
-        <div class="help-section-title">&#128293; 热门问题</div>
-        <div class="hot-list">
-          <div class="hot-item"><span class="num">1</span>如何修改登录密码？</div>
-          <div class="hot-item"><span class="num">2</span>课程播放卡顿怎么办？</div>
-          <div class="hot-item"><span class="num">3</span>如何申请退款？</div>
-          <div class="hot-item"><span class="num">4</span>如何查看学习报告？</div>
-          <div class="hot-item"><span class="num">5</span>如何联系班主任？</div>
-        </div>
-      </div>
-    </div>
-    <div class="bottom-bar">
-      <div class="bottom-btn btn-feedback">&#9997;&#65039; 意见反馈</div>
-      <div class="divider-v"></div>
-      <div class="bottom-btn btn-consult" onclick="showDialog('new')">&#128172; 咨询客服</div>
-    </div>
-  </div>
-
-  <div class="overlay" id="overlay-new">
-    <div class="dialog dialog-new">
-      <div class="dialog-close"><span onclick="hideDialog('new')">&times;</span></div>
-      <div class="dialog-icon">
-        <div class="avatar">
-          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
-        </div>
-      </div>
-      <div class="dialog-btn-area">
-        <button class="dialog-btn" onclick="alert('跳转到在线客服聊天页')">在线咨询</button>
-      </div>
-      <div class="dialog-title">咨询客服</div>
-      <div class="dialog-content">如有任何问题，请联系在线客服为您解答，服务时间：工作日 9:00-18:00</div>
-      <div class="dialog-footer"></div>
-    </div>
-  </div>
-</div>
-
-<!-- 对比说明页面 -->
-<div class="page" id="page2">
-  <div style="padding: 16px; background: #f5f5f5; min-height: calc(100vh - 50px);">
-    <div class="compare-label"><strong>调整前</strong> <span class="badge badge-old">BEFORE</span></div>
-    <div style="display:flex; justify-content:center; padding: 12px 0;">
-      <div class="dialog dialog-old" style="position:relative;">
-        <div class="dialog-close"><span>&times;</span></div>
-        <div class="dialog-icon">
-          <div class="avatar">
-            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+        <div class="overlay" id="overlay-old">
+          <div class="dialog old-dialog">
+            <div class="dialog-close"><span onclick="toggleDialog('old')">&times;</span></div>
+            <div class="dialog-avatar"><div class="avatar-circle"></div></div>
+            <div class="d-body">
+              <div class="d-title">咨询客服</div>
+              <div class="d-content">如有任何问题，请联系在线客服为您解答，服务时间：工作日 9:00-18:00</div>
+            </div>
+            <div class="d-footer">
+              <button class="d-btn">在线咨询</button>
+            </div>
           </div>
         </div>
-        <div class="dialog-title">咨询客服</div>
-        <div class="dialog-content">如有任何问题，请联系在线客服为您解答，服务时间：工作日 9:00-18:00</div>
-        <div class="dialog-footer">
-          <button class="dialog-btn" style="pointer-events:none;">在线咨询</button>
-        </div>
       </div>
     </div>
+    <div style="font-size:12px;color:#999;text-align:center">点击"咨询客服"查看弹窗</div>
+  </div>
 
-    <div style="text-align:center; padding:8px 0; font-size:24px; color:#ccc;">&#8595;</div>
-
-    <div class="compare-label"><strong>调整后</strong> <span class="badge badge-new">AFTER</span></div>
-    <div style="display:flex; justify-content:center; padding: 12px 0;">
-      <div class="dialog dialog-new" style="position:relative;">
-        <div class="dialog-close"><span>&times;</span></div>
-        <div class="dialog-icon">
-          <div class="avatar">
-            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+  <!-- 调整后 -->
+  <div class="compare-col">
+    <span class="label label-after">调整后</span>
+    <div class="phone">
+      <div class="phone-notch"></div>
+      <div class="phone-screen" id="screen-new">
+        <div class="help-nav">帮助中心</div>
+        <div class="search-bar"><span class="search-icon">&#128269;</span>请输入关键词搜索</div>
+        <div class="section">
+          <div class="section-title">&#128293; 热门问题</div>
+          <div class="q-item"><span class="q-num hot">1</span>如何修改登录密码？</div>
+          <div class="q-item"><span class="q-num hot">2</span>课程播放卡顿怎么办？</div>
+          <div class="q-item"><span class="q-num hot">3</span>如何申请退款？</div>
+          <div class="q-item"><span class="q-num normal">4</span>如何查看学习报告？</div>
+          <div class="q-item"><span class="q-num normal">5</span>如何联系班主任？</div>
+        </div>
+        <div style="height:100px"></div>
+        <div class="bottom-btns">
+          <div class="bottom-btn-img btn-fb">&#9997;&#65039; 意见反馈</div>
+          <div class="btn-divider"></div>
+          <div class="bottom-btn-img btn-cs" onclick="toggleDialog('new')">&#128172; 咨询客服</div>
+        </div>
+        <div class="overlay" id="overlay-new">
+          <div class="dialog new-dialog">
+            <div class="dialog-close"><span onclick="toggleDialog('new')">&times;</span></div>
+            <div class="dialog-avatar"><div class="avatar-circle"></div></div>
+            <div class="d-title-area"><div class="d-title">咨询客服</div></div>
+            <div class="d-btn-area">
+              <button class="d-btn">在线咨询</button>
+            </div>
+            <div class="d-body">
+              <div class="d-content">如有任何问题，请联系在线客服为您解答，服务时间：工作日 9:00-18:00</div>
+            </div>
           </div>
         </div>
-        <div class="dialog-btn-area">
-          <button class="dialog-btn" style="pointer-events:none;">在线咨询</button>
-        </div>
-        <div class="dialog-title">咨询客服</div>
-        <div class="dialog-content">如有任何问题，请联系在线客服为您解答，服务时间：工作日 9:00-18:00</div>
-        <div class="dialog-footer"></div>
       </div>
     </div>
-
-    <div class="change-notes">
-      <h3>&#128221; 变更说明</h3>
-      <div class="change-item">
-        <div class="dot"></div>
-        <div><strong>在线咨询按钮尺寸增大</strong>：按钮宽度从 120px 增加至 200px，高度从 35px 增加至 44px，字号从 14px 增加至 16px，增强视觉引导</div>
-      </div>
-      <div class="change-item">
-        <div class="dot"></div>
-        <div><strong>提示文案字号缩小</strong>：弹窗内提示文案字号从 14px 缩小至 12px，颜色从 #969799 调整为 #b0b0b0，弱化辅助信息的视觉权重</div>
-      </div>
-      <div class="change-item">
-        <div class="dot"></div>
-        <div><strong>在线咨询按钮位置上移</strong>：从弹窗底部移至提示文案上方（客服头像下方），让用户打开弹窗后第一时间看到操作入口</div>
-      </div>
-      <div class="change-item">
-        <div class="dot"></div>
-        <div><strong>标题字号微调</strong>：标题字号从 18px 调整为 16px，与整体视觉层次保持协调</div>
-      </div>
-    </div>
+    <div style="font-size:12px;color:#999;text-align:center">点击"咨询客服"查看弹窗</div>
   </div>
+</div>
+
+<div class="notes">
+  <h3>变更说明</h3>
+  <div class="note-item"><div class="note-dot dot-green"></div><div><strong>在线咨询按钮位置上移</strong>：从弹窗底部（footer）移至客服头像正下方、标题和提示文案上方，用户打开弹窗后第一眼即可看到操作入口</div></div>
+  <div class="note-item"><div class="note-dot dot-green"></div><div><strong>在线咨询按钮尺寸增大</strong>：宽度 120px → 220px，高度 35px → 48px，字号 14px → 17px，圆角 18px → 24px，增加投影突出按钮</div></div>
+  <div class="note-item"><div class="note-dot dot-green"></div><div><strong>提示文案字号缩小</strong>：字号 14px → 12px，颜色 #969799 → #b0b0b0，行高 20px → 17px，弱化辅助信息视觉权重</div></div>
+  <div class="note-item"><div class="note-dot dot-green"></div><div><strong>标题字号微调</strong>：字号 18px → 15px，与按钮和文案形成更清晰的层次</div></div>
 </div>
 
 <script>
-function switchTab(idx) {
-  document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', i === idx));
-  document.querySelectorAll('.page').forEach((p, i) => p.classList.toggle('active', i === idx));
+function toggleDialog(type){
+  var o=document.getElementById('overlay-'+type);
+  o.classList.toggle('show');
 }
-function showDialog(type) {
-  document.getElementById('overlay-' + type).classList.add('show');
-}
-function hideDialog(type) {
-  document.getElementById('overlay-' + type).classList.remove('show');
-}
-document.querySelectorAll('.overlay').forEach(o => {
-  o.addEventListener('click', function(e) {
-    if (e.target === this) this.classList.remove('show');
+document.querySelectorAll('.overlay').forEach(function(o){
+  o.addEventListener('click',function(e){
+    if(e.target===this)this.classList.remove('show');
   });
 });
 </script>
