@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>规则引擎分组配置 - 可交互原型 v1.3</title>
+<title>规则引擎分组配置 - 可交互原型 v1.4</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: #f5f7fa; color: #303133; font-size: 14px; }
@@ -23,6 +23,8 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helv
 .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 4px; border: 1px solid #dcdfe6; cursor: pointer; font-size: 14px; transition: all .2s; background: #fff; }
 .btn-primary { background: #409eff; color: #fff; border-color: #409eff; }
 .btn-primary:hover { background: #66b1ff; }
+.btn-warning { background: #e6a23c; color: #fff; border-color: #e6a23c; }
+.btn-warning:hover { background: #ebb563; }
 .btn-danger { background: #fff; color: #f56c6c; border-color: #fbc4c4; }
 .btn-danger:hover { background: #f56c6c; color: #fff; }
 .btn-text { background: none; border: none; color: #409eff; padding: 4px 8px; }
@@ -33,12 +35,15 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helv
 .table th, .table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #ebeef5; font-size: 14px; }
 .table th { background: #fafafa; font-weight: 500; color: #909399; }
 .table tr:hover td { background: #f5f7fa; }
+.table tr.fallback-row td { background: #fffbe6; }
+.table tr.fallback-row:hover td { background: #fff7cc; }
 
 .tag { display: inline-block; padding: 2px 10px; border-radius: 4px; font-size: 12px; }
 .tag-success { background: #f0f9ff; color: #67c23a; border: 1px solid #c2e7b0; }
 .tag-info { background: #f4f4f5; color: #909399; border: 1px solid #d3d4d6; }
 .tag-primary { background: #ecf5ff; color: #409eff; border: 1px solid #b3d8ff; }
 .tag-warning { background: #fdf6ec; color: #e6a23c; border: 1px solid #f5dab1; }
+.tag-fallback { background: #fff7e6; color: #d48806; border: 1px solid #ffe58f; font-weight: 500; }
 
 .switch { position: relative; width: 40px; height: 20px; background: #dcdfe6; border-radius: 10px; cursor: pointer; transition: .3s; display: inline-block; vertical-align: middle; }
 .switch.on { background: #409eff; }
@@ -76,6 +81,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helv
 .group-condition-title { font-size: 14px; font-weight: 500; color: #d48806; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
 .group-condition-title::before { content: ''; width: 4px; height: 14px; background: #faad14; border-radius: 2px; }
 
+.fallback-condition-section { background: #fff7e6; border: 1px solid #ffe58f; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+.fallback-notice { display: flex; align-items: center; gap: 8px; color: #d48806; font-size: 14px; }
+.fallback-notice-icon { font-size: 18px; }
+
 .confirm-modal { width: 420px; }
 .confirm-body { padding: 20px 24px; display: flex; gap: 12px; }
 .confirm-icon { font-size: 24px; color: #e6a23c; flex-shrink: 0; }
@@ -85,13 +94,16 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helv
 .empty { text-align: center; padding: 40px 0; color: #909399; }
 .empty-icon { font-size: 48px; margin-bottom: 12px; }
 
-/* AI员工任务分组卡片 */
 .task-group-card { border: 1px solid #e4e7ed; border-radius: 8px; margin-bottom: 12px; overflow: hidden; transition: all .3s; }
 .task-group-card.matched { border-color: #b3d8ff; }
+.task-group-card.fallback-card { border-color: #ffe58f; }
+.task-group-card.fallback-card.matched { border-color: #faad14; }
 .task-group-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,.06); }
 .task-group-header { padding: 14px 16px; background: #fafbfc; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: background .2s; }
 .task-group-header:hover { background: #f0f2f5; }
 .task-group-card.matched .task-group-header { background: #f0f9ff; }
+.task-group-card.fallback-card .task-group-header { background: #fffbe6; }
+.task-group-card.fallback-card.matched .task-group-header { background: #fff7e6; }
 .task-group-left { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
 .task-group-name { font-size: 15px; font-weight: 500; }
 .task-group-cond { font-size: 12px; color: #909399; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 400px; }
@@ -134,7 +146,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helv
 .execution-record.success { background: #f0f9eb; border: 1px solid #e1f3d8; }
 .execution-record.pending { background: #f4f4f5; border: 1px solid #e9e9eb; }
 
-/* 三栏布局 - AI员工 */
 .ai-layout { display: flex; height: calc(100vh - 50px); background: #f5f5f5; }
 .ai-panel { display: flex; flex-direction: column; background: #fff; border-right: 1px solid #e5e5e5; }
 .ai-panel-left { width: 260px; flex-shrink: 0; }
@@ -176,11 +187,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helv
 .toast-error { background: #f56c6c; }
 @keyframes fadeIn { from { opacity: 0; transform: translateX(-50%) translateY(-10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
 
-.nav-tabs { display: flex; background: #fff; border-bottom: 2px solid #e4e7ed; padding: 0 20px; }
-.nav-tab { padding: 12px 20px; cursor: pointer; font-size: 15px; font-weight: 500; color: #606266; position: relative; }
-.nav-tab.active { color: #409eff; }
-.nav-tab.active::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 2px; background: #409eff; }
-.nav-tab:hover { color: #409eff; }
+.divider-row td { padding: 6px 16px; background: #fafafa; border-bottom: 1px solid #ebeef5; }
+.divider-label { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #909399; font-weight: 500; }
+.divider-label::before { content: ''; width: 20px; height: 1px; background: #dcdfe6; }
+.divider-label::after { content: ''; flex: 1; height: 1px; background: #dcdfe6; }
 </style>
 </head>
 <body>
@@ -202,25 +212,26 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helv
   </div>
 
   <div class="main">
-    <!-- ========== 规则引擎视图 ========== -->
     <div id="main-rule">
       <div class="header"><span class="header-title">规则引擎配置</span></div>
       <div class="content">
-        <!-- 分组列表 -->
         <div id="view-group-list">
           <div class="card">
             <div class="group-list-header">
               <div class="section-title">规则分组</div>
-              <button class="btn btn-primary" onclick="showGroupDialog()">+ 新建分组</button>
+              <div class="flex gap-8">
+                <button class="btn btn-primary" onclick="showGroupDialog()">+ 新建分组</button>
+                <button class="btn btn-warning" id="btn-add-fallback" onclick="showFallbackDialog()">+ 新建兜底分组</button>
+              </div>
             </div>
-            <p class="text-sm text-gray mb-16">用户首次进入规则引擎时，依次评估各分组命中条件，满足后直接执行该分组下的规则</p>
+            <p class="text-sm text-gray mb-16">用户首次进入规则引擎时，依次评估各分组命中条件，满足后直接执行该分组下的规则；若所有分组均未命中，则执行兜底分组的规则</p>
             <table class="table" id="group-table">
               <thead>
                 <tr>
-                  <th width="80">ID</th>
+                  <th width="60">序号</th>
                   <th>分组名称</th>
                   <th>分组描述</th>
-                  <th width="100">命中条件数</th>
+                  <th width="120">命中条件</th>
                   <th width="80">规则数</th>
                   <th width="140">更新时间</th>
                   <th width="100">启用状态</th>
@@ -232,17 +243,23 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helv
           </div>
         </div>
 
-        <!-- 分组详情 -->
         <div id="view-group-detail" class="view-hidden">
           <div class="card">
             <div class="flex items-center gap-12 mb-20">
               <button class="btn btn-sm" onclick="backToGroupList()">← 返回分组列表</button>
               <span class="section-title" style="margin-bottom:0" id="detail-group-name"></span>
               <span class="tag tag-primary" id="detail-group-tag">已启用</span>
+              <span class="tag tag-fallback view-hidden" id="detail-fallback-tag">兜底分组</span>
             </div>
             <div class="group-condition-section mb-20" id="detail-condition-section">
               <div class="group-condition-title">分组命中条件</div>
               <div id="detail-conditions-display"></div>
+            </div>
+            <div class="fallback-condition-section mb-20 view-hidden" id="detail-fallback-section">
+              <div class="fallback-notice">
+                <span class="fallback-notice-icon">🛡️</span>
+                <span>兜底分组：当所有普通分组均未命中时，自动执行此分组下的规则</span>
+              </div>
             </div>
             <div class="flex items-center gap-12 mb-16">
               <button class="btn btn-primary" onclick="showRuleDialog()">+ 新建规则</button>
@@ -268,7 +285,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helv
       </div>
     </div>
 
-    <!-- ========== AI员工明细视图 ========== -->
     <div id="main-ai" class="view-hidden" style="flex:1;display:flex;flex-direction:column;">
       <div class="header"><span class="header-title">AI员工明细</span></div>
       <div class="ai-layout">
@@ -289,15 +305,12 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helv
               <div class="ai-tab" onclick="switchAiTab('vars')">会话变量</div>
               <div class="ai-tab active" onclick="switchAiTab('tasks')" id="ai-tab-tasks">任务执行明细</div>
             </div>
-            <!-- 聊天记录 -->
             <div class="ai-tab-content view-hidden" id="ai-content-chat">
               <div class="empty"><div class="empty-icon">💬</div><p>聊天记录区域（本原型聚焦展示任务执行明细分组功能）</p></div>
             </div>
-            <!-- 会话变量 -->
             <div class="ai-tab-content view-hidden" id="ai-content-vars">
               <div class="empty"><div class="empty-icon">📋</div><p>会话变量区域（本原型聚焦展示任务执行明细分组功能）</p></div>
             </div>
-            <!-- 任务执行明细（分组展示） -->
             <div class="ai-tab-content" id="ai-content-tasks">
               <div class="filter-bar">
                 <select class="select" style="width:160px" id="task-status-filter" onchange="renderTaskGroups()">
@@ -352,6 +365,34 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helv
     <div class="modal-footer">
       <button class="btn" onclick="closeGroupDialog()">取消</button>
       <button class="btn btn-primary" onclick="saveGroup()">确认</button>
+    </div>
+  </div>
+</div>
+
+<!-- 新建/编辑兜底分组弹窗 -->
+<div class="modal-overlay" id="fallback-dialog" style="display:none">
+  <div class="modal" style="width:600px;">
+    <div class="modal-header">
+      <h3 id="fallback-dialog-title">新建兜底分组</h3>
+      <div class="modal-close" onclick="closeFallbackDialog()">&times;</div>
+    </div>
+    <div class="modal-body">
+      <div style="background:#fff7e6;border:1px solid #ffe58f;border-radius:8px;padding:12px 16px;margin-bottom:20px;display:flex;align-items:center;gap:8px;">
+        <span style="color:#d48806;font-size:16px;">🛡️</span>
+        <span style="color:#d48806;font-size:14px;">兜底分组无需配置命中条件，当所有普通分组均未命中时，系统自动执行兜底分组下的规则</span>
+      </div>
+      <div class="form-item">
+        <label class="form-label"><span class="required">*</span>分组名称</label>
+        <input class="input" id="fallback-name-input" placeholder="请输入兜底分组名称" maxlength="30">
+      </div>
+      <div class="form-item">
+        <label class="form-label">分组描述</label>
+        <textarea class="textarea" id="fallback-desc-input" placeholder="请输入兜底分组描述" maxlength="200"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeFallbackDialog()">取消</button>
+      <button class="btn btn-warning" onclick="saveFallback()">确认</button>
     </div>
   </div>
 </div>
@@ -512,7 +553,7 @@ const operatorOptions = [
 let groups = [
   {
     id: 1, name: '新用户引导分组', description: '针对注册7天内的新用户触发引导消息和会员赠送',
-    status: 'enabled', updatedAt: '2026-04-08 14:30',
+    status: 'enabled', updatedAt: '2026-04-08 14:30', isFallback: false,
     conditions: { conjunction: 'and', conditions: [
       { fieldKey: 'register_days', operator: 'lessThan', value: '7' },
       { fieldKey: 'membership_status', operator: 'equals', value: '未开通' }
@@ -524,7 +565,7 @@ let groups = [
   },
   {
     id: 2, name: '高价值用户维护分组', description: '针对购买3次以上的活跃用户进行维护',
-    status: 'enabled', updatedAt: '2026-04-07 16:45',
+    status: 'enabled', updatedAt: '2026-04-07 16:45', isFallback: false,
     conditions: { conjunction: 'and', conditions: [
       { fieldKey: 'purchase_count', operator: 'greaterThan', value: '3' },
       { fieldKey: 'last_active_days', operator: 'lessThan', value: '30' }
@@ -536,7 +577,7 @@ let groups = [
   },
   {
     id: 3, name: '抖音渠道用户分组', description: '来自抖音渠道的用户专属规则',
-    status: 'enabled', updatedAt: '2026-04-05 10:00',
+    status: 'enabled', updatedAt: '2026-04-05 10:00', isFallback: false,
     conditions: { conjunction: 'and', conditions: [
       { fieldKey: 'source', operator: 'equals', value: '抖音' }
     ]},
@@ -544,10 +585,18 @@ let groups = [
       { id: 301, name: '抖音渠道欢迎语', description: '对抖音渠道用户发送专属欢迎语', triggerType: 'user_change', status: 'enabled', createdAt: '2026-03-15 09:00', updatedAt: '2026-04-05 10:00', creator: '赵六' },
       { id: 302, name: '抖音渠道标签同步', description: '自动同步抖音渠道用户标签', triggerType: 'user_change', status: 'enabled', createdAt: '2026-03-18 11:30', updatedAt: '2026-04-04 15:00', creator: '张三' }
     ]
+  },
+  {
+    id: 99, name: '通用兜底分组', description: '当用户未命中任何普通分组时，执行通用兜底规则',
+    status: 'enabled', updatedAt: '2026-04-20 10:00', isFallback: true,
+    conditions: null,
+    rules: [
+      { id: 901, name: '通用欢迎消息', description: '向所有未命中其他分组的用户发送通用欢迎消息', triggerType: 'user_change', status: 'enabled', createdAt: '2026-04-20 10:00', updatedAt: '2026-04-20 10:00', creator: '张三' },
+      { id: 902, name: '基础信息采集', description: '引导用户补充基础信息', triggerType: 'user_change', status: 'enabled', createdAt: '2026-04-20 10:00', updatedAt: '2026-04-20 10:00', creator: '李四' }
+    ]
   }
 ];
 
-// AI员工和任务数据
 const aiEmployees = [
   { id: 'e1', name: '小助手A', avatar: 'A', status: 'online', sessionCount: 128 },
   { id: 'e2', name: '小助手B', avatar: 'B', status: 'online', sessionCount: 85 },
@@ -564,23 +613,14 @@ const taskGroupData = [
   {
     groupId: 1, groupName: '新用户引导分组',
     groupConditionSummary: '注册天数 小于 7 且 会员状态 等于 未开通',
-    isGroupMatched: true,
+    isGroupMatched: false, isFallback: false,
     tasks: [
       {
         taskId: 101, taskName: '新用户欢迎消息', taskDescription: '向新注册用户发送欢迎消息',
-        executionStatus: 'executed', executedAt: '2026-04-10 10:32:15',
-        satisfiedCount: 2, totalConditionCount: 2, triggerType: 'user_change',
-        conditions: [
-          { fieldKey: 'register_days', fieldName: '注册天数', operator: 'lessThan', expectedValue: '7', currentValue: '3', isSatisfied: true },
-          { fieldKey: 'membership_status', fieldName: '会员状态', operator: 'equals', expectedValue: '未开通', currentValue: '未开通', isSatisfied: true }
-        ]
-      },
-      {
-        taskId: 102, taskName: '新用户会员赠送', taskDescription: '新用户注册3天后赠送7天会员',
         executionStatus: 'pending', executedAt: null,
-        satisfiedCount: 1, totalConditionCount: 2, triggerType: 'scheduled',
+        satisfiedCount: 1, totalConditionCount: 2, triggerType: 'user_change',
         conditions: [
-          { fieldKey: 'register_days', fieldName: '注册天数', operator: 'greaterThan', expectedValue: '3', currentValue: '3', isSatisfied: false },
+          { fieldKey: 'register_days', fieldName: '注册天数', operator: 'lessThan', expectedValue: '7', currentValue: '15', isSatisfied: false },
           { fieldKey: 'membership_status', fieldName: '会员状态', operator: 'equals', expectedValue: '未开通', currentValue: '未开通', isSatisfied: true }
         ]
       }
@@ -589,21 +629,12 @@ const taskGroupData = [
   {
     groupId: 2, groupName: '高价值用户维护分组',
     groupConditionSummary: '购买次数 大于 3 且 最近活跃天数 小于 30',
-    isGroupMatched: false,
+    isGroupMatched: false, isFallback: false,
     tasks: [
       {
         taskId: 201, taskName: '活跃用户回访', taskDescription: '定期对高价值用户进行回访',
         executionStatus: 'pending', executedAt: null,
         satisfiedCount: 0, totalConditionCount: 2, triggerType: 'scheduled',
-        conditions: [
-          { fieldKey: 'purchase_count', fieldName: '购买次数', operator: 'greaterThan', expectedValue: '3', currentValue: '1', isSatisfied: false },
-          { fieldKey: 'last_active_days', fieldName: '最近活跃天数', operator: 'lessThan', expectedValue: '30', currentValue: '5', isSatisfied: true }
-        ]
-      },
-      {
-        taskId: 202, taskName: '高价值用户专属优惠', taskDescription: '推送专属优惠券给高价值用户',
-        executionStatus: 'pending', executedAt: null,
-        satisfiedCount: 0, totalConditionCount: 2, triggerType: 'user_change',
         conditions: [
           { fieldKey: 'purchase_count', fieldName: '购买次数', operator: 'greaterThan', expectedValue: '3', currentValue: '1', isSatisfied: false },
           { fieldKey: 'last_active_days', fieldName: '最近活跃天数', operator: 'lessThan', expectedValue: '30', currentValue: '5', isSatisfied: true }
@@ -614,15 +645,34 @@ const taskGroupData = [
   {
     groupId: 3, groupName: '抖音渠道用户分组',
     groupConditionSummary: '用户来源 等于 抖音',
-    isGroupMatched: false,
+    isGroupMatched: false, isFallback: false,
     tasks: [
       {
         taskId: 301, taskName: '抖音渠道欢迎语', taskDescription: '对抖音渠道用户发送专属欢迎语',
-        executionStatus: 'delayed', executedAt: null,
+        executionStatus: 'pending', executedAt: null,
         satisfiedCount: 0, totalConditionCount: 1, triggerType: 'user_change',
         conditions: [
           { fieldKey: 'source', fieldName: '用户来源', operator: 'equals', expectedValue: '抖音', currentValue: '微信', isSatisfied: false }
         ]
+      }
+    ]
+  },
+  {
+    groupId: 99, groupName: '通用兜底分组',
+    groupConditionSummary: '兜底：所有普通分组均未命中时执行',
+    isGroupMatched: true, isFallback: true,
+    tasks: [
+      {
+        taskId: 901, taskName: '通用欢迎消息', taskDescription: '向所有未命中其他分组的用户发送通用欢迎消息',
+        executionStatus: 'executed', executedAt: '2026-04-20 10:32:15',
+        satisfiedCount: 0, totalConditionCount: 0, triggerType: 'user_change',
+        conditions: []
+      },
+      {
+        taskId: 902, taskName: '基础信息采集', taskDescription: '引导用户补充基础信息',
+        executionStatus: 'executed', executedAt: '2026-04-20 10:32:16',
+        satisfiedCount: 0, totalConditionCount: 0, triggerType: 'user_change',
+        conditions: []
       }
     ]
   }
@@ -630,12 +680,16 @@ const taskGroupData = [
 
 let currentGroupId = null;
 let editingGroupId = null;
+let editingFallbackId = null;
 let groupConditionCount = 0;
 let pendingConfirmAction = null;
 let expandedTaskGroups = new Set();
 let expandedTasks = new Set();
 
-// ========== 主视图切换 ==========
+function hasFallbackGroup() { return groups.some(g => g.isFallback); }
+function getFallbackGroup() { return groups.find(g => g.isFallback); }
+function getNormalGroups() { return groups.filter(g => !g.isFallback); }
+
 function switchMainView(view) {
   document.getElementById('main-rule').classList.toggle('view-hidden', view !== 'rule');
   document.getElementById('main-ai').classList.toggle('view-hidden', view !== 'ai');
@@ -647,16 +701,21 @@ function switchMainView(view) {
   if (view === 'ai') { renderAiEmployeeList(); renderAiSessionList(); }
 }
 
-// ========== 分组列表 ==========
 function renderGroupTable() {
   const tbody = document.getElementById('group-table-body');
-  if (groups.length === 0) {
+  const normal = getNormalGroups();
+  const fb = getFallbackGroup();
+  document.getElementById('btn-add-fallback').style.display = fb ? 'none' : 'inline-flex';
+
+  if (normal.length === 0 && !fb) {
     tbody.innerHTML = '<tr><td colspan="8"><div class="empty"><div class="empty-icon">📄</div><p>暂无分组，请点击"新建分组"按钮创建</p></div></td></tr>';
     return;
   }
-  tbody.innerHTML = groups.map(g => `
-    <tr>
-      <td>${g.id}</td>
+
+  let html = '';
+  normal.forEach((g, idx) => {
+    html += `<tr>
+      <td>${idx + 1}</td>
       <td><a href="javascript:void(0)" onclick="enterGroupDetail(${g.id})" style="color:#409eff;text-decoration:none;font-weight:500">${g.name}</a></td>
       <td style="color:#909399">${g.description}</td>
       <td>${g.conditions.conditions.length} 条</td>
@@ -669,8 +728,27 @@ function renderGroupTable() {
         <button class="btn btn-text btn-sm" onclick="showCopyGroupDialog(${g.id})">复制</button>
         <button class="btn btn-text btn-sm danger" onclick="deleteGroup(${g.id})">删除</button>
       </td>
-    </tr>
-  `).join('');
+    </tr>`;
+  });
+
+  if (fb) {
+    html += `<tr class="divider-row"><td colspan="8"><div class="divider-label">兜底分组（所有普通分组未命中时执行）</div></td></tr>`;
+    html += `<tr class="fallback-row">
+      <td>🛡️</td>
+      <td><a href="javascript:void(0)" onclick="enterGroupDetail(${fb.id})" style="color:#d48806;text-decoration:none;font-weight:500">${fb.name}</a></td>
+      <td style="color:#909399">${fb.description}</td>
+      <td><span class="tag tag-fallback">兜底</span></td>
+      <td>${fb.rules.length}</td>
+      <td>${fb.updatedAt}</td>
+      <td><div class="switch ${fb.status === 'enabled' ? 'on' : ''}" onclick="toggleGroup(${fb.id})"></div></td>
+      <td>
+        <button class="btn btn-text btn-sm" onclick="enterGroupDetail(${fb.id})">查看规则</button>
+        <button class="btn btn-text btn-sm" onclick="editFallback(${fb.id})">编辑</button>
+        <button class="btn btn-text btn-sm danger" onclick="deleteGroup(${fb.id})">删除</button>
+      </td>
+    </tr>`;
+  }
+  tbody.innerHTML = html;
 }
 
 function toggleGroup(id) {
@@ -680,13 +758,13 @@ function toggleGroup(id) {
 
 function deleteGroup(id) {
   const g = groups.find(x => x.id === id);
-  document.getElementById('confirm-title').textContent = `确定要删除分组"${g.name}"吗？`;
-  document.getElementById('confirm-desc').textContent = `删除后不可恢复，该分组下的 ${g.rules.length} 条规则也将被移除。`;
+  const label = g.isFallback ? '兜底分组' : '分组';
+  document.getElementById('confirm-title').textContent = `确定要删除${label}"${g.name}"吗？`;
+  document.getElementById('confirm-desc').textContent = `删除后不可恢复，该${label}下的 ${g.rules.length} 条规则也将被移除。`;
   pendingConfirmAction = () => { groups = groups.filter(x => x.id !== id); renderGroupTable(); showToast('删除成功', 'success'); };
   document.getElementById('confirm-dialog').style.display = 'flex';
 }
 
-// ========== 分组弹窗 ==========
 function showGroupDialog(editId) {
   editingGroupId = editId || null;
   document.getElementById('group-dialog-title').textContent = editId ? '编辑分组' : '新建分组';
@@ -752,11 +830,11 @@ function saveGroup() {
   if (dupName) { showToast(`命中条件与分组"${dupName}"重复，请修改`, 'error'); return; }
   if (editingGroupId) {
     const g = groups.find(x => x.id === editingGroupId);
-    g.name = name; g.description = desc; g.conditions = { conjunction, conditions }; g.updatedAt = '2026-04-13 15:00';
+    g.name = name; g.description = desc; g.conditions = { conjunction, conditions }; g.updatedAt = '2026-04-20 15:00';
     showToast('更新成功', 'success');
   } else {
     const newId = Math.max(...groups.map(g => g.id), 0) + 1;
-    groups.push({ id: newId, name, description: desc, status: 'enabled', updatedAt: '2026-04-13 15:00', conditions: { conjunction, conditions }, rules: [] });
+    groups.push({ id: newId, name, description: desc, status: 'enabled', updatedAt: '2026-04-20 15:00', isFallback: false, conditions: { conjunction, conditions }, rules: [] });
     showToast('创建成功', 'success');
   }
   closeGroupDialog(); renderGroupTable();
@@ -764,7 +842,41 @@ function saveGroup() {
 
 function editGroup(id) { showGroupDialog(id); }
 
-// ========== 复制分组 ==========
+function showFallbackDialog(editId) {
+  editingFallbackId = editId || null;
+  document.getElementById('fallback-dialog-title').textContent = editId ? '编辑兜底分组' : '新建兜底分组';
+  if (editId) {
+    const g = groups.find(x => x.id === editId);
+    document.getElementById('fallback-name-input').value = g.name;
+    document.getElementById('fallback-desc-input').value = g.description;
+  } else {
+    document.getElementById('fallback-name-input').value = '';
+    document.getElementById('fallback-desc-input').value = '';
+  }
+  document.getElementById('fallback-dialog').style.display = 'flex';
+}
+
+function closeFallbackDialog() { document.getElementById('fallback-dialog').style.display = 'none'; editingFallbackId = null; }
+
+function editFallback(id) { showFallbackDialog(id); }
+
+function saveFallback() {
+  const name = document.getElementById('fallback-name-input').value.trim();
+  if (!name) { showToast('请输入兜底分组名称', 'warning'); return; }
+  const desc = document.getElementById('fallback-desc-input').value.trim();
+  if (editingFallbackId) {
+    const g = groups.find(x => x.id === editingFallbackId);
+    g.name = name; g.description = desc; g.updatedAt = '2026-04-20 15:00';
+    showToast('更新成功', 'success');
+  } else {
+    if (hasFallbackGroup()) { showToast('系统中已存在兜底分组，不可重复创建', 'error'); closeFallbackDialog(); return; }
+    const newId = Math.max(...groups.map(g => g.id), 0) + 1;
+    groups.push({ id: newId, name, description: desc, status: 'enabled', updatedAt: '2026-04-20 15:00', isFallback: true, conditions: null, rules: [] });
+    showToast('兜底分组创建成功', 'success');
+  }
+  closeFallbackDialog(); renderGroupTable();
+}
+
 let copySourceGroupId = null;
 let copyConditionCount = 0;
 
@@ -802,7 +914,7 @@ function addCopyGroupCondition(preset) {
 function removeCopyGroupCondition(idx) { const row = document.getElementById(`cgc-row-${idx}`); if (row) row.remove(); }
 
 function serializeConditions(conjunction, conditions) {
-  if (!conditions.length) return '';
+  if (!conditions || !conditions.length) return '';
   const sorted = [...conditions].sort((a, b) => a.fieldKey.localeCompare(b.fieldKey) || a.operator.localeCompare(b.operator) || (a.value || '').localeCompare(b.value || ''));
   return conjunction + '|' + sorted.map(c => `${c.fieldKey}:${c.operator}:${c.value}`).join(',');
 }
@@ -810,7 +922,7 @@ function serializeConditions(conjunction, conditions) {
 function checkConditionDuplicate(conjunction, conditions, excludeGroupId) {
   const newKey = serializeConditions(conjunction, conditions);
   if (!newKey) return null;
-  for (const g of groups) { if (g.id === excludeGroupId) continue; if (serializeConditions(g.conditions.conjunction, g.conditions.conditions) === newKey) return g.name; }
+  for (const g of getNormalGroups()) { if (g.id === excludeGroupId) continue; if (serializeConditions(g.conditions.conjunction, g.conditions.conditions) === newKey) return g.name; }
   return null;
 }
 
@@ -827,26 +939,40 @@ function saveCopyGroup() {
   if (dupName) { showToast(`命中条件与分组"${dupName}"重复，请修改`, 'error'); return; }
   const src = groups.find(g => g.id === copySourceGroupId);
   const newId = Math.max(...groups.map(g => g.id), 0) + 1;
-  const now = '2026-04-13 18:00';
+  const now = '2026-04-20 18:00';
   const copiedRules = src.rules.map((r, i) => ({ id: newId * 100 + i + 1, name: r.name, description: r.description, triggerType: r.triggerType, status: r.status, createdAt: now, updatedAt: now, creator: '当前用户' }));
-  groups.push({ id: newId, name, description: desc, status: 'disabled', updatedAt: now, conditions: { conjunction, conditions }, rules: copiedRules });
+  groups.push({ id: newId, name, description: desc, status: 'disabled', updatedAt: now, isFallback: false, conditions: { conjunction, conditions }, rules: copiedRules });
   closeCopyGroupDialog(); renderGroupTable(); showToast('复制成功，新分组已创建（默认禁用）', 'success');
 }
 
-// ========== 分组详情 ==========
 function enterGroupDetail(id) {
   currentGroupId = id;
   const g = groups.find(x => x.id === id);
   document.getElementById('detail-group-name').textContent = g.name;
   document.getElementById('detail-group-tag').textContent = g.status === 'enabled' ? '已启用' : '已禁用';
   document.getElementById('detail-group-tag').className = g.status === 'enabled' ? 'tag tag-success' : 'tag tag-info';
-  const condDisplay = document.getElementById('detail-conditions-display');
-  const conjText = g.conditions.conjunction === 'and' ? '且' : '或';
-  condDisplay.innerHTML = g.conditions.conditions.map((c, i) => {
-    const fl = variableOptions.find(v => v.value === c.fieldKey)?.label || c.fieldKey;
-    const ol = operatorOptions.find(o => o.value === c.operator)?.label || c.operator;
-    return `<div class="flex items-center gap-8 mb-8">${i > 0 ? '<span class="conjunction-btn">' + conjText + '</span>' : '<span style="width:32px"></span>'}<span class="tag tag-primary">${fl}</span><span>${ol}</span><span style="font-weight:500">${c.value}</span></div>`;
-  }).join('');
+
+  const fbTag = document.getElementById('detail-fallback-tag');
+  const condSection = document.getElementById('detail-condition-section');
+  const fbSection = document.getElementById('detail-fallback-section');
+
+  if (g.isFallback) {
+    fbTag.classList.remove('view-hidden');
+    condSection.classList.add('view-hidden');
+    fbSection.classList.remove('view-hidden');
+  } else {
+    fbTag.classList.add('view-hidden');
+    condSection.classList.remove('view-hidden');
+    fbSection.classList.add('view-hidden');
+    const condDisplay = document.getElementById('detail-conditions-display');
+    const conjText = g.conditions.conjunction === 'and' ? '且' : '或';
+    condDisplay.innerHTML = g.conditions.conditions.map((c, i) => {
+      const fl = variableOptions.find(v => v.value === c.fieldKey)?.label || c.fieldKey;
+      const ol = operatorOptions.find(o => o.value === c.operator)?.label || c.operator;
+      return `<div class="flex items-center gap-8 mb-8">${i > 0 ? '<span class="conjunction-btn">' + conjText + '</span>' : '<span style="width:32px"></span>'}<span class="tag tag-primary">${fl}</span><span>${ol}</span><span style="font-weight:500">${c.value}</span></div>`;
+    }).join('');
+  }
+
   renderRuleTable(g);
   document.getElementById('view-group-list').classList.add('view-hidden');
   document.getElementById('view-group-detail').classList.remove('view-hidden');
@@ -895,7 +1021,6 @@ function deleteRule(id) {
   document.getElementById('confirm-dialog').style.display = 'flex';
 }
 
-// ========== 规则弹窗 ==========
 function showRuleDialog(editId) {
   document.getElementById('rule-dialog-title').textContent = editId ? '编辑规则' : '新建规则';
   if (!editId) { document.getElementById('rule-name-input').value = ''; document.getElementById('rule-desc-input').value = ''; }
@@ -911,7 +1036,7 @@ function saveRule() {
   if (!desc) { showToast('请输入规则描述', 'warning'); return; }
   const g = groups.find(x => x.id === currentGroupId);
   const newId = Math.max(...g.rules.map(r => r.id), 0) + 1;
-  g.rules.push({ id: newId, name, description: desc, triggerType: 'user_change', status: 'enabled', createdAt: '2026-04-13 15:00', updatedAt: '2026-04-13 15:00', creator: '当前用户' });
+  g.rules.push({ id: newId, name, description: desc, triggerType: 'user_change', status: 'enabled', createdAt: '2026-04-20 15:00', updatedAt: '2026-04-20 15:00', creator: '当前用户' });
   closeRuleDialog(); renderRuleTable(g); showToast('创建成功', 'success');
 }
 
@@ -922,11 +1047,9 @@ function addDemoAction() {
   container.appendChild(box);
 }
 
-// ========== 确认弹窗 ==========
 function closeConfirm() { document.getElementById('confirm-dialog').style.display = 'none'; pendingConfirmAction = null; }
 function confirmAction() { if (pendingConfirmAction) pendingConfirmAction(); closeConfirm(); }
 
-// ========== AI员工明细 ==========
 let selectedEmployeeId = null;
 let selectedSessionId = null;
 
@@ -986,7 +1109,6 @@ function switchAiTab(tab) {
   else { document.querySelectorAll('.ai-tab')[1].classList.add('active'); document.getElementById('ai-content-vars').classList.remove('view-hidden'); }
 }
 
-// ========== 任务分组渲染 ==========
 function getOpLabel(op) {
   const m = { equals:'等于', notEquals:'不等于', greaterThan:'大于', lessThan:'小于', contains:'包含', notContains:'不包含', isEmpty:'为空', isNotEmpty:'不为空' };
   return m[op] || op;
@@ -995,23 +1117,37 @@ function getOpLabel(op) {
 function renderTaskGroups() {
   const filter = document.getElementById('task-status-filter').value;
   const container = document.getElementById('task-group-container');
-  const sorted = [...taskGroupData].sort((a, b) => (b.isGroupMatched ? 1 : 0) - (a.isGroupMatched ? 1 : 0));
+  const normalGroups = taskGroupData.filter(g => !g.isFallback);
+  const fbGroups = taskGroupData.filter(g => g.isFallback);
+  const sorted = [...normalGroups].sort((a, b) => (b.isGroupMatched ? 1 : 0) - (a.isGroupMatched ? 1 : 0));
+  sorted.push(...fbGroups);
   let totalTasks = 0;
   let html = '';
+  let addedFbDivider = false;
 
   sorted.forEach(group => {
     const tasks = filter ? group.tasks.filter(t => t.executionStatus === filter) : group.tasks;
     if (filter && tasks.length === 0) return;
     totalTasks += tasks.length;
+
+    if (group.isFallback && !addedFbDivider) {
+      addedFbDivider = true;
+      html += '<div style="display:flex;align-items:center;gap:8px;margin:16px 0 12px;"><span style="flex:1;height:1px;background:#ffe58f;"></span><span style="font-size:12px;color:#d48806;font-weight:500;white-space:nowrap;">🛡️ 兜底分组</span><span style="flex:1;height:1px;background:#ffe58f;"></span></div>';
+    }
+
     const isExpanded = expandedTaskGroups.has(group.groupId);
     const executed = tasks.filter(t => t.executionStatus === 'executed').length;
     const pending = tasks.filter(t => t.executionStatus === 'pending').length;
     const delayed = tasks.filter(t => t.executionStatus === 'delayed').length;
 
-    html += `<div class="task-group-card ${group.isGroupMatched ? 'matched' : ''}">
+    const cardClass = group.isFallback ? 'task-group-card fallback-card' : 'task-group-card';
+    const matchedClass = group.isGroupMatched ? ' matched' : '';
+
+    html += `<div class="${cardClass}${matchedClass}">
       <div class="task-group-header" onclick="toggleTaskGroup(${group.groupId})">
         <div class="task-group-left">
           <span class="task-group-name">${group.groupName}</span>
+          ${group.isFallback ? '<span class="tag tag-fallback" style="font-size:11px;">兜底</span>' : ''}
           <span class="tag ${group.isGroupMatched ? 'tag-success' : 'tag-info'}" style="font-size:11px;">${group.isGroupMatched ? '已命中' : '未命中'}</span>
           <span class="task-group-cond">${group.groupConditionSummary}</span>
         </div>
@@ -1029,8 +1165,9 @@ function renderTaskGroups() {
       html += '<div class="task-group-body">';
       tasks.forEach(task => {
         const taskExpanded = expandedTasks.has(task.taskId);
-        const pct = task.totalConditionCount > 0 ? Math.round((task.satisfiedCount / task.totalConditionCount) * 100) : 0;
-        const pctColor = task.satisfiedCount === task.totalConditionCount ? '#67c23a' : '#e6a23c';
+        const hasConds = task.totalConditionCount > 0;
+        const pct = hasConds ? Math.round((task.satisfiedCount / task.totalConditionCount) * 100) : 100;
+        const pctColor = (!hasConds || task.satisfiedCount === task.totalConditionCount) ? '#67c23a' : '#e6a23c';
         const badgeClass = task.executionStatus === 'executed' ? 'badge-executed' : task.executionStatus === 'pending' ? 'badge-pending' : 'badge-delayed';
         const statusLabel = task.executionStatus === 'executed' ? '已执行' : task.executionStatus === 'pending' ? '待执行' : '延迟执行';
 
@@ -1041,7 +1178,7 @@ function renderTaskGroups() {
               <div class="task-content"><div class="task-name">${task.taskName}</div><div class="task-desc">${task.taskDescription}</div></div>
             </div>
             <div class="task-meta">
-              <div style="display:flex;align-items:center;gap:8px"><span style="font-size:12px;color:#606266">条件：${task.satisfiedCount}/${task.totalConditionCount}</span><div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${pctColor}"></div></div></div>
+              ${hasConds ? `<div style="display:flex;align-items:center;gap:8px"><span style="font-size:12px;color:#606266">条件：${task.satisfiedCount}/${task.totalConditionCount}</span><div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:${pctColor}"></div></div></div>` : '<span style="font-size:12px;color:#d48806;">兜底执行</span>'}
               ${task.executedAt ? `<div style="font-size:12px;color:#909399">${task.executedAt}</div>` : ''}
               <span class="expand-arrow ${taskExpanded ? 'expanded' : ''}">▼</span>
             </div>
@@ -1049,17 +1186,22 @@ function renderTaskGroups() {
         </div>`;
 
         if (taskExpanded) {
-          html += '<div class="task-detail-body"><div style="font-size:13px;font-weight:500;color:#606266;margin-bottom:8px">配置条件详情</div>';
-          task.conditions.forEach(c => {
-            html += `<div class="condition-item ${c.isSatisfied ? 'satisfied' : 'unsatisfied'}">
-              <div class="cond-icon">${c.isSatisfied ? '✅' : '❌'}</div>
-              <div class="cond-content">
-                <div class="cond-field">${c.fieldName}<span class="cond-field-key">(${c.fieldKey})</span></div>
-                <div class="cond-rule">${getOpLabel(c.operator)} ${c.expectedValue ? '「' + c.expectedValue + '」' : ''}</div>
-                <div class="cond-current">当前值：<span style="color:${c.isSatisfied ? '#67c23a' : '#f56c6c'};font-weight:500">${c.currentValue || '(空)'}</span></div>
-              </div>
-            </div>`;
-          });
+          html += '<div class="task-detail-body">';
+          if (task.conditions.length > 0) {
+            html += '<div style="font-size:13px;font-weight:500;color:#606266;margin-bottom:8px">配置条件详情</div>';
+            task.conditions.forEach(c => {
+              html += `<div class="condition-item ${c.isSatisfied ? 'satisfied' : 'unsatisfied'}">
+                <div class="cond-icon">${c.isSatisfied ? '✅' : '❌'}</div>
+                <div class="cond-content">
+                  <div class="cond-field">${c.fieldName}<span class="cond-field-key">(${c.fieldKey})</span></div>
+                  <div class="cond-rule">${getOpLabel(c.operator)} ${c.expectedValue ? '「' + c.expectedValue + '」' : ''}</div>
+                  <div class="cond-current">当前值：<span style="color:${c.isSatisfied ? '#67c23a' : '#f56c6c'};font-weight:500">${c.currentValue || '(空)'}</span></div>
+                </div>
+              </div>`;
+            });
+          } else {
+            html += '<div style="font-size:13px;color:#d48806;padding:10px 12px;background:#fff7e6;border:1px solid #ffe58f;border-radius:6px;margin-bottom:8px;">🛡️ 兜底分组任务：所有普通分组均未命中，自动执行此任务</div>';
+          }
           if (task.executedAt) {
             html += `<div class="execution-record success">✅ 任务于 <strong>${task.executedAt}</strong> 执行成功</div>`;
           } else {
@@ -1090,7 +1232,6 @@ function toggleTask(taskId) {
   renderTaskGroups();
 }
 
-// ========== Toast ==========
 function showToast(msg, type) {
   const toast = document.createElement('div');
   toast.className = `toast toast-${type || 'success'}`;
@@ -1099,7 +1240,6 @@ function showToast(msg, type) {
   setTimeout(() => toast.remove(), 2000);
 }
 
-// 初始化
 renderGroupTable();
 selectedEmployeeId = 'e1';
 </script>
