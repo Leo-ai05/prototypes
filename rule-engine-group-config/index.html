@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>规则引擎分组配置 - 可交互原型 v1.4</title>
+<title>规则引擎分组配置 - 可交互原型 v1.5</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: #f5f7fa; color: #303133; font-size: 14px; }
@@ -191,6 +191,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helv
 .divider-label { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #909399; font-weight: 500; }
 .divider-label::before { content: ''; width: 20px; height: 1px; background: #dcdfe6; }
 .divider-label::after { content: ''; flex: 1; height: 1px; background: #dcdfe6; }
+
+.fallback-toggle-section { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #fffbe6; border: 1px solid #ffe58f; border-radius: 8px; margin-bottom: 16px; }
+.fallback-toggle-label { font-size: 14px; color: #d48806; font-weight: 500; display: flex; align-items: center; gap: 6px; }
+.fallback-toggle-desc { font-size: 12px; color: #999; margin-left: 4px; }
 </style>
 </head>
 <body>
@@ -221,10 +225,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helv
               <div class="section-title">规则分组</div>
               <div class="flex gap-8">
                 <button class="btn btn-primary" onclick="showGroupDialog()">+ 新建分组</button>
-                <button class="btn btn-warning" id="btn-add-fallback" onclick="showFallbackDialog()">+ 新建兜底分组</button>
               </div>
             </div>
-            <p class="text-sm text-gray mb-16">用户首次进入规则引擎时，依次评估各分组命中条件，满足后直接执行该分组下的规则；若所有分组均未命中，则执行兜底分组的规则</p>
+            <p class="text-sm text-gray mb-16">用户首次进入规则引擎时，依次评估各分组命中条件，满足后直接执行该分组下的规则</p>
+            <div class="fallback-toggle-section">
+              <span class="fallback-toggle-label">🛡️ 兜底策略</span>
+              <div class="switch" id="fallback-master-switch" onclick="toggleFallbackSwitch()"></div>
+              <span class="fallback-toggle-desc">开启后，当所有普通分组均未命中时，自动执行兜底分组下的规则</span>
+            </div>
             <table class="table" id="group-table">
               <thead>
                 <tr>
@@ -369,11 +377,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helv
   </div>
 </div>
 
-<!-- 新建/编辑兜底分组弹窗 -->
+<!-- 编辑兜底分组弹窗（仅编辑名称和描述） -->
 <div class="modal-overlay" id="fallback-dialog" style="display:none">
   <div class="modal" style="width:600px;">
     <div class="modal-header">
-      <h3 id="fallback-dialog-title">新建兜底分组</h3>
+      <h3 id="fallback-dialog-title">编辑兜底分组</h3>
       <div class="modal-close" onclick="closeFallbackDialog()">&times;</div>
     </div>
     <div class="modal-body">
@@ -685,10 +693,24 @@ let groupConditionCount = 0;
 let pendingConfirmAction = null;
 let expandedTaskGroups = new Set();
 let expandedTasks = new Set();
+let fallbackEnabled = true;
 
-function hasFallbackGroup() { return groups.some(g => g.isFallback); }
 function getFallbackGroup() { return groups.find(g => g.isFallback); }
 function getNormalGroups() { return groups.filter(g => !g.isFallback); }
+
+function updateFallbackSwitchUI() {
+  const sw = document.getElementById('fallback-master-switch');
+  if (sw) { sw.classList.toggle('on', fallbackEnabled); }
+}
+
+function toggleFallbackSwitch() {
+  fallbackEnabled = !fallbackEnabled;
+  const fb = getFallbackGroup();
+  if (fb) fb.status = fallbackEnabled ? 'enabled' : 'disabled';
+  updateFallbackSwitchUI();
+  renderGroupTable();
+  showToast(fallbackEnabled ? '兜底策略已开启' : '兜底策略已关闭，兜底规则将不再生效', fallbackEnabled ? 'success' : 'warning');
+}
 
 function switchMainView(view) {
   document.getElementById('main-rule').classList.toggle('view-hidden', view !== 'rule');
@@ -705,9 +727,9 @@ function renderGroupTable() {
   const tbody = document.getElementById('group-table-body');
   const normal = getNormalGroups();
   const fb = getFallbackGroup();
-  document.getElementById('btn-add-fallback').style.display = fb ? 'none' : 'inline-flex';
+  updateFallbackSwitchUI();
 
-  if (normal.length === 0 && !fb) {
+  if (normal.length === 0 && !fallbackEnabled) {
     tbody.innerHTML = '<tr><td colspan="8"><div class="empty"><div class="empty-icon">📄</div><p>暂无分组，请点击"新建分组"按钮创建</p></div></td></tr>';
     return;
   }
@@ -731,8 +753,8 @@ function renderGroupTable() {
     </tr>`;
   });
 
-  if (fb) {
-    html += `<tr class="divider-row"><td colspan="8"><div class="divider-label">兜底分组（所有普通分组未命中时执行）</div></td></tr>`;
+  if (fallbackEnabled && fb) {
+    html += `<tr class="divider-row"><td colspan="8"><div class="divider-label">🛡️ 兜底分组（所有普通分组未命中时执行）</div></td></tr>`;
     html += `<tr class="fallback-row">
       <td>🛡️</td>
       <td><a href="javascript:void(0)" onclick="enterGroupDetail(${fb.id})" style="color:#d48806;text-decoration:none;font-weight:500">${fb.name}</a></td>
@@ -740,11 +762,10 @@ function renderGroupTable() {
       <td><span class="tag tag-fallback">兜底</span></td>
       <td>${fb.rules.length}</td>
       <td>${fb.updatedAt}</td>
-      <td><div class="switch ${fb.status === 'enabled' ? 'on' : ''}" onclick="toggleGroup(${fb.id})"></div></td>
+      <td><span class="tag tag-success" style="font-size:11px;">由开关控制</span></td>
       <td>
         <button class="btn btn-text btn-sm" onclick="enterGroupDetail(${fb.id})">查看规则</button>
         <button class="btn btn-text btn-sm" onclick="editFallback(${fb.id})">编辑</button>
-        <button class="btn btn-text btn-sm danger" onclick="deleteGroup(${fb.id})">删除</button>
       </td>
     </tr>`;
   }
@@ -842,23 +863,16 @@ function saveGroup() {
 
 function editGroup(id) { showGroupDialog(id); }
 
-function showFallbackDialog(editId) {
-  editingFallbackId = editId || null;
-  document.getElementById('fallback-dialog-title').textContent = editId ? '编辑兜底分组' : '新建兜底分组';
-  if (editId) {
-    const g = groups.find(x => x.id === editId);
-    document.getElementById('fallback-name-input').value = g.name;
-    document.getElementById('fallback-desc-input').value = g.description;
-  } else {
-    document.getElementById('fallback-name-input').value = '';
-    document.getElementById('fallback-desc-input').value = '';
-  }
+function editFallback(id) {
+  editingFallbackId = id;
+  document.getElementById('fallback-dialog-title').textContent = '编辑兜底分组';
+  const g = groups.find(x => x.id === id);
+  document.getElementById('fallback-name-input').value = g.name;
+  document.getElementById('fallback-desc-input').value = g.description;
   document.getElementById('fallback-dialog').style.display = 'flex';
 }
 
 function closeFallbackDialog() { document.getElementById('fallback-dialog').style.display = 'none'; editingFallbackId = null; }
-
-function editFallback(id) { showFallbackDialog(id); }
 
 function saveFallback() {
   const name = document.getElementById('fallback-name-input').value.trim();
@@ -866,13 +880,8 @@ function saveFallback() {
   const desc = document.getElementById('fallback-desc-input').value.trim();
   if (editingFallbackId) {
     const g = groups.find(x => x.id === editingFallbackId);
-    g.name = name; g.description = desc; g.updatedAt = '2026-04-20 15:00';
+    g.name = name; g.description = desc; g.updatedAt = '2026-04-22 15:00';
     showToast('更新成功', 'success');
-  } else {
-    if (hasFallbackGroup()) { showToast('系统中已存在兜底分组，不可重复创建', 'error'); closeFallbackDialog(); return; }
-    const newId = Math.max(...groups.map(g => g.id), 0) + 1;
-    groups.push({ id: newId, name, description: desc, status: 'enabled', updatedAt: '2026-04-20 15:00', isFallback: true, conditions: null, rules: [] });
-    showToast('兜底分组创建成功', 'success');
   }
   closeFallbackDialog(); renderGroupTable();
 }
@@ -1241,6 +1250,7 @@ function showToast(msg, type) {
 }
 
 renderGroupTable();
+updateFallbackSwitchUI();
 selectedEmployeeId = 'e1';
 </script>
 </body>
