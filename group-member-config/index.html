@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>分组承接成员配置 - 可交互原型 v1.0</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: #f5f7fa; color: #303133; font-size: 14px; }
+.app { display: flex; min-height: 100vh; }
+.sidebar { width: 220px; background: #1d1e1f; color: #fff; flex-shrink: 0; }
+.sidebar-logo { padding: 20px 16px; font-size: 16px; font-weight: 600; border-bottom: 1px solid #333; }
+.sidebar-menu { padding: 8px 0; }
+.sidebar-item { padding: 12px 20px; cursor: pointer; font-size: 14px; color: #bbb; transition: all .2s; }
+.sidebar-item:hover, .sidebar-item.active { background: #409eff; color: #fff; }
+.sidebar-sub { padding-left: 40px; }
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.header { height: 50px; background: #fff; border-bottom: 1px solid #e4e7ed; display: flex; align-items: center; padding: 0 20px; }
+.header-title { font-size: 16px; font-weight: 500; }
+.content { flex: 1; padding: 20px; overflow-y: auto; }
+.card { background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.08); padding: 20px; margin-bottom: 20px; }
+
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 4px; border: 1px solid #dcdfe6; cursor: pointer; font-size: 14px; transition: all .2s; background: #fff; }
+.btn-primary { background: #409eff; color: #fff; border-color: #409eff; }
+.btn-primary:hover { background: #66b1ff; }
+.btn-warning { background: #e6a23c; color: #fff; border-color: #e6a23c; }
+.btn-warning:hover { background: #ebb563; }
+.btn-danger { background: #fff; color: #f56c6c; border-color: #fbc4c4; }
+.btn-danger:hover { background: #f56c6c; color: #fff; }
+.btn-text { background: none; border: none; color: #409eff; padding: 4px 8px; }
+.btn-text.danger { color: #f56c6c; }
+.btn-sm { padding: 5px 12px; font-size: 12px; }
+.btn-disabled { opacity: .5; cursor: not-allowed; pointer-events: none; }
+
+.table { width: 100%; border-collapse: collapse; }
+.table th, .table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #ebeef5; font-size: 14px; }
+.table th { background: #fafafa; font-weight: 500; color: #909399; }
+.table tr:hover td { background: #f5f7fa; }
+.table tr.fallback-row td { background: #fffbe6; }
+.table tr.fallback-row:hover td { background: #fff7cc; }
+
+.tag { display: inline-block; padding: 2px 10px; border-radius: 4px; font-size: 12px; }
+.tag-success { background: #f0f9ff; color: #67c23a; border: 1px solid #c2e7b0; }
+.tag-info { background: #f4f4f5; color: #909399; border: 1px solid #d3d4d6; }
+.tag-primary { background: #ecf5ff; color: #409eff; border: 1px solid #b3d8ff; }
+.tag-warning { background: #fdf6ec; color: #e6a23c; border: 1px solid #f5dab1; }
+.tag-fallback { background: #fff7e6; color: #d48806; border: 1px solid #ffe58f; font-weight: 500; }
+.tag-danger { background: #fef0f0; color: #f56c6c; border: 1px solid #fde2e2; }
+
+.switch { position: relative; width: 40px; height: 20px; background: #dcdfe6; border-radius: 10px; cursor: pointer; transition: .3s; display: inline-block; vertical-align: middle; }
+.switch.on { background: #409eff; }
+.switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: #fff; border-radius: 50%; transition: .3s; }
+.switch.on::after { left: 22px; }
+
+.modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,.5); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+.modal { background: #fff; border-radius: 8px; width: 860px; max-height: 85vh; overflow-y: auto; box-shadow: 0 12px 32px rgba(0,0,0,.15); }
+.modal-header { padding: 20px 24px; border-bottom: 1px solid #ebeef5; display: flex; justify-content: space-between; align-items: center; }
+.modal-header h3 { font-size: 18px; font-weight: 500; }
+.modal-close { cursor: pointer; font-size: 20px; color: #909399; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 4px; }
+.modal-close:hover { background: #f5f5f5; }
+.modal-body { padding: 24px; }
+.modal-footer { padding: 16px 24px; border-top: 1px solid #ebeef5; display: flex; justify-content: flex-end; gap: 12px; }
+
+.form-item { margin-bottom: 20px; }
+.form-label { display: block; font-size: 14px; color: #606266; margin-bottom: 8px; font-weight: 500; }
+.form-label .required { color: #f56c6c; margin-right: 4px; }
+.input { width: 100%; padding: 8px 12px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; outline: none; transition: border .2s; }
+.input:focus { border-color: #409eff; }
+.textarea { width: 100%; padding: 8px 12px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; outline: none; resize: vertical; min-height: 80px; }
+.select { padding: 8px 12px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; outline: none; background: #fff; min-width: 160px; }
+
+.section-title { font-size: 16px; font-weight: 500; margin-bottom: 16px; padding-left: 10px; border-left: 4px solid #409eff; }
+.group-list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.view-hidden { display: none !important; }
+
+.condition-box { background: #fafbfc; border: 1px solid #ebeef5; border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+.condition-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.condition-row:last-child { margin-bottom: 0; }
+
+.confirm-modal { width: 420px; }
+.confirm-body { padding: 20px 24px; display: flex; gap: 12px; }
+.confirm-icon { font-size: 24px; color: #e6a23c; flex-shrink: 0; }
+.confirm-text h4 { margin-bottom: 8px; font-size: 16px; }
+.confirm-text p { color: #606266; font-size: 14px; line-height: 1.6; }
+
+.flex { display: flex; }
+.items-center { align-items: center; }
+.gap-8 { gap: 8px; }
+.gap-12 { gap: 12px; }
+.gap-16 { gap: 16px; }
+.mb-8 { margin-bottom: 8px; }
+.mb-12 { margin-bottom: 12px; }
+.mb-16 { margin-bottom: 16px; }
+.mb-20 { margin-bottom: 20px; }
+.ml-auto { margin-left: auto; }
+.text-gray { color: #909399; }
+.text-sm { font-size: 12px; }
+
+.toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); padding: 12px 24px; border-radius: 8px; color: #fff; font-size: 14px; z-index: 9999; animation: fadeIn .3s; }
+.toast-success { background: #67c23a; }
+.toast-warning { background: #e6a23c; }
+.toast-error { background: #f56c6c; }
+@keyframes fadeIn { from { opacity: 0; transform: translateX(-50%) translateY(-10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+.divider-row td { padding: 6px 16px; background: #fafafa; border-bottom: 1px solid #ebeef5; }
+.divider-label { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #909399; font-weight: 500; }
+.divider-label::before { content: ''; width: 20px; height: 1px; background: #dcdfe6; }
+.divider-label::after { content: ''; flex: 1; height: 1px; background: #dcdfe6; }
+
+.fallback-toggle-section { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #fffbe6; border: 1px solid #ffe58f; border-radius: 8px; margin-bottom: 16px; }
+.fallback-toggle-label { font-size: 14px; color: #d48806; font-weight: 500; display: flex; align-items: center; gap: 6px; }
+.fallback-toggle-desc { font-size: 12px; color: #999; margin-left: 4px; }
+
+/* 承接成员相关样式 */
+.member-section { background: #fafbfc; border: 1px solid #ebeef5; border-radius: 8px; padding: 16px; }
+.member-section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.member-section-title { font-size: 14px; font-weight: 500; color: #303133; }
+.member-section-desc { font-size: 12px; color: #909399; margin-bottom: 12px; }
+.member-search { width: 100%; padding: 8px 12px 8px 32px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 13px; outline: none; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23909399' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.3-4.3'/%3E%3C/svg%3E") 10px center no-repeat; }
+.member-search:focus { border-color: #409eff; }
+
+.member-columns { display: flex; gap: 16px; margin-top: 12px; }
+.member-col { flex: 1; min-width: 0; }
+.member-col-title { font-size: 12px; font-weight: 500; color: #606266; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid #ebeef5; }
+
+.member-list { max-height: 240px; overflow-y: auto; }
+.member-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 6px; margin-bottom: 4px; transition: background .2s; cursor: default; }
+.member-item:hover { background: #f0f2f5; }
+.member-item.offline-row { background: #fef0f0; }
+.member-item.offline-row:hover { background: #fde2e2; }
+.member-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #fff; flex-shrink: 0; font-weight: 500; }
+.member-avatar.online { box-shadow: 0 0 0 2px #67c23a; }
+.member-avatar.offline { box-shadow: 0 0 0 2px #dcdfe6; opacity: .7; }
+.member-info { flex: 1; min-width: 0; }
+.member-name { font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.member-phone { font-size: 11px; color: #909399; }
+.member-status { display: flex; align-items: center; gap: 4px; font-size: 11px; flex-shrink: 0; }
+.status-dot { width: 6px; height: 6px; border-radius: 50%; }
+.status-dot.online { background: #67c23a; }
+.status-dot.offline { background: #c0c4cc; }
+.member-action { flex-shrink: 0; }
+
+.member-avatars-stack { display: flex; align-items: center; }
+.member-avatars-stack .stack-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #fff; font-weight: 500; border: 2px solid #fff; margin-left: -8px; }
+.member-avatars-stack .stack-avatar:first-child { margin-left: 0; }
+.member-avatars-stack .stack-more { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #909399; background: #f0f2f5; border: 2px solid #fff; margin-left: -8px; }
+.member-stats { font-size: 11px; color: #909399; margin-top: 2px; }
+.member-stats .offline-count { color: #e6a23c; }
+
+.warning-banner { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #fef0f0; border: 1px solid #fde2e2; border-radius: 6px; margin-bottom: 8px; font-size: 12px; color: #f56c6c; }
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+  <div class="sidebar">
+    <div class="sidebar-logo">CRM 管理后台</div>
+    <div class="sidebar-menu">
+      <div class="sidebar-item">工作台</div>
+      <div class="sidebar-item">客户管理</div>
+      <div class="sidebar-item active">企微机器人</div>
+      <div class="sidebar-item sidebar-sub">会话属性</div>
+      <div class="sidebar-item sidebar-sub" style="background:#409eff;color:#fff;">规则引擎</div>
+      <div class="sidebar-item sidebar-sub">全局配置</div>
+      <div class="sidebar-item">积分商城</div>
+      <div class="sidebar-item">数据看板</div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="header"><span class="header-title">规则引擎配置</span></div>
+    <div class="content">
+      <div id="view-group-list">
+        <div class="card">
+          <div class="group-list-header">
+            <div class="section-title">规则分组</div>
+            <div class="flex gap-8">
+              <button class="btn btn-primary" onclick="showGroupDialog()">+ 新建分组</button>
+            </div>
+          </div>
+          <p class="text-sm text-gray mb-16">用户首次进入规则引擎时，依次评估各分组命中条件，满足后直接执行该分组下的规则。每个分组需配置承接成员，命中用户仅由指定成员触发规则。</p>
+          <div class="fallback-toggle-section">
+            <span class="fallback-toggle-label">🛡️ 兜底策略</span>
+            <div class="switch on" id="fallback-master-switch" onclick="toggleFallbackSwitch()"></div>
+            <span class="fallback-toggle-desc">开启后，当所有普通分组均未命中时，自动执行兜底分组下的规则</span>
+          </div>
+          <table class="table" id="group-table">
+            <thead>
+              <tr>
+                <th width="50">序号</th>
+                <th>分组名称</th>
+                <th>分组描述</th>
+                <th width="100">命中条件</th>
+                <th width="70">规则数</th>
+                <th width="150">承接成员</th>
+                <th width="130">更新时间</th>
+                <th width="90">启用状态</th>
+                <th width="160">操作</th>
+              </tr>
+            </thead>
+            <tbody id="group-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 新建/编辑分组弹窗 -->
+<div class="modal-overlay" id="group-dialog" style="display:none">
+  <div class="modal" style="width:780px;">
+    <div class="modal-header">
+      <h3 id="group-dialog-title">新建分组</h3>
+      <div class="modal-close" onclick="closeGroupDialog()">&times;</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-item">
+        <label class="form-label"><span class="required">*</span>分组名称</label>
+        <input class="input" id="group-name-input" placeholder="请输入分组名称" maxlength="30">
+      </div>
+      <div class="form-item">
+        <label class="form-label">分组描述</label>
+        <textarea class="textarea" id="group-desc-input" placeholder="请输入分组描述" maxlength="200"></textarea>
+      </div>
+      <div class="form-item" id="group-condition-section">
+        <label class="form-label"><span class="required">*</span>分组命中条件</label>
+        <p class="text-sm text-gray mb-12">每个分组必须配置至少一条命中条件</p>
+        <div class="condition-box">
+          <div class="flex items-center gap-8 mb-12">
+            <span class="text-sm">条件关系：</span>
+            <select class="select" id="group-conjunction" style="min-width:80px;">
+              <option value="and">且（AND）</option>
+              <option value="or">或（OR）</option>
+            </select>
+          </div>
+          <div id="group-condition-rows"></div>
+          <button class="btn btn-text btn-sm" style="margin-top:8px" onclick="addGroupCondition()">+ 新增条件</button>
+        </div>
+      </div>
+      <div class="form-item" id="member-section-wrapper">
+        <label class="form-label"><span class="required">*</span>承接成员</label>
+        <p class="text-sm text-gray mb-12">选择负责执行该分组规则的成员，仅展示云手机在线的成员</p>
+        <div class="member-section">
+          <div class="member-columns">
+            <div class="member-col">
+              <div class="member-col-title">可选成员（云手机在线）</div>
+              <input class="member-search" id="member-search-input" placeholder="搜索成员名称..." oninput="renderAvailableMembers()">
+              <div class="member-list" id="available-member-list"></div>
+            </div>
+            <div class="member-col">
+              <div class="member-col-title">已选成员 (<span id="selected-count">0</span>)</div>
+              <div id="selected-member-warning"></div>
+              <div class="member-list" id="selected-member-list"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeGroupDialog()">取消</button>
+      <button class="btn btn-primary" onclick="saveGroup()">确认</button>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑兜底分组弹窗 -->
+<div class="modal-overlay" id="fallback-dialog" style="display:none">
+  <div class="modal" style="width:780px;">
+    <div class="modal-header">
+      <h3>编辑兜底分组</h3>
+      <div class="modal-close" onclick="closeFallbackDialog()">&times;</div>
+    </div>
+    <div class="modal-body">
+      <div style="background:#fff7e6;border:1px solid #ffe58f;border-radius:8px;padding:12px 16px;margin-bottom:20px;display:flex;align-items:center;gap:8px;">
+        <span style="color:#d48806;font-size:16px;">🛡️</span>
+        <span style="color:#d48806;font-size:14px;">兜底分组无需配置命中条件，当所有普通分组均未命中时，系统自动执行兜底分组下的规则</span>
+      </div>
+      <div class="form-item">
+        <label class="form-label"><span class="required">*</span>分组名称</label>
+        <input class="input" id="fallback-name-input" placeholder="请输入兜底分组名称" maxlength="30">
+      </div>
+      <div class="form-item">
+        <label class="form-label">分组描述</label>
+        <textarea class="textarea" id="fallback-desc-input" placeholder="请输入兜底分组描述" maxlength="200"></textarea>
+      </div>
+      <div class="form-item">
+        <label class="form-label"><span class="required">*</span>承接成员</label>
+        <p class="text-sm text-gray mb-12">选择负责执行兜底分组规则的成员，仅展示云手机在线的成员</p>
+        <div class="member-section">
+          <div class="member-columns">
+            <div class="member-col">
+              <div class="member-col-title">可选成员（云手机在线）</div>
+              <input class="member-search" id="fb-member-search-input" placeholder="搜索成员名称..." oninput="renderFbAvailableMembers()">
+              <div class="member-list" id="fb-available-member-list"></div>
+            </div>
+            <div class="member-col">
+              <div class="member-col-title">已选成员 (<span id="fb-selected-count">0</span>)</div>
+              <div id="fb-selected-member-warning"></div>
+              <div class="member-list" id="fb-selected-member-list"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeFallbackDialog()">取消</button>
+      <button class="btn btn-warning" onclick="saveFallback()">确认</button>
+    </div>
+  </div>
+</div>
+
+<!-- 确认弹窗 -->
+<div class="modal-overlay" id="confirm-dialog" style="display:none">
+  <div class="modal confirm-modal">
+    <div class="modal-header">
+      <h3>提示</h3>
+      <div class="modal-close" onclick="closeConfirm()">&times;</div>
+    </div>
+    <div class="confirm-body">
+      <div class="confirm-icon">&#9888;</div>
+      <div class="confirm-text">
+        <h4 id="confirm-title">确认操作</h4>
+        <p id="confirm-desc"></p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeConfirm()">取消</button>
+      <button class="btn btn-primary" id="confirm-ok-btn" onclick="confirmAction()">确定</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const variableOptions = [
+  { label: '用户来源', value: 'source' },
+  { label: '用户身份', value: 'role' },
+  { label: '会员状态', value: 'membership_status' },
+  { label: '注册天数', value: 'register_days' },
+  { label: '最近活跃天数', value: 'last_active_days' },
+  { label: '购买次数', value: 'purchase_count' }
+];
+
+const operatorOptions = [
+  { label: '等于', value: 'equals' },
+  { label: '不等于', value: 'notEquals' },
+  { label: '大于', value: 'greaterThan' },
+  { label: '小于', value: 'lessThan' },
+  { label: '包含', value: 'contains' }
+];
+
+const COLORS = ['#409eff','#67c23a','#e6a23c','#f56c6c','#9b59b6','#1abc9c','#e74c3c','#3498db'];
+
+const allMembers = [
+  { id: 'm1', name: '小助手A', phone: '云手机-001', online: true, color: COLORS[0] },
+  { id: 'm2', name: '小助手B', phone: '云手机-002', online: true, color: COLORS[1] },
+  { id: 'm3', name: '客服小C', phone: '云手机-003', online: false, color: COLORS[2] },
+  { id: 'm4', name: '运营小D', phone: '云手机-004', online: true, color: COLORS[3] },
+  { id: 'm5', name: '销售小E', phone: '云手机-005', online: true, color: COLORS[4] },
+  { id: 'm6', name: '顾问小F', phone: '云手机-006', online: false, color: COLORS[5] },
+  { id: 'm7', name: '专员小G', phone: '云手机-007', online: true, color: COLORS[6] },
+  { id: 'm8', name: '主管小H', phone: '云手机-008', online: true, color: COLORS[7] }
+];
+
+let groups = [
+  {
+    id: 1, name: '新用户引导分组', description: '针对注册7天内的新用户触发引导消息',
+    status: 'enabled', updatedAt: '2026-04-08 14:30', isFallback: false,
+    conditions: { conjunction: 'and', conditions: [
+      { fieldKey: 'register_days', operator: 'lessThan', value: '7' },
+      { fieldKey: 'membership_status', operator: 'equals', value: '未开通' }
+    ]},
+    members: ['m1', 'm2'],
+    rules: [{id:101},{id:102}]
+  },
+  {
+    id: 2, name: '高价值用户维护分组', description: '针对购买3次以上的活跃用户进行维护',
+    status: 'enabled', updatedAt: '2026-04-07 16:45', isFallback: false,
+    conditions: { conjunction: 'and', conditions: [
+      { fieldKey: 'purchase_count', operator: 'greaterThan', value: '3' },
+      { fieldKey: 'last_active_days', operator: 'lessThan', value: '30' }
+    ]},
+    members: ['m4', 'm5', 'm3'],
+    rules: [{id:201},{id:202}]
+  },
+  {
+    id: 3, name: '抖音渠道用户分组', description: '来自抖音渠道的用户专属规则',
+    status: 'enabled', updatedAt: '2026-04-05 10:00', isFallback: false,
+    conditions: { conjunction: 'and', conditions: [
+      { fieldKey: 'source', operator: 'equals', value: '抖音' }
+    ]},
+    members: [],
+    rules: [{id:301},{id:302}]
+  },
+  {
+    id: 99, name: '通用兜底分组', description: '当用户未命中任何普通分组时，执行通用兜底规则',
+    status: 'enabled', updatedAt: '2026-04-20 10:00', isFallback: true,
+    conditions: null,
+    members: ['m7', 'm8', 'm6'],
+    rules: [{id:901},{id:902}]
+  }
+];
+
+let fallbackEnabled = true;
+let editingGroupId = null;
+let selectedMembers = [];
+let fbSelectedMembers = [];
+let groupConditionCount = 0;
+let pendingConfirmAction = null;
+
+function getMember(id) { return allMembers.find(m => m.id === id); }
+function getNormalGroups() { return groups.filter(g => !g.isFallback); }
+function getFallbackGroup() { return groups.find(g => g.isFallback); }
+
+function renderMemberAvatarsStack(memberIds) {
+  if (!memberIds || memberIds.length === 0) {
+    return '<span style="color:#f56c6c;font-size:12px;">未配置</span>';
+  }
+  const show = memberIds.slice(0, 3);
+  const rest = memberIds.length - 3;
+  let onlineCount = 0, offlineCount = 0;
+  memberIds.forEach(id => { const m = getMember(id); if (m) m.online ? onlineCount++ : offlineCount++; });
+
+  let html = '<div><div class="member-avatars-stack">';
+  show.forEach(id => {
+    const m = getMember(id);
+    if (m) html += `<div class="stack-avatar" style="background:${m.color}">${m.name[0]}</div>`;
+  });
+  if (rest > 0) html += `<div class="stack-more">+${rest}</div>`;
+  html += '</div>';
+  html += `<div class="member-stats">${onlineCount} 在线`;
+  if (offlineCount > 0) html += ` / <span class="offline-count">${offlineCount} 离线</span>`;
+  html += '</div></div>';
+  return html;
+}
+
+function renderGroupTable() {
+  const tbody = document.getElementById('group-table-body');
+  const normal = getNormalGroups();
+  const fb = getFallbackGroup();
+  const sw = document.getElementById('fallback-master-switch');
+  if (sw) sw.classList.toggle('on', fallbackEnabled);
+
+  let html = '';
+  normal.forEach((g, idx) => {
+    html += `<tr>
+      <td>${idx + 1}</td>
+      <td style="font-weight:500;color:#409eff;cursor:pointer">${g.name}</td>
+      <td style="color:#909399">${g.description}</td>
+      <td>${g.conditions.conditions.length} 条</td>
+      <td>${g.rules.length}</td>
+      <td>${renderMemberAvatarsStack(g.members)}</td>
+      <td>${g.updatedAt}</td>
+      <td><div class="switch ${g.status === 'enabled' ? 'on' : ''}" onclick="toggleGroup(${g.id})"></div></td>
+      <td>
+        <button class="btn btn-text btn-sm" onclick="editGroup(${g.id})">编辑</button>
+        <button class="btn btn-text btn-sm danger" onclick="deleteGroup(${g.id})">删除</button>
+      </td>
+    </tr>`;
+  });
+
+  if (fallbackEnabled && fb) {
+    html += `<tr class="divider-row"><td colspan="9"><div class="divider-label">🛡️ 兜底分组（所有普通分组未命中时执行）</div></td></tr>`;
+    html += `<tr class="fallback-row">
+      <td>🛡️</td>
+      <td style="color:#d48806;font-weight:500;cursor:pointer">${fb.name}</td>
+      <td style="color:#909399">${fb.description}</td>
+      <td><span class="tag tag-fallback">兜底</span></td>
+      <td>${fb.rules.length}</td>
+      <td>${renderMemberAvatarsStack(fb.members)}</td>
+      <td>${fb.updatedAt}</td>
+      <td><span class="tag tag-success" style="font-size:11px;">由开关控制</span></td>
+      <td><button class="btn btn-text btn-sm" onclick="editFallback()">编辑</button></td>
+    </tr>`;
+  }
+  tbody.innerHTML = html;
+}
+
+function toggleGroup(id) {
+  const g = groups.find(x => x.id === id);
+  if (g) { g.status = g.status === 'enabled' ? 'disabled' : 'enabled'; showToast(g.status === 'enabled' ? '已启用' : '已禁用', 'success'); renderGroupTable(); }
+}
+
+function deleteGroup(id) {
+  const g = groups.find(x => x.id === id);
+  document.getElementById('confirm-title').textContent = `确定要删除分组"${g.name}"吗？`;
+  document.getElementById('confirm-desc').textContent = `删除后不可恢复，该分组下的 ${g.rules.length} 条规则也将被移除。`;
+  document.getElementById('confirm-ok-btn').textContent = '确定删除';
+  document.getElementById('confirm-ok-btn').className = 'btn btn-danger';
+  pendingConfirmAction = () => { groups = groups.filter(x => x.id !== id); renderGroupTable(); showToast('删除成功', 'success'); };
+  document.getElementById('confirm-dialog').style.display = 'flex';
+}
+
+function toggleFallbackSwitch() {
+  fallbackEnabled = !fallbackEnabled;
+  const fb = getFallbackGroup();
+  if (fb) fb.status = fallbackEnabled ? 'enabled' : 'disabled';
+  renderGroupTable();
+  showToast(fallbackEnabled ? '兜底策略已开启' : '兜底策略已关闭，兜底规则将不再生效', fallbackEnabled ? 'success' : 'warning');
+}
+
+function showGroupDialog(editId) {
+  editingGroupId = editId || null;
+  document.getElementById('group-dialog-title').textContent = editId ? '编辑分组' : '新建分组';
+  document.getElementById('group-condition-section').classList.remove('view-hidden');
+  groupConditionCount = 0;
+  selectedMembers = [];
+
+  if (editId) {
+    const g = groups.find(x => x.id === editId);
+    document.getElementById('group-name-input').value = g.name;
+    document.getElementById('group-desc-input').value = g.description;
+    document.getElementById('group-conjunction').value = g.conditions.conjunction;
+    document.getElementById('group-condition-rows').innerHTML = '';
+    g.conditions.conditions.forEach(c => addGroupCondition(c));
+    selectedMembers = [...(g.members || [])];
+  } else {
+    document.getElementById('group-name-input').value = '';
+    document.getElementById('group-desc-input').value = '';
+    document.getElementById('group-conjunction').value = 'and';
+    document.getElementById('group-condition-rows').innerHTML = '';
+    addGroupCondition();
+  }
+  document.getElementById('member-search-input').value = '';
+  renderAvailableMembers();
+  renderSelectedMembers();
+  document.getElementById('group-dialog').style.display = 'flex';
+}
+
+function closeGroupDialog() { document.getElementById('group-dialog').style.display = 'none'; }
+
+function editGroup(id) { showGroupDialog(id); }
+
+function addGroupCondition(preset) {
+  groupConditionCount++;
+  const container = document.getElementById('group-condition-rows');
+  const row = document.createElement('div');
+  row.className = 'condition-row';
+  row.id = `gc-row-${groupConditionCount}`;
+  const idx = groupConditionCount;
+  const fieldOpts = variableOptions.map(v => `<option value="${v.value}" ${preset && preset.fieldKey === v.value ? 'selected' : ''}>${v.label}</option>`).join('');
+  const opOpts = operatorOptions.map(o => `<option value="${o.value}" ${preset && preset.operator === o.value ? 'selected' : ''}>${o.label}</option>`).join('');
+  row.innerHTML = `
+    <select class="select" style="width:70px">${opOpts}</select>
+    <select class="select" style="flex:1"><option value="">请选择条件字段</option>${fieldOpts}</select>
+    <input class="input" style="flex:1" placeholder="输入条件值" value="${preset ? preset.value : ''}">
+    <button class="btn btn-text btn-sm danger" onclick="removeGroupCondition(${idx})">✕</button>
+  `;
+  container.appendChild(row);
+}
+
+function removeGroupCondition(idx) {
+  const rows = document.getElementById('group-condition-rows').querySelectorAll('.condition-row');
+  if (rows.length <= 1) { showToast('至少保留一条命中条件', 'warning'); return; }
+  const row = document.getElementById(`gc-row-${idx}`);
+  if (row) row.remove();
+}
+
+function renderAvailableMembers() {
+  const query = document.getElementById('member-search-input').value.trim().toLowerCase();
+  const list = document.getElementById('available-member-list');
+  const onlineMembers = allMembers.filter(m => m.online);
+  const filtered = query ? onlineMembers.filter(m => m.name.toLowerCase().includes(query)) : onlineMembers;
+
+  if (filtered.length === 0) {
+    list.innerHTML = '<div style="padding:20px;text-align:center;color:#909399;font-size:12px;">无匹配的在线成员</div>';
+    return;
+  }
+  list.innerHTML = filtered.map(m => {
+    const added = selectedMembers.includes(m.id);
+    return `<div class="member-item">
+      <div class="member-avatar online" style="background:${m.color}">${m.name[0]}</div>
+      <div class="member-info">
+        <div class="member-name">${m.name}</div>
+        <div class="member-phone">${m.phone}</div>
+      </div>
+      <div class="member-status"><span class="status-dot online"></span><span style="color:#67c23a">在线</span></div>
+      <div class="member-action">
+        ${added
+          ? '<button class="btn btn-sm btn-disabled" style="font-size:11px;padding:3px 8px;">已添加</button>'
+          : `<button class="btn btn-primary btn-sm" style="font-size:11px;padding:3px 8px;" onclick="addMember('${m.id}')">添加</button>`
+        }
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderSelectedMembers() {
+  const list = document.getElementById('selected-member-list');
+  const countEl = document.getElementById('selected-count');
+  const warningEl = document.getElementById('selected-member-warning');
+  countEl.textContent = selectedMembers.length;
+
+  const allOffline = selectedMembers.length > 0 && selectedMembers.every(id => { const m = getMember(id); return m && !m.online; });
+  warningEl.innerHTML = allOffline
+    ? '<div class="warning-banner">⚠️ 所有承接成员的云手机均已离线，规则将暂时无法触发</div>'
+    : '';
+
+  if (selectedMembers.length === 0) {
+    list.innerHTML = '<div style="padding:20px;text-align:center;color:#909399;font-size:12px;">请从左侧添加承接成员</div>';
+    return;
+  }
+  list.innerHTML = selectedMembers.map(id => {
+    const m = getMember(id);
+    if (!m) return '';
+    const isOffline = !m.online;
+    return `<div class="member-item ${isOffline ? 'offline-row' : ''}">
+      <div class="member-avatar ${isOffline ? 'offline' : 'online'}" style="background:${m.color}">${m.name[0]}</div>
+      <div class="member-info">
+        <div class="member-name">${m.name}</div>
+        <div class="member-phone">${m.phone}</div>
+      </div>
+      <div class="member-status">
+        <span class="status-dot ${isOffline ? 'offline' : 'online'}"></span>
+        ${isOffline
+          ? '<span style="color:#f56c6c">⚠️ 离线</span>'
+          : '<span style="color:#67c23a">在线</span>'
+        }
+      </div>
+      <div class="member-action">
+        <button class="btn btn-text btn-sm danger" style="font-size:11px;" onclick="removeMember('${m.id}')">移除</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function addMember(id) {
+  if (!selectedMembers.includes(id)) {
+    selectedMembers.push(id);
+    renderAvailableMembers();
+    renderSelectedMembers();
+  }
+}
+
+function removeMember(id) {
+  selectedMembers = selectedMembers.filter(x => x !== id);
+  renderAvailableMembers();
+  renderSelectedMembers();
+}
+
+function saveGroup() {
+  const name = document.getElementById('group-name-input').value.trim();
+  if (!name) { showToast('请输入分组名称', 'warning'); return; }
+  const desc = document.getElementById('group-desc-input').value.trim();
+  const conjunction = document.getElementById('group-conjunction').value;
+  const rows = document.getElementById('group-condition-rows').querySelectorAll('.condition-row');
+  const conditions = [];
+  rows.forEach(row => {
+    const selects = row.querySelectorAll('select');
+    const input = row.querySelector('input');
+    if (selects[1].value) conditions.push({ operator: selects[0].value, fieldKey: selects[1].value, value: input.value });
+  });
+  if (conditions.length === 0) { showToast('请至少配置一条命中条件', 'warning'); return; }
+  if (selectedMembers.length === 0) { showToast('请至少选择一名承接成员', 'warning'); return; }
+
+  const allOffline = selectedMembers.every(id => { const m = getMember(id); return m && !m.online; });
+  if (allOffline) {
+    document.getElementById('confirm-title').textContent = '承接成员全部离线';
+    document.getElementById('confirm-desc').textContent = '当前所有承接成员的云手机均已离线，保存后规则将暂时无法触发，是否继续？';
+    document.getElementById('confirm-ok-btn').textContent = '继续保存';
+    document.getElementById('confirm-ok-btn').className = 'btn btn-warning';
+    pendingConfirmAction = () => doSaveGroup(name, desc, conjunction, conditions);
+    document.getElementById('confirm-dialog').style.display = 'flex';
+    return;
+  }
+  doSaveGroup(name, desc, conjunction, conditions);
+}
+
+function doSaveGroup(name, desc, conjunction, conditions) {
+  if (editingGroupId) {
+    const g = groups.find(x => x.id === editingGroupId);
+    g.name = name; g.description = desc; g.conditions = { conjunction, conditions }; g.members = [...selectedMembers]; g.updatedAt = '2026-04-22 15:00';
+    showToast('更新成功', 'success');
+  } else {
+    const newId = Math.max(...groups.map(g => g.id), 0) + 1;
+    groups.push({ id: newId, name, description: desc, status: 'enabled', updatedAt: '2026-04-22 15:00', isFallback: false, conditions: { conjunction, conditions }, members: [...selectedMembers], rules: [] });
+    showToast('创建成功', 'success');
+  }
+  closeGroupDialog(); renderGroupTable();
+}
+
+function editFallback() {
+  const fb = getFallbackGroup();
+  document.getElementById('fallback-name-input').value = fb.name;
+  document.getElementById('fallback-desc-input').value = fb.description;
+  fbSelectedMembers = [...(fb.members || [])];
+  document.getElementById('fb-member-search-input').value = '';
+  renderFbAvailableMembers();
+  renderFbSelectedMembers();
+  document.getElementById('fallback-dialog').style.display = 'flex';
+}
+
+function closeFallbackDialog() { document.getElementById('fallback-dialog').style.display = 'none'; }
+
+function renderFbAvailableMembers() {
+  const query = document.getElementById('fb-member-search-input').value.trim().toLowerCase();
+  const list = document.getElementById('fb-available-member-list');
+  const onlineMembers = allMembers.filter(m => m.online);
+  const filtered = query ? onlineMembers.filter(m => m.name.toLowerCase().includes(query)) : onlineMembers;
+
+  if (filtered.length === 0) {
+    list.innerHTML = '<div style="padding:20px;text-align:center;color:#909399;font-size:12px;">无匹配的在线成员</div>';
+    return;
+  }
+  list.innerHTML = filtered.map(m => {
+    const added = fbSelectedMembers.includes(m.id);
+    return `<div class="member-item">
+      <div class="member-avatar online" style="background:${m.color}">${m.name[0]}</div>
+      <div class="member-info">
+        <div class="member-name">${m.name}</div>
+        <div class="member-phone">${m.phone}</div>
+      </div>
+      <div class="member-status"><span class="status-dot online"></span><span style="color:#67c23a">在线</span></div>
+      <div class="member-action">
+        ${added
+          ? '<button class="btn btn-sm btn-disabled" style="font-size:11px;padding:3px 8px;">已添加</button>'
+          : `<button class="btn btn-primary btn-sm" style="font-size:11px;padding:3px 8px;" onclick="addFbMember('${m.id}')">添加</button>`
+        }
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderFbSelectedMembers() {
+  const list = document.getElementById('fb-selected-member-list');
+  const countEl = document.getElementById('fb-selected-count');
+  const warningEl = document.getElementById('fb-selected-member-warning');
+  countEl.textContent = fbSelectedMembers.length;
+
+  const allOffline = fbSelectedMembers.length > 0 && fbSelectedMembers.every(id => { const m = getMember(id); return m && !m.online; });
+  warningEl.innerHTML = allOffline
+    ? '<div class="warning-banner">⚠️ 所有承接成员的云手机均已离线，规则将暂时无法触发</div>'
+    : '';
+
+  if (fbSelectedMembers.length === 0) {
+    list.innerHTML = '<div style="padding:20px;text-align:center;color:#909399;font-size:12px;">请从左侧添加承接成员</div>';
+    return;
+  }
+  list.innerHTML = fbSelectedMembers.map(id => {
+    const m = getMember(id);
+    if (!m) return '';
+    const isOffline = !m.online;
+    return `<div class="member-item ${isOffline ? 'offline-row' : ''}">
+      <div class="member-avatar ${isOffline ? 'offline' : 'online'}" style="background:${m.color}">${m.name[0]}</div>
+      <div class="member-info">
+        <div class="member-name">${m.name}</div>
+        <div class="member-phone">${m.phone}</div>
+      </div>
+      <div class="member-status">
+        <span class="status-dot ${isOffline ? 'offline' : 'online'}"></span>
+        ${isOffline
+          ? '<span style="color:#f56c6c">⚠️ 离线</span>'
+          : '<span style="color:#67c23a">在线</span>'
+        }
+      </div>
+      <div class="member-action">
+        <button class="btn btn-text btn-sm danger" style="font-size:11px;" onclick="removeFbMember('${m.id}')">移除</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function addFbMember(id) {
+  if (!fbSelectedMembers.includes(id)) {
+    fbSelectedMembers.push(id);
+    renderFbAvailableMembers();
+    renderFbSelectedMembers();
+  }
+}
+
+function removeFbMember(id) {
+  fbSelectedMembers = fbSelectedMembers.filter(x => x !== id);
+  renderFbAvailableMembers();
+  renderFbSelectedMembers();
+}
+
+function saveFallback() {
+  const name = document.getElementById('fallback-name-input').value.trim();
+  if (!name) { showToast('请输入兜底分组名称', 'warning'); return; }
+  if (fbSelectedMembers.length === 0) { showToast('请至少选择一名承接成员', 'warning'); return; }
+  const desc = document.getElementById('fallback-desc-input').value.trim();
+  const fb = getFallbackGroup();
+  fb.name = name; fb.description = desc; fb.members = [...fbSelectedMembers]; fb.updatedAt = '2026-04-22 15:00';
+  closeFallbackDialog(); renderGroupTable(); showToast('更新成功', 'success');
+}
+
+function closeConfirm() { document.getElementById('confirm-dialog').style.display = 'none'; pendingConfirmAction = null; }
+function confirmAction() { if (pendingConfirmAction) pendingConfirmAction(); closeConfirm(); }
+
+function showToast(msg, type) {
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type || 'success'}`;
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 2000);
+}
+
+renderGroupTable();
+</script>
+</body>
+</html>
