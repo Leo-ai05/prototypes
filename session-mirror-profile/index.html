@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>会话属性镜像画像 - 可交互原型 v1.0</title>
+<title>会话属性镜像画像 - 可交互原型 v1.1</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background:#f5f7fa;color:#303133;font-size:14px}
@@ -21,33 +21,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica N
 .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:4px;border:1px solid #dcdfe6;cursor:pointer;font-size:14px;transition:all .2s;background:#fff}
 .btn-primary{background:#409eff;color:#fff;border-color:#409eff}
 .btn-primary:hover{background:#66b1ff}
-.btn-warning{background:#e6a23c;color:#fff;border-color:#e6a23c}
-.btn-warning:hover{background:#ebb563}
 .btn-sm{padding:5px 12px;font-size:12px}
 .btn-text{background:none;border:none;color:#409eff;padding:4px 8px;cursor:pointer}
-.btn-text:hover{color:#66b1ff}
 
 .tag{display:inline-block;padding:2px 10px;border-radius:4px;font-size:12px}
 .tag-success{background:#f0f9eb;color:#67c23a;border:1px solid #e1f3d8}
 .tag-warning{background:#fdf6ec;color:#e6a23c;border:1px solid #f5dab1}
 .tag-info{background:#f4f4f5;color:#909399;border:1px solid #d3d4d6}
-.tag-danger{background:#fef0f0;color:#f56c6c;border:1px solid #fde2e2}
+.tag-primary{background:#ecf5ff;color:#409eff;border:1px solid #b3d8ff}
 
 .table{width:100%;border-collapse:collapse}
 .table th,.table td{padding:10px 14px;text-align:left;border-bottom:1px solid #ebeef5;font-size:13px}
 .table th{background:#fafafa;font-weight:500;color:#909399;font-size:12px}
 .table tr:hover td{background:#f5f7fa}
-.table tr.diff-row td{background:#fff7e6}
-.table tr.diff-row:hover td{background:#fff1cc}
-
-.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:1000;display:flex;align-items:center;justify-content:center}
-.modal{background:#fff;border-radius:8px;width:560px;max-height:85vh;overflow-y:auto;box-shadow:0 12px 32px rgba(0,0,0,.15)}
-.modal-header{padding:20px 24px;border-bottom:1px solid #ebeef5;display:flex;justify-content:space-between;align-items:center}
-.modal-header h3{font-size:18px;font-weight:500}
-.modal-close{cursor:pointer;font-size:20px;color:#909399;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:4px}
-.modal-close:hover{background:#f5f5f5}
-.modal-body{padding:24px}
-.modal-footer{padding:16px 24px;border-top:1px solid #ebeef5;display:flex;justify-content:flex-end;gap:12px}
+.table tr.default-row td{color:#c0c4cc}
 
 .card{background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.08);margin-bottom:16px;overflow:hidden}
 .card-header{padding:16px 20px;border-bottom:1px solid #ebeef5;display:flex;align-items:center;justify-content:space-between}
@@ -74,10 +61,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica N
 .ai-tab.active{color:#409eff;font-weight:500}
 .ai-tab.active::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:#409eff}
 .ai-tab:not(.active):hover{color:#409eff}
-.ai-tab-badge{background:#e6a23c;color:#fff;font-size:10px;padding:1px 5px;border-radius:8px;margin-left:4px}
 .ai-tab-content{flex:1;overflow-y:auto;padding:16px}
 
-.mirror-info{display:flex;align-items:center;gap:16px;padding:14px 16px;background:#f0f9ff;border:1px solid #b3d8ff;border-radius:8px;margin-bottom:16px}
+.mirror-info{display:flex;align-items:center;gap:16px;padding:14px 16px;background:#f0f9ff;border:1px solid #b3d8ff;border-radius:8px;margin-bottom:16px;flex-wrap:wrap}
 .mirror-info-item{display:flex;align-items:center;gap:6px;font-size:13px}
 .mirror-info-label{color:#909399}
 .mirror-info-value{font-weight:500;color:#303133}
@@ -97,11 +83,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica N
 .expand-arrow{transition:transform .3s;color:#c0c4cc;font-size:12px}
 .expand-arrow.expanded{transform:rotate(180deg)}
 
-.warning-box{display:flex;align-items:flex-start;gap:10px;padding:14px 16px;background:#fef0f0;border:1px solid #fde2e2;border-radius:8px;margin-bottom:16px}
-.warning-box.amber{background:#fdf6ec;border-color:#faecd8}
-.warning-icon{font-size:18px;flex-shrink:0;line-height:1.4}
-.warning-text{font-size:13px;color:#606266;line-height:1.6}
-.warning-text strong{color:#303133}
+.isolate-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:#ecf5ff;border:1px solid #b3d8ff;border-radius:12px;font-size:11px;color:#409eff;font-weight:500}
 
 .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:8px;color:#fff;font-size:14px;z-index:9999;animation:fadeIn .3s}
 .toast-success{background:#67c23a}
@@ -109,8 +91,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica N
 @keyframes fadeIn{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 
 .view-hidden{display:none!important}
-.flex{display:flex}.items-center{align-items:center}.gap-8{gap:8px}.gap-12{gap:12px}.gap-16{gap:16px}
-.mb-8{margin-bottom:8px}.mb-12{margin-bottom:12px}.mb-16{margin-bottom:16px}
 .text-gray{color:#909399}.text-sm{font-size:12px}
 </style>
 </head>
@@ -133,7 +113,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica N
   </div>
 
   <div class="main">
-    <!-- AI员工明细视图 -->
     <div id="view-ai">
       <div class="header"><span class="header-title">AI员工明细</span></div>
       <div class="ai-layout">
@@ -152,7 +131,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica N
             <div class="ai-tabs">
               <div class="ai-tab" onclick="switchTab('chat')">聊天记录</div>
               <div class="ai-tab" onclick="switchTab('vars')">会话变量</div>
-              <div class="ai-tab active" onclick="switchTab('mirror')" id="tab-mirror">镜像画像<span class="ai-tab-badge" id="mirror-badge">3</span></div>
+              <div class="ai-tab active" onclick="switchTab('mirror')" id="tab-mirror">镜像画像</div>
             </div>
             <div class="ai-tab-content view-hidden" id="content-chat">
               <div style="text-align:center;padding:40px;color:#909399">💬 聊天记录区域</div>
@@ -166,7 +145,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica N
       </div>
     </div>
 
-    <!-- 镜像管理视图 -->
     <div id="view-mirror" class="view-hidden">
       <div class="header"><span class="header-title">镜像管理 — 用户画像镜像列表</span></div>
       <div style="flex:1;padding:20px;overflow-y:auto" id="mirror-manage-content"></div>
@@ -174,34 +152,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica N
   </div>
 </div>
 
-<!-- 同步确认弹窗 -->
-<div class="modal-overlay" id="sync-dialog" style="display:none">
-  <div class="modal">
-    <div class="modal-header">
-      <h3>同步主画像到镜像</h3>
-      <div class="modal-close" onclick="closeSyncDialog()">&times;</div>
-    </div>
-    <div class="modal-body">
-      <div class="warning-box amber">
-        <div class="warning-icon">⚠️</div>
-        <div class="warning-text">
-          <strong>同步将用主画像的属性值覆盖镜像中的对应值，此操作不可撤销。</strong><br>
-          同步后，属性变更可能触发关联规则执行。
-        </div>
-      </div>
-      <div style="padding:12px 16px;background:#f5f7fa;border-radius:8px;margin-top:12px">
-        <div style="font-size:13px;color:#606266" id="sync-info">将同步 X 个属性到 [企微账号] 的镜像</div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn" onclick="closeSyncDialog()">取消</button>
-      <button class="btn btn-warning" onclick="doSync()">确认同步</button>
-    </div>
-  </div>
-</div>
-
 <script>
 const COLORS = ['#409eff','#67c23a','#e6a23c','#f56c6c','#9b59b6','#1abc9c'];
+const ATTR_FIELDS = ['跟进阶段','用户来源','会员状态','注册天数','最近活跃天数','购买次数','意向等级','课程类型'];
+const DEFAULTS = {'跟进阶段':'初始','用户来源':'','会员状态':'未开通','注册天数':'0','最近活跃天数':'0','购买次数':'0','意向等级':'低','课程类型':''};
 
 const employees = [
   {id:'e1',name:'销售A',avatar:'A',color:COLORS[0],phone:'企微-001'},
@@ -210,88 +164,69 @@ const employees = [
 ];
 
 const sessions = [
-  {id:'s1',userId:'u001',nickname:'张小明',remark:'抖音-张小明',lastMsg:'你好',time:'10:25'},
-  {id:'s2',userId:'u002',nickname:'李萌萌',remark:'',lastMsg:'什么时候有优惠？',time:'09:48'},
-  {id:'s3',userId:'u003',nickname:'王大锤',remark:'老客户-王大锤',lastMsg:'续费咋操作',time:'昨天'}
+  {id:'s1',nickname:'张小明',remark:'抖音-张小明',lastMsg:'你好',time:'10:25'},
+  {id:'s2',nickname:'李萌萌',remark:'',lastMsg:'什么时候有优惠？',time:'09:48'},
+  {id:'s3',nickname:'王大锤',remark:'老客户-王大锤',lastMsg:'续费咋操作',time:'昨天'}
 ];
-
-const masterProfile = {
-  '跟进阶段': '初始',
-  '用户来源': '抖音',
-  '会员状态': '未开通',
-  '注册天数': '15',
-  '最近活跃天数': '5',
-  '购买次数': '1',
-  '意向等级': '中',
-  '课程类型': '基础班'
-};
 
 const mirrorData = {
   'e1': {
-    accountName: '销售A',
-    accountColor: COLORS[0],
-    friendStatus: '正常',
-    createdAt: '2026-04-10 09:00',
-    updatedAt: '2026-04-22 10:30',
+    accountName:'销售A', accountColor:COLORS[0], friendStatus:'正常',
+    createdAt:'2026-04-10 09:00', updatedAt:'2026-04-22 10:30',
     attrs: {
-      '跟进阶段': {val:'已报价',modified:'2026-04-22 10:30',source:'规则自动修改'},
-      '用户来源': {val:'抖音',modified:'2026-04-10 09:00',source:'镜像初始化'},
-      '会员状态': {val:'试用中',modified:'2026-04-18 14:00',source:'规则自动修改'},
-      '注册天数': {val:'15',modified:'2026-04-10 09:00',source:'镜像初始化'},
-      '最近活跃天数': {val:'2',modified:'2026-04-22 09:00',source:'规则自动修改'},
-      '购买次数': {val:'1',modified:'2026-04-10 09:00',source:'镜像初始化'},
-      '意向等级': {val:'高',modified:'2026-04-20 16:00',source:'手动修改'},
-      '课程类型': {val:'基础班',modified:'2026-04-10 09:00',source:'镜像初始化'}
+      '跟进阶段':{val:'已报价',modified:'2026-04-22 10:30',source:'规则自动修改',count:3},
+      '用户来源':{val:'抖音',modified:'2026-04-15 11:00',source:'规则自动修改',count:1},
+      '会员状态':{val:'试用中',modified:'2026-04-18 14:00',source:'规则自动修改',count:2},
+      '注册天数':{val:'0',modified:null,source:'默认初始化',count:0},
+      '最近活跃天数':{val:'2',modified:'2026-04-22 09:00',source:'规则自动修改',count:5},
+      '购买次数':{val:'0',modified:null,source:'默认初始化',count:0},
+      '意向等级':{val:'高',modified:'2026-04-20 16:00',source:'手动修改',count:2},
+      '课程类型':{val:'基础班',modified:'2026-04-19 10:00',source:'规则自动修改',count:1}
     }
   },
   'e2': {
-    accountName: '销售B',
-    accountColor: COLORS[1],
-    friendStatus: '正常',
-    createdAt: '2026-04-12 11:00',
-    updatedAt: '2026-04-21 15:20',
+    accountName:'销售B', accountColor:COLORS[1], friendStatus:'正常',
+    createdAt:'2026-04-12 11:00', updatedAt:'2026-04-21 15:20',
     attrs: {
-      '跟进阶段': {val:'需求确认',modified:'2026-04-21 15:20',source:'规则自动修改'},
-      '用户来源': {val:'抖音',modified:'2026-04-12 11:00',source:'镜像初始化'},
-      '会员状态': {val:'未开通',modified:'2026-04-12 11:00',source:'镜像初始化'},
-      '注册天数': {val:'15',modified:'2026-04-12 11:00',source:'镜像初始化'},
-      '最近活跃天数': {val:'5',modified:'2026-04-12 11:00',source:'镜像初始化'},
-      '购买次数': {val:'2',modified:'2026-04-19 10:00',source:'规则自动修改'},
-      '意向等级': {val:'中',modified:'2026-04-12 11:00',source:'镜像初始化'},
-      '课程类型': {val:'进阶班',modified:'2026-04-20 09:30',source:'规则自动修改'}
+      '跟进阶段':{val:'需求确认',modified:'2026-04-21 15:20',source:'规则自动修改',count:2},
+      '用户来源':{val:'微信',modified:'2026-04-14 09:00',source:'规则自动修改',count:1},
+      '会员状态':{val:'未开通',modified:null,source:'默认初始化',count:0},
+      '注册天数':{val:'0',modified:null,source:'默认初始化',count:0},
+      '最近活跃天数':{val:'0',modified:null,source:'默认初始化',count:0},
+      '购买次数':{val:'2',modified:'2026-04-19 10:00',source:'规则自动修改',count:1},
+      '意向等级':{val:'低',modified:null,source:'默认初始化',count:0},
+      '课程类型':{val:'进阶班',modified:'2026-04-20 09:30',source:'规则自动修改',count:1}
     }
   },
   'e3': {
-    accountName: '客服C',
-    accountColor: COLORS[2],
-    friendStatus: '已删除',
-    createdAt: '2026-04-05 14:00',
-    updatedAt: '2026-04-15 08:00',
+    accountName:'客服C', accountColor:COLORS[2], friendStatus:'已删除',
+    createdAt:'2026-04-05 14:00', updatedAt:'2026-04-15 08:00',
     attrs: {
-      '跟进阶段': {val:'初始',modified:'2026-04-05 14:00',source:'镜像初始化'},
-      '用户来源': {val:'抖音',modified:'2026-04-05 14:00',source:'镜像初始化'},
-      '会员状态': {val:'未开通',modified:'2026-04-05 14:00',source:'镜像初始化'},
-      '注册天数': {val:'15',modified:'2026-04-05 14:00',source:'镜像初始化'},
-      '最近活跃天数': {val:'5',modified:'2026-04-05 14:00',source:'镜像初始化'},
-      '购买次数': {val:'1',modified:'2026-04-05 14:00',source:'镜像初始化'},
-      '意向等级': {val:'中',modified:'2026-04-05 14:00',source:'镜像初始化'},
-      '课程类型': {val:'基础班',modified:'2026-04-05 14:00',source:'镜像初始化'}
+      '跟进阶段':{val:'初始',modified:null,source:'默认初始化',count:0},
+      '用户来源':{val:'',modified:null,source:'默认初始化',count:0},
+      '会员状态':{val:'未开通',modified:null,source:'默认初始化',count:0},
+      '注册天数':{val:'0',modified:null,source:'默认初始化',count:0},
+      '最近活跃天数':{val:'0',modified:null,source:'默认初始化',count:0},
+      '购买次数':{val:'0',modified:null,source:'默认初始化',count:0},
+      '意向等级':{val:'低',modified:null,source:'默认初始化',count:0},
+      '课程类型':{val:'',modified:null,source:'默认初始化',count:0}
     }
   }
 };
 
 let selectedEmployee = 'e1';
 let selectedSession = null;
-let showDiffOnly = false;
-let syncTarget = null;
+let showModifiedOnly = false;
 let expandedMirrors = new Set();
 
-function getDiffCount(empId) {
-  const m = mirrorData[empId];
-  if (!m) return 0;
-  let c = 0;
-  for (const k in m.attrs) { if (m.attrs[k].val !== masterProfile[k]) c++; }
+function getModifiedCount(empId) {
+  const m = mirrorData[empId]; if (!m) return 0;
+  let c = 0; for (const k in m.attrs) if (m.attrs[k].count > 0) c++;
   return c;
+}
+
+function isDefault(empId, key) {
+  const m = mirrorData[empId]; return m && m.attrs[key] && m.attrs[key].count === 0;
 }
 
 function switchView(v) {
@@ -342,15 +277,15 @@ function selectSession(id) {
   document.getElementById('ai-placeholder').classList.add('view-hidden');
   document.getElementById('ai-detail').classList.remove('view-hidden');
   document.getElementById('ai-session-title').textContent = `${s.nickname}${s.remark?'（'+s.remark+'）':''}`;
-  showDiffOnly = false;
+  showModifiedOnly = false;
   switchTab('mirror');
 }
 
 function switchTab(tab) {
   document.querySelectorAll('.ai-tab').forEach(t => t.classList.remove('active'));
   ['chat','vars','mirror'].forEach(t => document.getElementById('content-'+t).classList.add('view-hidden'));
-  if (tab === 'chat') { document.querySelectorAll('.ai-tab')[0].classList.add('active'); }
-  else if (tab === 'vars') { document.querySelectorAll('.ai-tab')[1].classList.add('active'); }
+  if (tab === 'chat') document.querySelectorAll('.ai-tab')[0].classList.add('active');
+  else if (tab === 'vars') document.querySelectorAll('.ai-tab')[1].classList.add('active');
   else { document.getElementById('tab-mirror').classList.add('active'); renderMirrorTab(); }
   document.getElementById('content-'+tab).classList.remove('view-hidden');
 }
@@ -360,83 +295,78 @@ function renderMirrorTab() {
   const m = mirrorData[selectedEmployee];
   if (!m) { container.innerHTML = '<div style="text-align:center;padding:40px;color:#909399">无镜像数据</div>'; return; }
 
-  const diffCount = getDiffCount(selectedEmployee);
-  document.getElementById('mirror-badge').textContent = diffCount;
-  document.getElementById('mirror-badge').style.display = diffCount > 0 ? '' : 'none';
+  const modCount = getModifiedCount(selectedEmployee);
+  const totalCount = ATTR_FIELDS.length;
 
   let html = `
     <div class="mirror-info">
       <div class="mirror-info-item"><span class="mirror-info-label">企微账号：</span><span class="mirror-info-value">${m.accountName}</span></div>
       <div class="mirror-info-item"><span class="mirror-info-label">创建时间：</span><span class="mirror-info-value">${m.createdAt}</span></div>
       <div class="mirror-info-item"><span class="mirror-info-label">最后更新：</span><span class="mirror-info-value">${m.updatedAt}</span></div>
-      <div class="mirror-info-item"><span class="mirror-info-label">差异属性：</span><span class="mirror-info-value" style="color:${diffCount>0?'#e6a23c':'#67c23a'}">${diffCount} 个</span></div>
+      <div class="mirror-info-item"><span class="isolate-badge">🔒 独立画像 · 与其他账号完全隔离</span></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:13px;color:#606266">
+      <span>已修改 <strong style="color:#409eff">${modCount}</strong> / ${totalCount} 个属性</span>
+      <span style="color:#dcdfe6">|</span>
+      <span>默认值 <strong style="color:#c0c4cc">${totalCount - modCount}</strong> 个</span>
     </div>
     <div class="filter-bar">
-      <label class="checkbox-label"><input type="checkbox" class="checkbox" ${showDiffOnly?'checked':''} onchange="showDiffOnly=this.checked;renderMirrorTab()"> 仅显示差异</label>
-      <div style="margin-left:auto">
-        ${m.friendStatus==='正常'?`<button class="btn btn-warning btn-sm" onclick="openSyncDialog('${selectedEmployee}')">🔄 从主画像同步</button>`:''}
-      </div>
+      <label class="checkbox-label"><input type="checkbox" class="checkbox" ${showModifiedOnly?'checked':''} onchange="showModifiedOnly=this.checked;renderMirrorTab()"> 仅显示已修改</label>
     </div>
     <table class="table">
-      <thead><tr><th>属性名称</th><th>镜像值</th><th>主画像值</th><th width="80">差异</th><th width="130">最后修改</th><th width="100">修改来源</th></tr></thead>
+      <thead><tr><th>属性名称</th><th>当前值</th><th width="80">状态</th><th width="130">最后修改</th><th width="100">修改来源</th><th width="60">修改次数</th></tr></thead>
       <tbody>`;
 
-  for (const key in masterProfile) {
-    const mirrorVal = m.attrs[key]?.val || '-';
-    const masterVal = masterProfile[key];
-    const isDiff = mirrorVal !== masterVal;
-    if (showDiffOnly && !isDiff) continue;
-    html += `<tr class="${isDiff?'diff-row':''}">
-      <td style="font-weight:500">${key}</td>
-      <td style="${isDiff?'color:#e6a23c;font-weight:500':''}">${mirrorVal}</td>
-      <td>${masterVal}</td>
-      <td>${isDiff?'<span class="tag tag-warning">不一致</span>':'<span class="tag tag-success">一致</span>'}</td>
-      <td class="text-sm text-gray">${m.attrs[key]?.modified||'-'}</td>
-      <td class="text-sm text-gray">${m.attrs[key]?.source||'-'}</td>
+  ATTR_FIELDS.forEach(key => {
+    const a = m.attrs[key];
+    if (!a) return;
+    const isDef = a.count === 0;
+    if (showModifiedOnly && isDef) return;
+    html += `<tr class="${isDef?'default-row':''}">
+      <td style="font-weight:500;${isDef?'color:#c0c4cc':''}">${key}</td>
+      <td>${isDef ? '<span style="color:#c0c4cc">'+(a.val||'(空)')+'</span>' : '<span style="font-weight:500">'+a.val+'</span>'}</td>
+      <td>${isDef ? '<span class="tag tag-info">默认</span>' : '<span class="tag tag-primary">已修改</span>'}</td>
+      <td class="text-sm text-gray">${a.modified || '-'}</td>
+      <td class="text-sm text-gray">${a.source}</td>
+      <td style="text-align:center;${isDef?'color:#c0c4cc':'font-weight:500'}">${a.count}</td>
     </tr>`;
-  }
+  });
   html += '</tbody></table>';
   container.innerHTML = html;
 }
 
 function renderMirrorManage() {
   const container = document.getElementById('mirror-manage-content');
-  const userName = '张小明';
-
   let html = `
     <div class="card"><div class="card-header">
-      <div><span class="section-title" style="margin-bottom:0">用户 ${userName} 的镜像列表</span></div>
-      <button class="btn btn-warning btn-sm" onclick="batchSync()">🔄 批量同步选中镜像</button>
+      <div><span class="section-title" style="margin-bottom:0">用户「张小明」的镜像画像列表</span></div>
+      <span class="isolate-badge">🔒 各账号画像完全独立，互不干扰</span>
     </div><div class="card-body">
-    <div style="margin-bottom:16px">
-      <div class="mirror-info">
-        <div class="mirror-info-item"><span class="mirror-info-label">用户主画像</span></div>
-        <div class="mirror-info-item"><span class="mirror-info-label">共</span><span class="mirror-info-value">${Object.keys(masterProfile).length} 个属性</span></div>
-        <div class="mirror-info-item"><span class="mirror-info-label">镜像数量：</span><span class="mirror-info-value">${Object.keys(mirrorData).length} 个</span></div>
-      </div>
+    <div class="mirror-info" style="margin-bottom:16px">
+      <div class="mirror-info-item"><span class="mirror-info-label">镜像数量：</span><span class="mirror-info-value">${Object.keys(mirrorData).length} 个</span></div>
+      <div class="mirror-info-item"><span class="mirror-info-label">属性字段：</span><span class="mirror-info-value">${ATTR_FIELDS.length} 个</span></div>
+      <div class="mirror-info-item"><span class="mirror-info-label">创建方式：</span><span class="mirror-info-value">全新画像（默认值初始化）</span></div>
     </div>`;
 
   for (const empId in mirrorData) {
     const m = mirrorData[empId];
     const emp = employees.find(e => e.id === empId);
-    const diffCount = getDiffCount(empId);
+    const modCount = getModifiedCount(empId);
     const isExpanded = expandedMirrors.has(empId);
     const isDeleted = m.friendStatus === '已删除';
 
     html += `<div class="mirror-card">
       <div class="mirror-card-header" onclick="toggleMirrorCard('${empId}')">
         <div class="mirror-card-left">
-          <input type="checkbox" class="checkbox" onclick="event.stopPropagation()" ${isDeleted?'disabled':''}>
           <div class="ai-avatar" style="background:${m.accountColor};width:32px;height:32px;font-size:13px;${isDeleted?'opacity:.5':''}">${emp?.avatar||'?'}</div>
           <div>
             <div style="font-weight:500;font-size:13px;${isDeleted?'color:#909399':''}">${m.accountName}</div>
-            <div style="font-size:11px;color:#909399">创建于 ${m.createdAt}</div>
+            <div style="font-size:11px;color:#909399">创建于 ${m.createdAt} · 最后更新 ${m.updatedAt}</div>
           </div>
           ${isDeleted?'<span class="tag tag-info">好友已删除</span>':'<span class="tag tag-success">正常</span>'}
         </div>
         <div class="mirror-card-right">
-          <span style="font-size:12px;color:${diffCount>0?'#e6a23c':'#67c23a'};font-weight:500">差异 ${diffCount}</span>
-          ${!isDeleted?`<button class="btn btn-warning btn-sm" onclick="event.stopPropagation();openSyncDialog('${empId}')" style="font-size:11px;padding:3px 10px">同步</button>`:''}
+          <span style="font-size:12px;color:${modCount>0?'#409eff':'#c0c4cc'};font-weight:500">已修改 ${modCount}/${ATTR_FIELDS.length}</span>
           <span class="expand-arrow ${isExpanded?'expanded':''}">▼</span>
         </div>
       </div>`;
@@ -444,20 +374,20 @@ function renderMirrorManage() {
     if (isExpanded) {
       html += `<div class="mirror-card-body"><div style="padding:12px 16px">
         <table class="table">
-          <thead><tr><th>属性名称</th><th>镜像值</th><th>主画像值</th><th width="80">差异</th><th width="130">最后修改</th></tr></thead>
+          <thead><tr><th>属性名称</th><th>当前值</th><th width="80">状态</th><th width="130">最后修改</th><th width="100">修改来源</th><th width="60">修改次数</th></tr></thead>
           <tbody>`;
-      for (const key in masterProfile) {
-        const mirrorVal = m.attrs[key]?.val || '-';
-        const masterVal = masterProfile[key];
-        const isDiff = mirrorVal !== masterVal;
-        html += `<tr class="${isDiff?'diff-row':''}">
-          <td style="font-weight:500">${key}</td>
-          <td style="${isDiff?'color:#e6a23c;font-weight:500':''}">${mirrorVal}</td>
-          <td>${masterVal}</td>
-          <td>${isDiff?'<span class="tag tag-warning">不一致</span>':'<span class="tag tag-success">一致</span>'}</td>
-          <td class="text-sm text-gray">${m.attrs[key]?.modified||'-'}</td>
+      ATTR_FIELDS.forEach(key => {
+        const a = m.attrs[key]; if (!a) return;
+        const isDef = a.count === 0;
+        html += `<tr class="${isDef?'default-row':''}">
+          <td style="font-weight:500;${isDef?'color:#c0c4cc':''}">${key}</td>
+          <td>${isDef ? '<span style="color:#c0c4cc">'+(a.val||'(空)')+'</span>' : '<span style="font-weight:500">'+a.val+'</span>'}</td>
+          <td>${isDef ? '<span class="tag tag-info">默认</span>' : '<span class="tag tag-primary">已修改</span>'}</td>
+          <td class="text-sm text-gray">${a.modified || '-'}</td>
+          <td class="text-sm text-gray">${a.source}</td>
+          <td style="text-align:center;${isDef?'color:#c0c4cc':'font-weight:500'}">${a.count}</td>
         </tr>`;
-      }
+      });
       html += '</tbody></table></div></div>';
     }
     html += '</div>';
@@ -472,41 +402,8 @@ function toggleMirrorCard(empId) {
   renderMirrorManage();
 }
 
-function openSyncDialog(empId) {
-  syncTarget = empId;
-  const m = mirrorData[empId];
-  const diffCount = getDiffCount(empId);
-  document.getElementById('sync-info').textContent = `将同步 ${Object.keys(masterProfile).length} 个属性到「${m.accountName}」的镜像（当前有 ${diffCount} 个差异）`;
-  document.getElementById('sync-dialog').style.display = 'flex';
-}
-
-function closeSyncDialog() { document.getElementById('sync-dialog').style.display = 'none'; syncTarget = null; }
-
-function doSync() {
-  if (!syncTarget) return;
-  const m = mirrorData[syncTarget];
-  for (const key in masterProfile) {
-    if (m.attrs[key]) { m.attrs[key].val = masterProfile[key]; m.attrs[key].modified = '2026-04-22 18:00'; m.attrs[key].source = '同步覆盖'; }
-  }
-  closeSyncDialog();
-  showToast('同步成功', 'success');
-  if (document.getElementById('view-mirror').classList.contains('view-hidden')) renderMirrorTab();
-  else renderMirrorManage();
-}
-
-function batchSync() { showToast('请先勾选需要同步的镜像', 'warning'); }
-
-function showToast(msg, type) {
-  const t = document.createElement('div');
-  t.className = `toast toast-${type||'success'}`;
-  t.textContent = msg;
-  document.body.appendChild(t);
-  setTimeout(() => t.remove(), 2000);
-}
-
 renderEmployeeList();
 renderSessionList();
-selectedEmployee = 'e1';
 </script>
 </body>
 </html>
