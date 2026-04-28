@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>扣子工作流接入 - 渠道管理原型</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; background: #f5f7fa; color: #303133; font-size: 14px; }
+.app { display: flex; min-height: 100vh; }
+.sidebar { width: 220px; background: #1d1e1f; color: #fff; flex-shrink: 0; }
+.sidebar-title { padding: 20px 16px; font-size: 16px; font-weight: 600; border-bottom: 1px solid #333; }
+.sidebar-menu { padding: 8px 0; }
+.menu-group { padding: 8px 16px; font-size: 12px; color: #909399; margin-top: 8px; }
+.menu-item { padding: 10px 16px 10px 32px; cursor: pointer; transition: background .2s; font-size: 13px; }
+.menu-item:hover { background: rgba(255,255,255,.08); }
+.menu-item.active { background: #409eff; color: #fff; }
+.main { flex: 1; display: flex; flex-direction: column; }
+.header { height: 50px; background: #fff; border-bottom: 1px solid #e4e7ed; display: flex; align-items: center; padding: 0 20px; font-size: 15px; font-weight: 500; }
+.content { flex: 1; padding: 20px; }
+.card { background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,.06); }
+.toolbar { display: flex; justify-content: flex-end; margin-bottom: 16px; gap: 8px; }
+.btn { padding: 8px 16px; border-radius: 4px; border: 1px solid #dcdfe6; background: #fff; cursor: pointer; font-size: 13px; transition: all .2s; }
+.btn:hover { border-color: #409eff; color: #409eff; }
+.btn-primary { background: #409eff; color: #fff; border-color: #409eff; }
+.btn-primary:hover { background: #66b1ff; border-color: #66b1ff; color: #fff; }
+.btn-sm { padding: 5px 12px; font-size: 12px; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #ebeef5; font-size: 13px; }
+th { background: #fafafa; color: #606266; font-weight: 500; white-space: nowrap; }
+td { color: #303133; }
+.switch { display: inline-block; width: 40px; height: 20px; border-radius: 10px; background: #dcdfe6; position: relative; cursor: pointer; transition: background .3s; }
+.switch.on { background: #409eff; }
+.switch::after { content: ''; position: absolute; width: 16px; height: 16px; border-radius: 50%; background: #fff; top: 2px; left: 2px; transition: transform .3s; }
+.switch.on::after { transform: translateX(20px); }
+.link { color: #409eff; cursor: pointer; text-decoration: none; font-size: 13px; }
+.link:hover { text-decoration: underline; }
+.tag { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 12px; }
+.tag-blue { background: #ecf5ff; color: #409eff; border: 1px solid #d9ecff; }
+.tag-green { background: #f0f9eb; color: #67c23a; border: 1px solid #e1f3d8; }
+.tag-purple { background: #f4ecff; color: #9b59b6; border: 1px solid #e8d5f5; }
+.tag-orange { background: #fdf6ec; color: #e6a23c; border: 1px solid #faecd8; }
+.tag-cyan { background: #e8f8f5; color: #1abc9c; border: 1px solid #d1f2eb; }
+
+/* Dialog */
+.overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,.4); z-index: 100; display: none; justify-content: center; align-items: flex-start; padding-top: 60px; }
+.overlay.show { display: flex; }
+.dialog { background: #fff; border-radius: 8px; width: 720px; max-height: 80vh; overflow-y: auto; box-shadow: 0 4px 20px rgba(0,0,0,.15); }
+.dialog-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #ebeef5; }
+.dialog-header h3 { font-size: 16px; font-weight: 500; }
+.dialog-close { cursor: pointer; font-size: 20px; color: #909399; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 4px; }
+.dialog-close:hover { background: #f2f3f5; color: #303133; }
+.dialog-body { padding: 20px; }
+.dialog-footer { padding: 12px 20px; border-top: 1px solid #ebeef5; display: flex; justify-content: flex-end; gap: 8px; }
+.form-row { display: flex; align-items: flex-start; margin-bottom: 16px; }
+.form-label { width: 140px; text-align: right; padding-right: 12px; line-height: 32px; color: #606266; font-size: 13px; flex-shrink: 0; }
+.form-label .required { color: #f56c6c; margin-right: 2px; }
+.form-control { flex: 1; }
+.input { width: 100%; height: 32px; padding: 0 12px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 13px; outline: none; transition: border-color .2s; }
+.input:focus { border-color: #409eff; }
+.input:disabled { background: #f5f7fa; color: #c0c4cc; cursor: not-allowed; }
+.textarea { width: 100%; padding: 8px 12px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 13px; outline: none; resize: vertical; min-height: 60px; transition: border-color .2s; }
+.textarea:focus { border-color: #409eff; }
+.select { width: 100%; height: 32px; padding: 0 12px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 13px; outline: none; background: #fff; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' fill='none' stroke='%23606266' stroke-width='1.5'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; cursor: pointer; }
+.select:focus { border-color: #409eff; }
+.divider { height: 1px; background: #ebeef5; margin: 20px 0; }
+.section-title { font-size: 15px; font-weight: 500; margin-bottom: 16px; color: #303133; }
+.radio-group { display: flex; gap: 16px; flex-wrap: wrap; line-height: 32px; }
+.radio { display: inline-flex; align-items: center; gap: 4px; cursor: pointer; font-size: 13px; }
+.radio input[type="radio"] { accent-color: #409eff; cursor: pointer; }
+.radio.active { color: #409eff; }
+.form-tip { font-size: 12px; color: #909399; margin-top: 4px; }
+.slider-wrap { display: flex; align-items: center; gap: 10px; line-height: 32px; }
+.slider { flex: 1; max-width: 200px; }
+.number-input { width: 120px; height: 32px; padding: 0 12px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 13px; outline: none; }
+.number-input:focus { border-color: #409eff; }
+.input-append { display: flex; align-items: center; }
+.input-append .input, .input-append .number-input { border-radius: 4px 0 0 4px; }
+.input-suffix { height: 32px; line-height: 32px; padding: 0 12px; background: #f5f7fa; border: 1px solid #dcdfe6; border-left: none; border-radius: 0 4px 4px 0; font-size: 13px; color: #606266; }
+.coze-config { background: #f8f9fb; border-radius: 6px; padding: 16px; margin-top: 8px; border: 1px solid #ebeef5; }
+.coze-config-title { font-size: 13px; font-weight: 500; color: #606266; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+.coze-config-title .icon { width: 20px; height: 20px; background: #409eff; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 11px; font-weight: bold; }
+.password-wrap { position: relative; }
+.password-wrap .input { padding-right: 36px; }
+.password-toggle { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #909399; font-size: 14px; }
+.password-toggle:hover { color: #606266; }
+.empty-state { text-align: center; padding: 40px 0; color: #909399; }
+
+/* Tabs in dialog */
+.mode-tabs { display: flex; border-bottom: 2px solid #ebeef5; margin-bottom: 20px; }
+.mode-tab { padding: 8px 20px; cursor: pointer; font-size: 14px; color: #606266; position: relative; transition: color .2s; }
+.mode-tab:hover { color: #409eff; }
+.mode-tab.active { color: #409eff; font-weight: 500; }
+.mode-tab.active::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 2px; background: #409eff; }
+.mode-content { display: none; }
+.mode-content.active { display: block; }
+
+/* Toast */
+.toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #67c23a; color: #fff; padding: 10px 24px; border-radius: 6px; font-size: 14px; z-index: 200; display: none; box-shadow: 0 4px 12px rgba(0,0,0,.15); }
+.toast.show { display: block; animation: fadeIn .3s; }
+@keyframes fadeIn { from { opacity: 0; transform: translateX(-50%) translateY(-10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+/* View toggle */
+.view-tabs { display: flex; gap: 0; margin-bottom: 16px; }
+.view-tab { padding: 8px 20px; background: #fff; border: 1px solid #dcdfe6; cursor: pointer; font-size: 13px; color: #606266; }
+.view-tab:first-child { border-radius: 4px 0 0 4px; }
+.view-tab:last-child { border-radius: 0 4px 4px 0; }
+.view-tab + .view-tab { border-left: none; }
+.view-tab.active { background: #409eff; color: #fff; border-color: #409eff; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-title">客服控制台</div>
+    <div class="sidebar-menu">
+      <div class="menu-group">机器人管理</div>
+      <div class="menu-item">机器人信息</div>
+      <div class="menu-item">知识库管理</div>
+      <div class="menu-item">AI响应学习</div>
+      <div class="menu-item active">渠道管理</div>
+      <div class="menu-item">菜单管理</div>
+      <div class="menu-item">会话记录</div>
+      <div class="menu-group">数据统计</div>
+      <div class="menu-item">机器人接待统计</div>
+      <div class="menu-item">问答统计</div>
+      <div class="menu-group">全局设置</div>
+      <div class="menu-item">个性化配置</div>
+      <div class="menu-item">平台模型管理</div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="header">机器人管理 / 渠道管理</div>
+    <div class="content">
+      <div class="card">
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="openDialog('add')">新增渠道</button>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th><input type="checkbox"></th>
+              <th>ID</th>
+              <th>渠道名称</th>
+              <th>渠道类型</th>
+              <th>常见问题方案</th>
+              <th>备注</th>
+              <th>渠道开关</th>
+              <th>应答模式</th>
+              <th>创建时间</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><input type="checkbox"></td>
+              <td>1</td>
+              <td>官网PC渠道</td>
+              <td>PC端</td>
+              <td>默认方案</td>
+              <td>主站接入</td>
+              <td><span class="switch on" onclick="this.classList.toggle('on')"></span></td>
+              <td><span class="tag tag-blue">AI应答</span></td>
+              <td>2024-07-01 10:00</td>
+              <td>
+                <a class="link" onclick="openDialog('edit-ai')">编辑</a>&nbsp;
+                <a class="link">复制链接</a>
+              </td>
+            </tr>
+            <tr>
+              <td><input type="checkbox"></td>
+              <td>2</td>
+              <td>APP移动端渠道</td>
+              <td>移动端</td>
+              <td>FAQ方案</td>
+              <td>APP客服入口</td>
+              <td><span class="switch on" onclick="this.classList.toggle('on')"></span></td>
+              <td><span class="tag tag-green">向量应答</span></td>
+              <td>2024-07-15 14:30</td>
+              <td>
+                <a class="link" onclick="openDialog('edit-vector')">编辑</a>&nbsp;
+                <a class="link">复制链接</a>
+              </td>
+            </tr>
+            <tr style="background: #fafbff;">
+              <td><input type="checkbox"></td>
+              <td>3</td>
+              <td>微信小程序渠道</td>
+              <td>移动端</td>
+              <td>默认方案</td>
+              <td>小程序智能客服</td>
+              <td><span class="switch on" onclick="this.classList.toggle('on')"></span></td>
+              <td><span class="tag tag-purple">扣子智能体</span></td>
+              <td>2026-04-20 09:00</td>
+              <td>
+                <a class="link" onclick="openDialog('edit-coze')">编辑</a>&nbsp;
+                <a class="link">复制链接</a>
+              </td>
+            </tr>
+            <tr style="background: #fafbff;">
+              <td><input type="checkbox"></td>
+              <td>4</td>
+              <td>H5活动页渠道</td>
+              <td>移动端</td>
+              <td>活动FAQ方案</td>
+              <td>RAG知识库接待</td>
+              <td><span class="switch on" onclick="this.classList.toggle('on')"></span></td>
+              <td><span class="tag tag-cyan">RAG接待</span></td>
+              <td>2026-04-22 16:00</td>
+              <td>
+                <a class="link" onclick="openDialog('edit-rag')">编辑</a>&nbsp;
+                <a class="link">复制链接</a>
+              </td>
+            </tr>
+            <tr>
+              <td><input type="checkbox"></td>
+              <td>5</td>
+              <td>匹配应答渠道</td>
+              <td>PC端</td>
+              <td>默认方案</td>
+              <td></td>
+              <td><span class="switch" onclick="this.classList.toggle('on')"></span></td>
+              <td><span class="tag tag-orange">匹配应答</span></td>
+              <td>2024-08-01 11:00</td>
+              <td>
+                <a class="link" onclick="openDialog('edit-es')">编辑</a>&nbsp;
+                <a class="link">复制链接</a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Dialog: 新增/编辑渠道 -->
+<div class="overlay" id="channelDialog">
+  <div class="dialog">
+    <div class="dialog-header">
+      <h3 id="dialogTitle">新增渠道</h3>
+      <div class="dialog-close" onclick="closeDialog()">&times;</div>
+    </div>
+    <div class="dialog-body">
+      <!-- 基本信息 -->
+      <div class="form-row">
+        <div class="form-label"><span class="required">*</span>渠道名称</div>
+        <div class="form-control">
+          <input class="input" id="channelName" placeholder="请输入渠道名称">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-label"><span class="required">*</span>渠道类型</div>
+        <div class="form-control">
+          <select class="select" id="channelType">
+            <option value="">请选择渠道类型</option>
+            <option value="pc">PC端</option>
+            <option value="mobile">移动端</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-label">菜单方案名称</div>
+        <div class="form-control">
+          <select class="select"><option>无</option><option>默认菜单方案</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-label">渠道开关</div>
+        <div class="form-control">
+          <span class="switch on" onclick="this.classList.toggle('on')"></span>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-label">常见问题方案</div>
+        <div class="form-control">
+          <select class="select"><option>默认方案</option><option>FAQ方案</option><option>活动FAQ方案</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-label">备注</div>
+        <div class="form-control">
+          <textarea class="textarea" placeholder="请输入备注"></textarea>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- 应答模式 -->
+      <div class="form-row">
+        <div class="form-label" style="line-height: 28px;">应答模式</div>
+        <div class="form-control">
+          <div class="radio-group" id="replyTypeGroup">
+            <label class="radio active" onclick="switchReplyType('ai')">
+              <input type="radio" name="replyType" value="ai" checked> AI应答
+            </label>
+            <label class="radio" onclick="switchReplyType('vector')">
+              <input type="radio" name="replyType" value="vector"> 向量应答
+            </label>
+            <label class="radio" onclick="switchReplyType('es')">
+              <input type="radio" name="replyType" value="es"> 匹配应答
+            </label>
+            <label class="radio" onclick="switchReplyType('coze')" style="color: #9b59b6; font-weight: 500;">
+              <input type="radio" name="replyType" value="coze"> 扣子智能体接待
+            </label>
+            <label class="radio" onclick="switchReplyType('rag')" style="color: #1abc9c; font-weight: 500;">
+              <input type="radio" name="replyType" value="rag"> RAG接待
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI应答配置 -->
+      <div class="mode-content active" id="mode-ai">
+        <div class="form-row">
+          <div class="form-label"><span class="required">*</span>AI平台</div>
+          <div class="form-control"><select class="select"><option>请选择AI平台</option><option>OpenAI</option><option>skylark</option><option>通义千问</option></select></div>
+        </div>
+        <div class="form-row">
+          <div class="form-label"><span class="required">*</span>平台模型</div>
+          <div class="form-control"><select class="select"><option>请选择平台模型</option><option>GPT-4o</option><option>GPT-3.5</option></select></div>
+        </div>
+        <div class="form-row">
+          <div class="form-label">模型热度</div>
+          <div class="form-control">
+            <div class="slider-wrap">
+              <span>0</span>
+              <input type="range" class="slider" min="0" max="100" value="10" step="10">
+              <span>1</span>
+              <span style="color: #909399; font-size: 12px; margin-left: 8px;">热度越大AI回复的随机性越大</span>
+            </div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-label">流式生成</div>
+          <div class="form-control"><span class="switch" onclick="this.classList.toggle('on')"></span></div>
+        </div>
+        <div class="form-row">
+          <div class="form-label"><span class="required">*</span>AI答案模式</div>
+          <div class="form-control">
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <label class="radio"><input type="radio" name="aiMode" value="filter"> 不发送给客户<br><span style="color:#909399;font-size:12px;margin-left:18px;">训练模式：AI答案记录在「AI学习」中</span></label>
+              <label class="radio"><input type="radio" name="aiMode" value="send" checked> 直接发送给客户<br><span style="color:#909399;font-size:12px;margin-left:18px;">验证模式：AI答案直接发送并记录</span></label>
+            </div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-label"><span class="required">*</span>机器人角色预设</div>
+          <div class="form-control"><textarea class="textarea" placeholder="请输入机器人角色预设"></textarea></div>
+        </div>
+        <div class="form-row">
+          <div class="form-label"><span class="required">*</span>无检索内容应答语</div>
+          <div class="form-control"><input class="input" placeholder="请输入无检索内容应答语"></div>
+        </div>
+      </div>
+
+      <!-- 向量应答配置 -->
+      <div class="mode-content" id="mode-vector">
+        <div class="form-row">
+          <div class="form-label"><span class="required">*</span>向量匹配度</div>
+          <div class="form-control"><input class="number-input" type="number" value="0.81" step="0.01" min="0" max="0.99"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-label"><span class="required">*</span>无检索内容应答语</div>
+          <div class="form-control"><textarea class="textarea" placeholder="请输入应答语"></textarea></div>
+        </div>
+      </div>
+
+      <!-- 匹配应答配置 -->
+      <div class="mode-content" id="mode-es">
+        <div class="form-row">
+          <div class="form-label"><span class="required">*</span>问答匹配度</div>
+          <div class="form-control"><input class="number-input" type="number" value="30" min="0" max="100"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-label"><span class="required">*</span>无检索内容应答语</div>
+          <div class="form-control"><textarea class="textarea" placeholder="请输入应答语"></textarea></div>
+        </div>
+      </div>
+
+      <!-- 扣子智能体接待配置 (NEW) -->
+      <div class="mode-content" id="mode-coze">
+        <div class="coze-config">
+          <div class="coze-config-title">
+            <span class="icon">C</span> 扣子智能体配置
+          </div>
+          <div class="form-row">
+            <div class="form-label"><span class="required">*</span>BOT ID</div>
+            <div class="form-control">
+              <input class="input" id="cozeBotId" placeholder="请输入扣子智能体 BOT ID">
+              <div class="form-tip">从扣子平台获取智能体的 BOT ID</div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-label"><span class="required">*</span>Token 密钥</div>
+            <div class="form-control">
+              <div class="password-wrap">
+                <input class="input" id="cozeToken" type="password" placeholder="请输入扣子平台 API Token">
+                <span class="password-toggle" onclick="togglePassword('cozeToken', this)">👁</span>
+              </div>
+              <div class="form-tip">从扣子平台开发者设置中获取 API 访问密钥</div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-label">流式生成</div>
+            <div class="form-control"><span class="switch on" onclick="this.classList.toggle('on')"></span></div>
+          </div>
+        </div>
+        <div style="margin-top: 16px;">
+          <div class="form-row">
+            <div class="form-label">无检索内容应答语</div>
+            <div class="form-control">
+              <input class="input" placeholder="请输入无检索内容应答语" value="抱歉，暂时无法回答您的问题，即将为您转接人工客服">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-label">等待超时上限</div>
+            <div class="form-control">
+              <div class="input-append">
+                <input class="number-input" type="number" value="2" min="1" max="10">
+                <span class="input-suffix">分钟</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RAG接待配置 (NEW) -->
+      <div class="mode-content" id="mode-rag">
+        <div class="coze-config" style="border-color: #d1f2eb;">
+          <div class="coze-config-title">
+            <span class="icon" style="background: #1abc9c;">R</span> RAG 接待配置
+          </div>
+          <div class="form-row">
+            <div class="form-label"><span class="required">*</span>BOT ID</div>
+            <div class="form-control">
+              <input class="input" id="ragBotId" placeholder="请输入扣子 RAG 智能体 BOT ID">
+              <div class="form-tip">从扣子平台获取 RAG 应用对应的 BOT ID</div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-label"><span class="required">*</span>Token 密钥</div>
+            <div class="form-control">
+              <div class="password-wrap">
+                <input class="input" id="ragToken" type="password" placeholder="请输入扣子平台 API Token">
+                <span class="password-toggle" onclick="togglePassword('ragToken', this)">👁</span>
+              </div>
+              <div class="form-tip">从扣子平台开发者设置中获取 API 访问密钥</div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-label">流式生成</div>
+            <div class="form-control"><span class="switch on" onclick="this.classList.toggle('on')"></span></div>
+          </div>
+        </div>
+        <div style="margin-top: 16px;">
+          <div class="form-row">
+            <div class="form-label">向量匹配度阈值</div>
+            <div class="form-control">
+              <div class="slider-wrap">
+                <input class="number-input" type="number" value="0.55" step="0.01" min="0.20" max="0.90" style="width: 100px;">
+                <span style="color: #909399; font-size: 12px;">达到阈值的参考内容会提供给模型进行答案生成</span>
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-label">引用问题数量</div>
+            <div class="form-control">
+              <div class="input-append">
+                <input class="number-input" type="number" value="3" min="3" max="7">
+                <span class="input-suffix">条</span>
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-label">关联上下文条数</div>
+            <div class="form-control">
+              <div class="input-append">
+                <input class="number-input" type="number" value="3" min="0" max="6">
+                <span class="input-suffix">条</span>
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-label">无检索内容应答语</div>
+            <div class="form-control">
+              <input class="input" placeholder="请输入无检索内容应答语" value="抱歉，未找到相关信息，请换个问题试试">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-label">等待超时上限</div>
+            <div class="form-control">
+              <div class="input-append">
+                <input class="number-input" type="number" value="2" min="1" max="10">
+                <span class="input-suffix">分钟</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- 转人工规则配置 -->
+      <div class="section-title">转人工规则配置</div>
+      <div class="form-row">
+        <div class="form-label">直接转人工</div>
+        <div class="form-control">
+          <span class="switch on" onclick="this.classList.toggle('on')"></span>
+          <span style="color: #909399; font-size: 12px; margin-left: 8px;"><span style="color: #f56c6c;">*</span> 开启后会直接展示转人工按钮</span>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-label">延迟显示转人工</div>
+        <div class="form-control">
+          <span class="switch" onclick="this.classList.toggle('on')"></span>
+          <span style="color: #909399; font-size: 12px; margin-left: 8px;"><span style="color: #f56c6c;">*</span> 开启后会默认隐藏转人工按钮</span>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-label">关键词转人工</div>
+        <div class="form-control">
+          <span class="switch" onclick="this.classList.toggle('on')"></span>
+          <span style="color: #909399; font-size: 12px; margin-left: 8px;"><span style="color: #f56c6c;">*</span> 开启此模式下，用户可以通过关键词直接转人工</span>
+        </div>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn" onclick="closeDialog()">取消</button>
+      <button class="btn btn-primary" onclick="saveChannel()">确定</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">保存成功</div>
+
+<script>
+function openDialog(mode) {
+  const dialog = document.getElementById('channelDialog');
+  const title = document.getElementById('dialogTitle');
+  dialog.classList.add('show');
+
+  if (mode === 'add') {
+    title.textContent = '新增渠道';
+    document.getElementById('channelName').value = '';
+    document.getElementById('channelType').value = '';
+    switchReplyType('ai');
+  } else if (mode === 'edit-ai') {
+    title.textContent = '编辑渠道';
+    document.getElementById('channelName').value = '官网PC渠道';
+    document.getElementById('channelType').value = 'pc';
+    switchReplyType('ai');
+  } else if (mode === 'edit-vector') {
+    title.textContent = '编辑渠道';
+    document.getElementById('channelName').value = 'APP移动端渠道';
+    document.getElementById('channelType').value = 'mobile';
+    switchReplyType('vector');
+  } else if (mode === 'edit-coze') {
+    title.textContent = '编辑渠道';
+    document.getElementById('channelName').value = '微信小程序渠道';
+    document.getElementById('channelType').value = 'mobile';
+    switchReplyType('coze');
+    setTimeout(() => {
+      document.getElementById('cozeBotId').value = '74628390001xxxxx';
+      document.getElementById('cozeToken').value = 'pat_xxxxxxxxxxxxxx';
+    }, 50);
+  } else if (mode === 'edit-rag') {
+    title.textContent = '编辑渠道';
+    document.getElementById('channelName').value = 'H5活动页渠道';
+    document.getElementById('channelType').value = 'mobile';
+    switchReplyType('rag');
+    setTimeout(() => {
+      document.getElementById('ragBotId').value = '74628390002xxxxx';
+      document.getElementById('ragToken').value = 'pat_xxxxxxxxxxxxxx';
+    }, 50);
+  } else if (mode === 'edit-es') {
+    title.textContent = '编辑渠道';
+    document.getElementById('channelName').value = '匹配应答渠道';
+    document.getElementById('channelType').value = 'pc';
+    switchReplyType('es');
+  }
+}
+
+function closeDialog() {
+  document.getElementById('channelDialog').classList.remove('show');
+}
+
+function switchReplyType(type) {
+  const modes = ['ai', 'vector', 'es', 'coze', 'rag'];
+  modes.forEach(m => {
+    const el = document.getElementById('mode-' + m);
+    if (el) el.classList.toggle('active', m === type);
+  });
+
+  const radios = document.querySelectorAll('#replyTypeGroup .radio');
+  radios.forEach(r => {
+    const input = r.querySelector('input');
+    if (input.value === type) {
+      input.checked = true;
+      r.classList.add('active');
+    } else {
+      input.checked = false;
+      r.classList.remove('active');
+    }
+  });
+}
+
+function togglePassword(id, btn) {
+  const input = document.getElementById(id);
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.textContent = '🔒';
+  } else {
+    input.type = 'password';
+    btn.textContent = '👁';
+  }
+}
+
+function saveChannel() {
+  const toast = document.getElementById('toast');
+  toast.classList.add('show');
+  setTimeout(() => {
+    toast.classList.remove('show');
+    closeDialog();
+  }, 1200);
+}
+
+document.getElementById('channelDialog').addEventListener('click', function(e) {
+  if (e.target === this) closeDialog();
+});
+</script>
+</body>
+</html>
