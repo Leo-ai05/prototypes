@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI员工明细-任务执行明细优化 - 可交互原型 v1.1</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;background:#f5f7fa;color:#303133;font-size:14px}
+.app{display:flex;min-height:100vh}
+.sidebar{width:220px;background:#1d1e1f;color:#fff;flex-shrink:0}
+.sidebar-logo{padding:20px 16px;font-size:16px;font-weight:600;border-bottom:1px solid #333}
+.sidebar-menu{padding:8px 0}
+.sidebar-item{padding:12px 20px;cursor:pointer;font-size:14px;color:#bbb;transition:all .2s}
+.sidebar-item:hover,.sidebar-item.active{background:#409eff;color:#fff}
+.sidebar-sub{padding-left:40px}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.header{height:50px;background:#fff;border-bottom:1px solid #e4e7ed;display:flex;align-items:center;padding:0 20px;justify-content:space-between}
+.header-title{font-size:16px;font-weight:500}
+.version-tag{font-size:11px;color:#909399;padding:2px 8px;background:#f5f7fa;border-radius:10px}
+
+.tag{display:inline-block;padding:2px 10px;border-radius:4px;font-size:12px;white-space:nowrap}
+.tag-success{background:#f0f9eb;color:#67c23a;border:1px solid #e1f3d8}
+.tag-warning{background:#fdf6ec;color:#e6a23c;border:1px solid #f5dab1}
+.tag-info{background:#f4f4f5;color:#909399;border:1px solid #d3d4d6}
+.tag-primary{background:#ecf5ff;color:#409eff;border:1px solid #b3d8ff}
+.tag-danger{background:#fef0f0;color:#f56c6c;border:1px solid #fde2e2}
+.tag-fallback{background:#fff7e6;color:#d48806;border:1px solid #ffe58f;font-weight:500}
+
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:4px;border:1px solid #dcdfe6;cursor:pointer;font-size:14px;transition:all .2s;background:#fff}
+.btn-primary{background:#409eff;color:#fff;border-color:#409eff}
+.btn-sm{padding:5px 12px;font-size:12px}
+
+.ai-layout{display:flex;height:calc(100vh - 50px);background:#f5f5f5}
+.ai-panel{display:flex;flex-direction:column;background:#fff;border-right:1px solid #e5e5e5}
+.ai-panel-left{width:220px;flex-shrink:0}
+.ai-panel-mid{width:260px;flex-shrink:0}
+.ai-panel-right{flex:1;min-width:0;display:flex;flex-direction:column;background:#fff}
+.ai-panel-title{padding:14px 16px;border-bottom:1px solid #e5e5e5;font-weight:600;font-size:15px}
+.ai-list{flex:1;overflow-y:auto}
+.ai-list-item{display:flex;align-items:center;padding:10px 16px;cursor:pointer;transition:background .2s;border-bottom:1px solid #f5f5f5}
+.ai-list-item:hover{background:#f5f5f5}
+.ai-list-item.active{background:#e6f7ff}
+.ai-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;flex-shrink:0;font-weight:500}
+.ai-item-info{margin-left:10px;flex:1;min-width:0}
+.ai-item-name{font-weight:500;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ai-item-meta{font-size:11px;color:#999;margin-top:2px}
+
+.ai-tabs{display:flex;border-bottom:1px solid #e5e5e5;flex-shrink:0}
+.ai-tab{padding:0 16px;height:40px;display:flex;align-items:center;cursor:pointer;font-size:13px;color:#666;position:relative}
+.ai-tab.active{color:#409eff;font-weight:500}
+.ai-tab.active::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:#409eff}
+.ai-tab-content{flex:1;overflow-y:auto;padding:16px}
+
+.overview-card{border:1px solid #b3d8ff;border-radius:8px;padding:16px;background:linear-gradient(180deg,#f0f9ff 0%,#fafdff 100%);margin-bottom:16px}
+.overview-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+.overview-row:last-child{margin-bottom:0}
+.overview-label{font-size:12px;color:#909399;min-width:64px}
+.overview-value{font-size:13px;font-weight:500}
+
+.member-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:#fff;border:1px solid #e4e7ed;border-radius:16px;font-size:12px}
+.member-badge .dot{width:6px;height:6px;border-radius:50%}
+.member-badge .dot.online{background:#67c23a}
+.member-badge .dot.offline{background:#c0c4cc}
+.mirror-link{color:#409eff;font-size:12px;cursor:pointer;text-decoration:underline}
+
+.tier-badge{position:relative;display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:16px;font-size:12px;font-weight:500;color:#fff;cursor:pointer}
+.tier-A{background:linear-gradient(135deg,#f56c6c,#e6516e)}
+.tier-B{background:linear-gradient(135deg,#e6a23c,#eb8b4f)}
+.tier-C{background:linear-gradient(135deg,#409eff,#2c7be5)}
+.tier-D{background:linear-gradient(135deg,#909399,#73767a)}
+.tier-dot{position:absolute;top:-2px;right:-2px;width:8px;height:8px;background:#f56c6c;border:1.5px solid #fff;border-radius:50%}
+
+.mode-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:16px;font-size:12px;font-weight:500;background:#f0e6ff;color:#7d3cff;border:1px solid #d4c2ff}
+.mode-rag{background:#e6f7ff;color:#0958d9;border-color:#91caff}
+.mode-vector{background:#fff0f6;color:#c41d7f;border-color:#ffadd2}
+.mode-match{background:#f6ffed;color:#389e0d;border-color:#b7eb8f}
+
+.verify-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:16px;font-size:12px;font-weight:500;cursor:pointer}
+.verify-pass{background:#f0f9eb;color:#67c23a;border:1px solid #e1f3d8}
+.verify-wait{background:#ecf5ff;color:#409eff;border:1px solid #b3d8ff}
+.verify-fail{background:#fef0f0;color:#f56c6c;border:1px solid #fde2e2}
+.verify-expire{background:#fdf6ec;color:#e6a23c;border:1px solid #f5dab1}
+.verify-none{background:#f4f4f5;color:#909399;border:1px solid #d3d4d6}
+
+.filter-bar{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.filter-btn{padding:4px 12px;border-radius:16px;border:1px solid #dcdfe6;font-size:12px;cursor:pointer;background:#fff;transition:all .2s}
+.filter-btn.active{background:#409eff;color:#fff;border-color:#409eff}
+.filter-btn:hover{border-color:#409eff}
+.stats-text{font-size:12px;color:#909399;margin-left:auto}
+
+.rule-card{border:1px solid #ebeef5;border-radius:8px;margin-bottom:8px;overflow:hidden;transition:all .2s}
+.rule-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.rule-card-header{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer}
+.rule-card-header:hover{background:#fafbfc}
+.rule-left{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+.rule-info{flex:1;min-width:0}
+.rule-name{font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.rule-desc{font-size:11px;color:#909399;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rule-right{display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end;max-width:60%}
+.rule-time{font-size:11px;color:#909399}
+.reason-tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:500;white-space:nowrap}
+.reason-orange{background:#fdf6ec;color:#e6a23c;border:1px solid #f5dab1}
+.reason-red{background:#fef0f0;color:#f56c6c;border:1px solid #fde2e2}
+.reason-gray{background:#f4f4f5;color:#909399;border:1px solid #d3d4d6}
+.reason-blue{background:#ecf5ff;color:#409eff;border:1px solid #b3d8ff}
+.action-tag{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:10px;font-size:11px;background:#f0e6ff;color:#7d3cff;border:1px solid #d4c2ff;white-space:nowrap}
+.action-msg{background:#e6f7ff;color:#0958d9;border-color:#91caff}
+.action-summary{background:#fff0f6;color:#c41d7f;border-color:#ffadd2}
+.action-fanout{background:#fff7e6;color:#d46b08;border-color:#ffd591}
+.action-tier{background:#f9f0ff;color:#722ed1;border-color:#d3adf7}
+.action-attr{background:#f0f9eb;color:#67c23a;border-color:#e1f3d8}
+.tier-mini{display:inline-flex;align-items:center;padding:1px 6px;border-radius:8px;font-size:10px;color:#fff;font-weight:600}
+
+.expand-arrow{transition:transform .3s;color:#c0c4cc;font-size:12px}
+.expand-arrow.expanded{transform:rotate(180deg)}
+
+.rule-detail{padding:12px 16px;border-top:1px solid #f0f0f0;background:#fafbfc;animation:slideDown .3s}
+@keyframes slideDown{from{opacity:0}to{opacity:1}}
+.cond-item{display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-radius:6px;border:1px solid;margin-bottom:6px;font-size:12px}
+.cond-item.ok{background:#f0f9eb;border-color:#e1f3d8}
+.cond-item.fail{background:#fef0f0;border-color:#fde2e2}
+.cond-icon{font-size:14px;flex-shrink:0;line-height:1.4}
+.cond-body{flex:1}
+.cond-field{font-weight:500;margin-bottom:2px}
+.cond-detail{color:#606266}
+.cond-mirror{color:#409eff;font-size:11px}
+.suggestion{padding:10px 12px;background:#ecf5ff;border:1px solid #b3d8ff;border-radius:6px;font-size:12px;color:#409eff;margin-top:8px}
+
+.section-title{font-size:12px;font-weight:600;color:#303133;margin:10px 0 6px;display:flex;align-items:center;gap:6px}
+.section-title::before{content:'';width:3px;height:12px;background:#409eff;border-radius:2px}
+
+/* 多系统联动追踪面板 */
+.fanout-panel{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+.fanout-card{border:1px solid #ebeef5;border-radius:6px;padding:10px;background:#fff;position:relative}
+.fanout-card.ok{border-color:#b7eb8f;background:#fcffe6}
+.fanout-card.fail{border-color:#ffadd2;background:#fff0f6}
+.fanout-card.pending{border-color:#91caff;background:#e6f7ff}
+.fanout-icon{font-size:18px;margin-bottom:4px}
+.fanout-title{font-size:12px;font-weight:600;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between}
+.fanout-status{font-size:10px;padding:1px 6px;border-radius:8px}
+.fanout-status.ok{background:#67c23a;color:#fff}
+.fanout-status.fail{background:#f56c6c;color:#fff}
+.fanout-status.pending{background:#409eff;color:#fff}
+.fanout-meta{font-size:11px;color:#606266;line-height:1.6}
+.fanout-meta strong{color:#303133}
+.fanout-arrow{position:absolute;right:-10px;top:50%;transform:translateY(-50%);color:#c0c4cc;font-size:12px;z-index:1}
+
+/* 分层变更对比 */
+.tier-change{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#fff0f6;border:1px dashed #ffadd2;border-radius:6px;font-size:12px;margin-top:6px}
+
+/* 扣子配置摘要 */
+.coze-config{margin-top:6px;padding:8px 10px;background:#fff;border:1px dashed #d4c2ff;border-radius:6px;font-size:11px;color:#606266;line-height:1.6}
+.coze-config code{background:#f5f7fa;padding:1px 4px;border-radius:3px;font-family:Menlo,Monaco,monospace}
+
+.eval-section{margin-top:16px}
+.eval-title{font-size:14px;font-weight:500;margin-bottom:10px;padding-left:8px;border-left:3px solid #409eff;cursor:pointer;display:flex;align-items:center;gap:6px}
+.eval-card{border:1px solid #ebeef5;border-radius:6px;margin-bottom:6px;overflow:hidden}
+.eval-card.matched{border-color:#c2e7b0;background:#f0f9eb}
+.eval-card.skipped{border:1px dashed #dcdfe6;background:#fafafa}
+.eval-card.fallback{border-color:#ffe58f;background:#fffbe6}
+.eval-header{padding:10px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:13px}
+.eval-header:hover{opacity:.85}
+.eval-left{display:flex;align-items:center;gap:8px}
+.eval-right{display:flex;align-items:center;gap:8px;font-size:12px;color:#909399}
+
+.view-hidden{display:none!important}
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);padding:12px 24px;border-radius:8px;color:#fff;font-size:14px;z-index:9999;animation:fadeIn .3s}
+.toast-success{background:#67c23a}
+.toast-info{background:#409eff}
+@keyframes fadeIn{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="sidebar">
+    <div class="sidebar-logo">CRM 管理后台</div>
+    <div class="sidebar-menu">
+      <div class="sidebar-item">工作台</div>
+      <div class="sidebar-item">客户管理</div>
+      <div class="sidebar-item">私域用户分层</div>
+      <div class="sidebar-item active">企微机器人</div>
+      <div class="sidebar-item sidebar-sub">会话属性</div>
+      <div class="sidebar-item sidebar-sub">规则引擎</div>
+      <div class="sidebar-item sidebar-sub" style="background:#409eff;color:#fff">AI员工明细</div>
+      <div class="sidebar-item sidebar-sub">渠道管理</div>
+      <div class="sidebar-item sidebar-sub">联动配置</div>
+      <div class="sidebar-item sidebar-sub">全局配置</div>
+    </div>
+  </div>
+  <div class="main">
+    <div class="header">
+      <span class="header-title">AI员工明细</span>
+      <span class="version-tag">原型 v1.1 · 整合分层 / 会话总结 / 扣子 / 身份核验</span>
+    </div>
+    <div class="ai-layout">
+      <div class="ai-panel ai-panel-left">
+        <div class="ai-panel-title">AI员工列表</div>
+        <div class="ai-list" id="emp-list"></div>
+      </div>
+      <div class="ai-panel ai-panel-mid">
+        <div class="ai-panel-title">会话列表</div>
+        <div class="ai-list" id="sess-list"></div>
+      </div>
+      <div class="ai-panel-right">
+        <div id="placeholder" style="flex:1;display:flex;align-items:center;justify-content:center;color:#909399">请选择会话查看任务执行明细</div>
+        <div id="detail" class="view-hidden" style="flex:1;display:flex;flex-direction:column">
+          <div style="padding:12px 16px;border-bottom:1px solid #e5e5e5;font-weight:500;font-size:15px;display:flex;align-items:center;justify-content:space-between">
+            <span id="sess-title">会话</span>
+            <span id="sess-tier-summary" style="font-size:12px;color:#909399"></span>
+          </div>
+          <div class="ai-tabs">
+            <div class="ai-tab" onclick="switchTab('chat')">聊天记录</div>
+            <div class="ai-tab" onclick="switchTab('vars')">会话变量</div>
+            <div class="ai-tab" onclick="switchTab('mirror')">镜像画像</div>
+            <div class="ai-tab" onclick="switchTab('summary')">会话总结</div>
+            <div class="ai-tab active" onclick="switchTab('tasks')" id="tab-tasks">任务执行明细</div>
+          </div>
+          <div class="ai-tab-content view-hidden" id="c-chat"><div style="text-align:center;padding:40px;color:#909399">💬 聊天记录</div></div>
+          <div class="ai-tab-content view-hidden" id="c-vars"><div style="text-align:center;padding:40px;color:#909399">📋 会话变量</div></div>
+          <div class="ai-tab-content view-hidden" id="c-mirror"><div style="text-align:center;padding:40px;color:#909399">🔒 镜像画像</div></div>
+          <div class="ai-tab-content view-hidden" id="c-summary"><div style="text-align:center;padding:40px;color:#909399">🧠 会话总结（由企微侧边栏联动配置生成）</div></div>
+          <div class="ai-tab-content" id="c-tasks"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const C=['#409eff','#67c23a','#e6a23c'];
+const emps=[{id:'e1',name:'销售A',avatar:'A',color:C[0]},{id:'e2',name:'销售B',avatar:'B',color:C[1]}];
+const sessions=[
+  {id:'s1',nick:'张小明',remark:'抖音-张小明',msg:'订单什么时候发货？',time:'10:25',tier:'B'},
+  {id:'s2',nick:'李萌萌',remark:'',msg:'我想转人工',time:'09:48',tier:'A'}
+];
+
+// 概览
+const matchedGroup={name:'高意向用户维护分组',isFallback:false,reason:'私域分层 = B 且 最近活跃天数 < 7',matchedAt:'2026-05-14 10:30:05'};
+const member={name:'销售A',color:C[0],online:true,bindAt:'2026-05-08 10:30:05'};
+const mirrorSource='销售A';
+const tier={level:'B',name:'B 类 - 中意向',lastCalc:'2026-05-14 08:00',changedRecent:true,from:'C',to:'B',changedAt:'2026-05-13 20:05'};
+const channelMode={type:'coze',label:'扣子智能体接待',botId:'bot_7395a2',token:'cz***********c4f',stream:true,timeout:30,lastCallMs:1240};
+const verify={status:'pass',phone:'****1234',time:'2026-05-14 10:18'};
+
+// 规则
+const rules=[
+  {id:901,name:'B 类用户优惠推送',desc:'B 类中意向用户推送限时优惠',type:'user_change',applyTiers:['B'],status:'executed',executedAt:'2026-05-14 10:32:15',
+   actionType:'msg',action:'发送企微消息：尊敬的客户，您专属的限时 8 折优惠已到账',attrChanges:[{field:'跟进阶段',from:'已触达',to:'优惠已发'}]},
+  {id:902,name:'订单查询 - 扣子智能体应答',desc:'用户咨询订单/物流时，调用扣子智能体生成结构化回答',type:'user_change',status:'executed',executedAt:'2026-05-14 10:32:42',
+   actionType:'coze',action:'调用扣子智能体（BOT_7395a2）→ 流式返回，Token 1280，耗时 1.2s',cozeIO:{input:'订单 20260513-8821 什么时候发货？',output:'您好，该订单预计今日 18:00 前发出，物流单号将通过短信通知...'},attrChanges:[]},
+  {id:903,name:'敏感订单详情查询',desc:'查询完整订单详情前需完成短信验证码核验',type:'user_change',status:'executed',executedAt:'2026-05-14 10:33:02',
+   requireVerify:true,actionType:'msg',action:'核验通过后，发送：您的订单 20260513-8821 当前状态为「已出库」',attrChanges:[]},
+  {id:910,name:'转人工 - AI 会话总结与多端联动',desc:'用户请求转人工 → 生成会话总结 → 推送企微侧边栏/飞书群/CRM Tab',type:'handoff',status:'executed',executedAt:'2026-05-14 10:34:30',
+   actionType:'fanout',action:'生成会话总结并并行推送至 4 个通道',
+   fanout:[
+     {ch:'AI 会话总结',icon:'🧠',status:'ok',meta:'模型: yc-summary-v2 · 耗时 980ms · Token 540',preview:'客户咨询订单 20260513-8821 物流问题，情绪平稳；意向：催发货；建议跟进：48h 内反馈实际签收时间。'},
+     {ch:'企微侧边栏',icon:'📱',status:'ok',meta:'卡片 ID: ss_2026...a1 · 已送达 · 用户未读'},
+     {ch:'飞书通知卡片',icon:'🪁',status:'ok',meta:'群: 客服-高意向 · message_id: om_xxx...88 · 模板 v3'},
+     {ch:'CRM 会话总结 Tab',icon:'🗂️',status:'ok',meta:'已生成 · 主管尚未查看 · 点此跳转'}
+   ],attrChanges:[]},
+  {id:920,name:'C→B 升层后欢迎语',desc:'用户分层从 C 升级到 B 时发送升层欢迎',type:'tier_change',applyTiers:['B'],status:'executed',executedAt:'2026-05-13 20:06:11',
+   actionType:'tier',action:'更新分层标签：C 类 → B 类；同步企微「私域线索分层」标签组',tierChange:{from:'C',to:'B',syncStatus:'ok',syncAt:'2026-05-13 20:06:14'},attrChanges:[]},
+  {id:904,name:'3 天后回访提醒',desc:'用户添加 3 天后发送回访消息',type:'scheduled',status:'pending',scheduledAt:'2026-05-17 10:30:00',actionType:'msg',action:null,attrChanges:[]},
+  {id:905,name:'A 类高意向专属顾问介入',desc:'仅 A 类高意向用户专属一对一顾问',type:'user_change',applyTiers:['A'],status:'not_triggered',reason:'tier_mismatch',reasonText:'分层不匹配',
+   actionType:'msg',mismatchTier:{rule:'A',user:'B'}},
+  {id:906,name:'退款流程 - 扣子智能体（仅 RAG 模式）',desc:'退款引导，限定渠道应答模式为 AI 应答（RAG）',type:'user_change',status:'not_triggered',reason:'mode_mismatch',reasonText:'应答模式不匹配',
+   actionType:'coze',requireMode:'rag'},
+  {id:907,name:'实名信息变更敏感操作',desc:'修改实名信息，必须先通过短信验证码核验',type:'user_change',status:'not_triggered',reason:'verify_wait',reasonText:'等待身份核验',
+   requireVerify:true,actionType:'msg'},
+  {id:908,name:'扣子 - 课程推荐应答',desc:'调用扣子智能体推荐适合课程',type:'user_change',status:'not_triggered',reason:'coze_fail',reasonText:'扣子返回异常',
+   actionType:'coze',cozeError:{code:504,msg:'Coze 调用超时（>30s）',botId:'bot_7395a2'}},
+  {id:909,name:'会员开通引导',desc:'未开通会员的用户推送开通引导',type:'user_change',status:'not_triggered',reason:'rule_disabled',reasonText:'规则已禁用',actionType:'msg'},
+  {id:911,name:'购买用户感谢消息',desc:'购买次数大于 0 的用户发送感谢',type:'user_change',status:'not_triggered',reason:'condition_not_met',reasonText:'条件不满足',
+   actionType:'msg',conditions:[{field:'购买次数',op:'大于',expect:'0',actual:'0',ok:false}]}
+];
+
+const evalGroups=[
+  {name:'新用户引导分组',result:'not_matched',reason:'注册天数=15，不满足"< 7"',rules:2,members:2,conditions:[{field:'注册天数',op:'小于',expect:'7',actual:'15',ok:false}]},
+  {name:'高意向用户维护分组',result:'matched',reason:'私域分层=B 且 最近活跃天数=2 < 7',rules:11,members:3,conditions:[{field:'私域分层',op:'等于',expect:'B',actual:'B',ok:true},{field:'最近活跃天数',op:'小于',expect:'7',actual:'2',ok:true}]},
+  {name:'抖音渠道用户分组',result:'skipped',reason:'已有更高优先级分组命中',rules:2,members:0,conditions:[]},
+  {name:'通用兜底分组',result:'skipped',isFallback:true,reason:'已有普通分组命中，兜底未参与',rules:6,members:1,conditions:[]}
+];
+
+let selEmp='e1',selSess=null,filter='all',expandedRules=new Set(),expandedEvals=new Set(),showEval=true;
+
+function tierBadge(level,opts={}){
+  const map={A:'A 类 高意向',B:'B 类 中意向',C:'C 类 低意向',D:'D 类 无意向'};
+  return `<span class="tier-badge tier-${level}" onclick="toast('已跳转「私域用户分层」详情页')">⭐ ${map[level]}${opts.recent?'<span class="tier-dot" title="近 24h 内变更"></span>':''}</span>`;
+}
+function modeBadge(){
+  if(channelMode.type==='coze')return `<span class="mode-badge">🤖 扣子智能体接待</span>`;
+  if(channelMode.type==='rag')return `<span class="mode-badge mode-rag">🧠 AI 应答 (RAG)</span>`;
+  return `<span class="mode-badge mode-match">🔍 匹配应答</span>`;
+}
+function verifyBadge(){
+  const map={pass:['verify-pass','✅ 核验已通过 ('+verify.phone+')'],wait:['verify-wait','⏳ 等待用户输入验证码'],fail:['verify-fail','❌ 核验失败'],expire:['verify-expire','⌛ 核验已过期'],none:['verify-none','— 未发起核验']};
+  const [cls,txt]=map[verify.status]||map.none;
+  return `<span class="verify-badge ${cls}" onclick="toast('已跳转聊天记录中对应的核验卡片')">${txt}${verify.status==='pass'?' · '+verify.time:''}</span>`;
+}
+function tierMini(level){return `<span class="tier-mini tier-${level}">${level}</span>`;}
+function actionTag(t){
+  const map={
+    msg:['action-msg','💬 发送消息'],
+    coze:['','🤖 调用扣子'],
+    summary:['action-summary','🧠 生成总结'],
+    fanout:['action-fanout','📡 多端联动推送'],
+    tier:['action-tier','⭐ 更新分层'],
+    attr:['action-attr','📝 更新属性']
+  };
+  const [cls,txt]=map[t]||['',''];
+  return `<span class="action-tag ${cls}">${txt}</span>`;
+}
+
+function renderEmpList(){
+  document.getElementById('emp-list').innerHTML=emps.map(e=>`<div class="ai-list-item ${e.id===selEmp?'active':''}" onclick="selEmp='${e.id}';renderEmpList();renderSessList()"><div class="ai-avatar" style="background:${e.color}">${e.avatar}</div><div class="ai-item-info"><div class="ai-item-name">${e.name}</div></div></div>`).join('');
+}
+function renderSessList(){
+  document.getElementById('sess-list').innerHTML=sessions.map(s=>`<div class="ai-list-item ${s.id===selSess?'active':''}" onclick="selectSess('${s.id}')"><div class="ai-avatar" style="background:#67c23a;font-size:12px">${s.nick[0]}</div><div class="ai-item-info"><div class="ai-item-name">${s.nick}${s.remark?'（'+s.remark+'）':''} ${tierMini(s.tier)}</div><div class="ai-item-meta">${s.msg} · ${s.time}</div></div></div>`).join('');
+}
+function selectSess(id){
+  selSess=id;const s=sessions.find(x=>x.id===id);renderSessList();
+  document.getElementById('placeholder').classList.add('view-hidden');
+  document.getElementById('detail').classList.remove('view-hidden');
+  document.getElementById('sess-title').textContent=s.nick+(s.remark?'（'+s.remark+'）':'');
+  document.getElementById('sess-tier-summary').innerHTML='分层 '+tierMini(s.tier)+' · 应答模式：'+(channelMode.type==='coze'?'扣子智能体':'AI 应答');
+  filter='all';expandedRules.clear();expandedEvals.clear();showEval=true;
+  switchTab('tasks');
+}
+function switchTab(t){
+  document.querySelectorAll('.ai-tab').forEach(x=>x.classList.remove('active'));
+  ['chat','vars','mirror','summary','tasks'].forEach(x=>document.getElementById('c-'+x).classList.add('view-hidden'));
+  if(t==='tasks'){document.getElementById('tab-tasks').classList.add('active');renderTasks();}
+  else{
+    const idx={chat:0,vars:1,mirror:2,summary:3}[t];
+    document.querySelectorAll('.ai-tab')[idx].classList.add('active');
+  }
+  document.getElementById('c-'+t).classList.remove('view-hidden');
+}
+
+function renderTasks(){
+  const c=document.getElementById('c-tasks');
+  const executed=rules.filter(r=>r.status==='executed').length;
+  const pending=rules.filter(r=>r.status==='pending').length;
+  const notTriggered=rules.filter(r=>r.status==='not_triggered').length;
+  const filtered=filter==='all'?rules:rules.filter(r=>r.status===filter);
+
+  let h=`
+  <div class="overview-card">
+    <div class="overview-row">
+      <span class="overview-label">命中分组</span>
+      <span class="overview-value">${matchedGroup.name}</span>
+      <span class="tag tag-success">已命中</span>
+      ${matchedGroup.isFallback?'<span class="tag tag-fallback">兜底</span>':''}
+    </div>
+    <div class="overview-row">
+      <span class="overview-label">命中原因</span>
+      <span style="font-size:13px;color:#606266">${matchedGroup.reason}</span>
+    </div>
+    <div class="overview-row">
+      <span class="overview-label">承接成员</span>
+      <span class="member-badge"><span class="dot ${member.online?'online':'offline'}"></span><span class="ai-avatar" style="background:${member.color};width:20px;height:20px;font-size:10px;display:inline-flex">${member.name[0]}</span>${member.name} <span style="color:${member.online?'#67c23a':'#f56c6c'}">${member.online?'在线':'离线'}</span></span>
+      <span class="overview-label" style="margin-left:24px">镜像画像</span>
+      <span style="font-size:13px">读取自：<span class="mirror-link">${mirrorSource} 的独立镜像画像</span></span>
+    </div>
+    <div class="overview-row" style="padding-top:6px;border-top:1px dashed #d9ecff;margin-top:4px">
+      <span class="overview-label">🆕 私域分层</span>
+      ${tierBadge(tier.level,{recent:tier.changedRecent})}
+      <span style="font-size:11px;color:#909399">上次计算 ${tier.lastCalc}${tier.changedRecent?' · 24h 内由 '+tier.from+'→'+tier.to+'（'+tier.changedAt+'）':''}</span>
+    </div>
+    <div class="overview-row">
+      <span class="overview-label">🆕 应答模式</span>
+      ${modeBadge()}
+      ${channelMode.type==='coze'?`<span style="font-size:11px;color:#909399">BOT ID: <code style="background:#fff;padding:1px 4px;border-radius:3px">${channelMode.botId.slice(0,6)}****</code> · 流式 ${channelMode.stream?'开':'关'} · 上次调用 ${channelMode.lastCallMs}ms</span>`:''}
+    </div>
+    <div class="overview-row">
+      <span class="overview-label">🆕 身份核验</span>
+      ${verifyBadge()}
+    </div>
+    <div class="overview-row" style="font-size:11px;color:#909399">
+      <span class="overview-label">匹配时间</span>${matchedGroup.matchedAt}
+    </div>
+  </div>
+
+  <div class="filter-bar">
+    <div class="filter-btn ${filter==='all'?'active':''}" onclick="filter='all';renderTasks()">全部 ${rules.length}</div>
+    <div class="filter-btn ${filter==='executed'?'active':''}" onclick="filter='executed';renderTasks()">已执行 ${executed}</div>
+    <div class="filter-btn ${filter==='pending'?'active':''}" onclick="filter='pending';renderTasks()">待执行 ${pending}</div>
+    <div class="filter-btn ${filter==='not_triggered'?'active':''}" onclick="filter='not_triggered';renderTasks()">未触发 ${notTriggered}</div>
+    <span class="stats-text">共 ${rules.length} 条规则：已执行 ${executed} / 待执行 ${pending} / 未触发 ${notTriggered}</span>
+  </div>`;
+
+  filtered.forEach(r=>{
+    const exp=expandedRules.has(r.id);
+    const statusTag=r.status==='executed'?'<span class="tag tag-success">已执行</span>':r.status==='pending'?'<span class="tag tag-primary">待执行</span>':'<span class="tag tag-info">未触发</span>';
+    let reasonTag='';
+    if(r.reason==='condition_not_met')reasonTag='<span class="reason-tag reason-orange">⚠ 条件不满足</span>';
+    else if(r.reason==='rule_disabled')reasonTag='<span class="reason-tag reason-gray">⏸ 规则已禁用</span>';
+    else if(r.reason==='member_offline')reasonTag='<span class="reason-tag reason-red">📴 成员离线</span>';
+    else if(r.reason==='verify_wait')reasonTag='<span class="reason-tag reason-blue">🔐 等待身份核验</span>';
+    else if(r.reason==='verify_fail')reasonTag='<span class="reason-tag reason-red">🚫 核验未通过</span>';
+    else if(r.reason==='mode_mismatch')reasonTag='<span class="reason-tag reason-gray">🔀 模式不匹配</span>';
+    else if(r.reason==='coze_fail')reasonTag='<span class="reason-tag reason-red">🤖 扣子返回异常</span>';
+    else if(r.reason==='tier_mismatch')reasonTag='<span class="reason-tag reason-orange">⭐ 分层不匹配</span>';
+
+    let timeText='';
+    if(r.status==='executed')timeText=`<span class="rule-time">${r.executedAt}</span>`;
+    else if(r.status==='pending')timeText=`<span class="rule-time">预计 ${r.scheduledAt}</span>`;
+
+    const tierTag=r.applyTiers?r.applyTiers.map(tierMini).join(''):'';
+    const verifyMark=r.requireVerify?'<span class="reason-tag reason-blue">🔐 需核验</span>':'';
+
+    h+=`<div class="rule-card">
+      <div class="rule-card-header" onclick="toggleRule(${r.id})">
+        <div class="rule-left">
+          ${statusTag}
+          <div class="rule-info">
+            <div class="rule-name">${r.name} ${tierTag?'<span style="font-size:10px;color:#909399">适用：</span>'+tierTag:''}</div>
+            <div class="rule-desc">${r.desc}</div>
+          </div>
+        </div>
+        <div class="rule-right">
+          ${actionTag(r.actionType)}
+          ${verifyMark}
+          ${reasonTag} ${timeText}
+          <span style="font-size:11px;color:#c0c4cc">${r.type==='scheduled'?'⏰ 定时':r.type==='handoff'?'🆘 转人工':r.type==='tier_change'?'⭐ 分层变更':'⚡ 变更'}</span>
+          <span class="expand-arrow ${exp?'expanded':''}">▼</span>
+        </div>
+      </div>`;
+
+    if(exp){
+      h+='<div class="rule-detail">';
+      if(r.status==='executed'){
+        h+=`<div style="margin-bottom:8px"><span style="font-size:12px;font-weight:500;color:#67c23a">✅ 执行成功</span><span style="font-size:11px;color:#909399;margin-left:8px">${r.executedAt}</span></div>`;
+        if(r.action)h+=`<div style="padding:8px 10px;background:#f0f9eb;border:1px solid #e1f3d8;border-radius:6px;font-size:12px;color:#606266;margin-bottom:8px">📤 ${r.action}</div>`;
+        if(r.cozeIO){
+          h+=`<div class="section-title">扣子调用 IO</div>
+          <div class="coze-config"><div>📥 输入：${r.cozeIO.input}</div><div style="margin-top:4px">📤 输出：${r.cozeIO.output}</div><div style="margin-top:4px;color:#909399">BOT_ID: <code>${channelMode.botId}</code> · stream=${channelMode.stream} · timeout=${channelMode.timeout}s</div></div>`;
+        }
+        if(r.fanout){
+          h+=`<div class="section-title">🆕 多系统联动追踪</div>
+          <div class="fanout-panel">`;
+          r.fanout.forEach((f,i)=>{
+            h+=`<div class="fanout-card ${f.status}">
+              <div class="fanout-title">${f.icon} ${f.ch}<span class="fanout-status ${f.status}">${f.status==='ok'?'成功':f.status==='fail'?'失败':'处理中'}</span></div>
+              <div class="fanout-meta">${f.meta}${f.preview?'<div style="margin-top:4px;padding:6px 8px;background:#fafbfc;border-radius:4px;font-style:italic">📝 '+f.preview+'</div>':''}</div>
+              ${i<r.fanout.length-1?'<span class="fanout-arrow">›</span>':''}
+            </div>`;
+          });
+          h+='</div>';
+        }
+        if(r.tierChange){
+          h+=`<div class="section-title">🆕 分层变更</div>
+          <div class="tier-change">${tierMini(r.tierChange.from)} <span style="color:#909399">→</span> ${tierMini(r.tierChange.to)}
+          <span style="margin-left:8px">企微「私域线索分层」标签组同步：<span style="color:${r.tierChange.syncStatus==='ok'?'#67c23a':'#f56c6c'};font-weight:500">${r.tierChange.syncStatus==='ok'?'✅ 已同步':'❌ 同步失败'}</span>（${r.tierChange.syncAt}）</span></div>`;
+        }
+        if(r.attrChanges&&r.attrChanges.length>0){
+          h+='<div class="section-title">属性变更</div>';
+          r.attrChanges.forEach(ac=>{
+            h+=`<div style="font-size:12px;padding:4px 0;color:#606266">${ac.field}：<span style="color:#909399">${ac.from}</span> → <span style="color:#409eff;font-weight:500">${ac.to}</span> <span class="cond-mirror">(镜像)</span></div>`;
+          });
+        }
+      } else if(r.status==='pending'){
+        h+=`<div style="padding:8px 10px;background:#ecf5ff;border:1px solid #b3d8ff;border-radius:6px;font-size:12px;color:#409eff">⏳ 等待定时触发，预计 ${r.scheduledAt}</div>`;
+      } else {
+        if(r.reason==='rule_disabled'){
+          h+='<div style="padding:8px 10px;background:#f4f4f5;border:1px solid #d3d4d6;border-radius:6px;font-size:12px;color:#909399">⏸ 该规则当前为禁用状态，启用后方可触发</div>';
+          h+='<div class="suggestion">💡 建议：前往规则引擎配置页面启用该规则</div>';
+        } else if(r.reason==='condition_not_met'){
+          h+='<div class="section-title">触发条件详情</div>';
+          r.conditions.forEach(cd=>{
+            h+=`<div class="cond-item ${cd.ok?'ok':'fail'}"><span class="cond-icon">${cd.ok?'✅':'❌'}</span><div class="cond-body"><div class="cond-field">${cd.field}</div><div class="cond-detail">${cd.op}「${cd.expect}」→ 当前值：<strong style="color:${cd.ok?'#67c23a':'#f56c6c'}">${cd.actual}</strong> <span class="cond-mirror">(镜像)</span></div></div></div>`;
+          });
+          h+='<div class="suggestion">💡 建议：检查镜像画像中相关属性值，或调整规则条件配置</div>';
+        } else if(r.reason==='verify_wait'){
+          h+=`<div style="padding:8px 10px;background:#ecf5ff;border:1px solid #b3d8ff;border-radius:6px;font-size:12px;color:#409eff">🔐 该规则涉及敏感操作，需用户完成短信验证码核验后方可执行。<br>当前核验状态：<strong>${verify.status==='pass'?'已通过':verify.status==='wait'?'待用户输入':verify.status==='expire'?'已过期':'未发起'}</strong></div>`;
+          h+='<div class="suggestion">💡 建议：在聊天对话中向用户发起验证卡片，或前往身份核验记录排查</div>';
+          h+=`<div style="margin-top:6px"><button class="btn btn-sm btn-primary" onclick="toast('已向用户发送验证卡片（仅原型演示）')">🔄 发起核验卡片</button></div>`;
+        } else if(r.reason==='mode_mismatch'){
+          h+=`<div style="padding:8px 10px;background:#f4f4f5;border:1px solid #d3d4d6;border-radius:6px;font-size:12px;color:#606266">🔀 该规则要求渠道应答模式为 <strong>${r.requireMode==='rag'?'AI 应答 (RAG)':'扣子智能体'}</strong>，当前渠道模式为 <strong>${channelMode.label}</strong>，已跳过</div>`;
+          h+='<div class="suggestion">💡 建议：前往「渠道管理」调整应答模式，或将该规则迁移到适配的分组</div>';
+        } else if(r.reason==='coze_fail'){
+          h+=`<div style="padding:8px 10px;background:#fef0f0;border:1px solid #fde2e2;border-radius:6px;font-size:12px;color:#f56c6c">🤖 调用扣子智能体失败<br>BOT_ID: <code>${r.cozeError.botId}</code> · 错误码: <strong>${r.cozeError.code}</strong> · ${r.cozeError.msg}</div>`;
+          h+='<div class="suggestion">💡 建议：前往「渠道管理 → 扣子智能体接待」检查 BOT_ID / Token / 超时配置，或联系扣子平台</div>';
+        } else if(r.reason==='tier_mismatch'){
+          h+=`<div class="tier-change">规则限定：${tierMini(r.mismatchTier.rule)} 类用户 · 当前用户：${tierMini(r.mismatchTier.user)} 类<span style="margin-left:auto;color:#909399">最近一次分层计算 ${tier.lastCalc}</span></div>`;
+          h+='<div class="suggestion">💡 建议：等待下一次分层计算周期；如需立即生效可前往「私域用户分层 → 分层配置」手动重算或调整判定条件</div>';
+        }
+      }
+      h+='</div>';
+    }
+    h+='</div>';
+  });
+
+  h+=`<div class="eval-section">
+    <div class="eval-title" onclick="showEval=!showEval;renderTasks()">📋 分组评估过程 <span class="expand-arrow ${showEval?'expanded':''}">▼</span></div>`;
+  if(showEval){
+    evalGroups.forEach(g=>{
+      const cls=g.result==='matched'?(g.isFallback?'fallback matched':'matched'):'skipped';
+      const resultTag=g.result==='matched'?'<span class="tag tag-success">命中</span>':g.result==='skipped'?'<span class="tag tag-info">跳过</span>':'<span class="tag tag-info">未命中</span>';
+      const expE=expandedEvals.has(g.name);
+      h+=`<div class="eval-card ${cls}">
+        <div class="eval-header" onclick="toggleEval('${g.name}')">
+          <div class="eval-left">
+            ${g.isFallback?'<span style="font-size:14px">🛡️</span>':''}
+            <span style="font-weight:500;font-size:13px">${g.name}</span>
+            ${resultTag}
+            ${g.isFallback?'<span class="tag tag-fallback" style="font-size:11px">兜底</span>':''}
+          </div>
+          <div class="eval-right">
+            <span>${g.rules} 条规则</span>
+            <span>${g.members} 名成员</span>
+            <span style="color:#606266;font-size:12px">${g.reason}</span>
+            ${g.conditions.length>0?`<span class="expand-arrow ${expE?'expanded':''}">▼</span>`:''}
+          </div>
+        </div>`;
+      if(expE&&g.conditions.length>0){
+        h+='<div style="padding:8px 14px 12px;border-top:1px solid #f0f0f0">';
+        g.conditions.forEach(cd=>{
+          h+=`<div class="cond-item ${cd.ok?'ok':'fail'}"><span class="cond-icon">${cd.ok?'✅':'❌'}</span><div class="cond-body"><div class="cond-field">${cd.field}</div><div class="cond-detail">${cd.op}「${cd.expect}」→ 当前值：<strong style="color:${cd.ok?'#67c23a':'#f56c6c'}">${cd.actual}</strong> <span class="cond-mirror">(镜像)</span></div></div></div>`;
+        });
+        h+='</div>';
+      }
+      h+='</div>';
+    });
+  }
+  h+='</div>';
+  c.innerHTML=h;
+}
+
+function toggleRule(id){if(expandedRules.has(id))expandedRules.delete(id);else expandedRules.add(id);renderTasks();}
+function toggleEval(name){if(expandedEvals.has(name))expandedEvals.delete(name);else expandedEvals.add(name);renderTasks();}
+function toast(msg){const t=document.createElement('div');t.className='toast toast-info';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2000);}
+
+renderEmpList();renderSessList();
+// 默认展开几个关键规则演示新能力
+selectSess('s1');
+expandedRules.add(902);expandedRules.add(910);expandedRules.add(907);expandedRules.add(908);expandedRules.add(905);renderTasks();
+</script>
+</body>
+</html>
