@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI 私域用户画像 · 企微侧边栏原型</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; background: #f0f2f5; color: #2c2c2c; font-size: 13px; overflow: hidden; }
+
+  .stage { display: flex; height: 100vh; max-width: 1320px; margin: 0 auto; box-shadow: 0 4px 24px rgba(0,0,0,.08); background: #fff; }
+
+  /* ============ 左侧企微聊天主体 ============ */
+  .wework { flex: 1; min-width: 0; display: flex; flex-direction: column; background: #f5f5f5; }
+  .ww-head { height: 50px; padding: 0 16px; border-bottom: 1px solid #e8e8e8; display: flex; align-items: center; justify-content: space-between; background: #fff; }
+  .ww-head .left { display: flex; align-items: center; gap: 8px; }
+  .ww-head .title { font-size: 15px; font-weight: 500; color: #2c2c2c; }
+  .ww-head .tag { font-size: 11px; color: #999; padding: 2px 6px; background: #f5f5f5; border-radius: 3px; }
+  .ww-head .right { display: flex; align-items: center; gap: 12px; color: #999; font-size: 13px; }
+  .ww-head .right .ico { width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+  .ww-head .right .ico:hover { color: #07c160; }
+
+  .ww-chat { flex: 1; overflow-y: auto; padding: 16px 40px; background: #f5f5f5; }
+  .time-divider { text-align: center; color: #aaa; font-size: 11px; margin: 12px 0; }
+  .ww-msg { display: flex; margin-bottom: 16px; gap: 8px; align-items: flex-start; }
+  .ww-msg.self { flex-direction: row-reverse; }
+  .ww-avatar { width: 36px; height: 36px; border-radius: 4px; flex-shrink: 0; background: #91d5ff; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 600; font-size: 14px; }
+  .ww-avatar.self { background: #07c160; }
+  .ww-bubble { max-width: 70%; padding: 9px 12px; border-radius: 4px; background: #fff; font-size: 13px; line-height: 1.6; word-break: break-word; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+  .ww-msg.self .ww-bubble { background: #95ec69; }
+  .ww-sys { text-align: center; color: #999; font-size: 12px; padding: 6px 12px; background: rgba(0,0,0,.04); border-radius: 4px; display: inline-block; }
+  .ww-sys-wrap { text-align: center; margin: 8px 0; }
+
+  .card-sent { max-width: 280px; background: #fff; border-radius: 6px; overflow: hidden; }
+  .card-sent .ttl { font-size: 14px; font-weight: 500; padding: 10px 12px 6px; color: #2c2c2c; }
+  .card-sent .desc { font-size: 12px; color: #777; padding: 0 12px 10px; line-height: 1.6; }
+  .card-sent .ftr { padding: 8px 12px; border-top: 1px solid #f0f0f0; font-size: 11px; color: #aaa; display: flex; justify-content: space-between; align-items: center; }
+
+  .ww-input { background: #fff; border-top: 1px solid #e8e8e8; padding: 8px 16px 12px; }
+  .ww-input .tools { display: flex; gap: 14px; color: #999; padding: 4px 0; }
+  .ww-input .tools span { cursor: pointer; font-size: 18px; }
+  .ww-input .editor { min-height: 60px; padding: 6px 0; color: #2c2c2c; outline: none; }
+  .ww-input .send-row { display: flex; justify-content: flex-end; gap: 8px; padding-top: 4px; }
+  .btn-send { padding: 4px 16px; background: #07c160; color: #fff; border: none; border-radius: 3px; cursor: pointer; font-size: 12px; }
+
+  /* ============ 右侧侧边栏 ============ */
+  .sidebar { width: 420px; flex-shrink: 0; background: #fff; border-left: 1px solid #e8e8e8; display: flex; flex-direction: column; }
+
+  .sb-toolbar { height: 38px; display: flex; align-items: center; padding: 0 12px; border-bottom: 1px solid #f0f0f0; font-size: 12px; gap: 18px; color: #999; flex-shrink: 0; }
+  .sb-toolbar .tool { cursor: pointer; height: 38px; line-height: 38px; }
+  .sb-toolbar .tool.active { color: #07c160; font-weight: 500; border-bottom: 2px solid #07c160; }
+  .sb-toolbar .expand { margin-left: auto; color: #aaa; cursor: pointer; }
+
+  .sb-head { padding: 14px 14px 12px; background: #fafafa; border-bottom: 1px solid #f0f0f0; position: relative; }
+  .sb-head .row1 { display: flex; align-items: center; gap: 10px; }
+  .sb-head .avatar { width: 42px; height: 42px; border-radius: 50%; background: #fa8c16; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 16px; flex-shrink: 0; }
+  .sb-head .info { flex: 1; min-width: 0; }
+  .sb-head .name { font-size: 14px; font-weight: 600; color: #262626; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .sb-head .layer-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; color: #fff; cursor: pointer; }
+  .layer-A { background: #fa8c16; }
+  .layer-B { background: #52c41a; }
+  .layer-C { background: #1890ff; }
+  .layer-D { background: #8c8c8c; }
+  .sb-head .meta { font-size: 11px; color: #8c8c8c; margin-top: 4px; }
+  .sb-head .feedback { font-size: 11px; color: #1890ff; cursor: pointer; padding: 2px 6px; }
+
+  .sb-head .tag-cloud { margin-top: 10px; }
+  .sb-head .tag-cloud .ttl { font-size: 11px; color: #8c8c8c; margin-bottom: 5px; }
+  .user-tag { display: inline-block; padding: 2px 8px; background: #fff; border: 1px solid #e8e8e8; color: #595959; border-radius: 10px; font-size: 11px; margin-right: 4px; margin-bottom: 4px; }
+  .user-tag.hot { background: #fff7e6; border-color: #ffd591; color: #fa8c16; }
+  .user-tag.cold { background: #f0f5ff; border-color: #adc6ff; color: #2f54eb; }
+  .user-tag.risk { background: #fff1f0; border-color: #ffa39e; color: #f5222d; font-weight: 600; }
+
+  .sb-tabs { display: flex; border-bottom: 1px solid #f0f0f0; background: #fff; flex-shrink: 0; }
+  .sb-tab { flex: 1; text-align: center; padding: 10px 0; font-size: 12px; cursor: pointer; color: #595959; border-bottom: 2px solid transparent; transition: all .15s; position: relative; }
+  .sb-tab.active { color: #07c160; border-bottom-color: #07c160; font-weight: 500; }
+  .sb-tab .dot { position: absolute; top: 6px; right: 22%; width: 6px; height: 6px; border-radius: 50%; background: #f5222d; }
+
+  .sb-body { flex: 1; overflow-y: auto; padding: 12px 14px 70px; background: #fafafa; }
+  .sb-pane { display: none; }
+  .sb-pane.active { display: block; }
+
+  .block { background: #fff; border-radius: 6px; padding: 12px; margin-bottom: 10px; border: 1px solid #f0f0f0; }
+  .block-title { font-size: 12px; font-weight: 600; color: #262626; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
+  .block-title .more { font-size: 11px; color: #1890ff; cursor: pointer; font-weight: 400; }
+  .row-kv { display: flex; justify-content: space-between; padding: 5px 0; font-size: 12px; }
+  .row-kv .k { color: #8c8c8c; }
+  .row-kv .v { color: #262626; font-weight: 500; }
+
+  /* AI 摘要卡片 */
+  .ai-card { background: linear-gradient(135deg, #f9f0ff 0%, #fff0f6 100%); border: 1px solid #d3adf7; border-radius: 6px; padding: 11px 12px; margin-bottom: 10px; }
+  .ai-card .head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .ai-card .head .lab { font-size: 11px; font-weight: 600; color: #722ed1; display: flex; align-items: center; gap: 4px; }
+  .ai-card .head .model { font-size: 10px; color: #b37feb; }
+  .ai-card .summary { font-size: 12px; line-height: 1.7; color: #262626; }
+  .ai-card .footer-note { margin-top: 6px; padding-top: 6px; border-top: 1px dashed #d3adf7; font-size: 10px; color: #b37feb; }
+
+  .signal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .signal { padding: 8px 10px; background: #fafafa; border: 1px solid #f0f0f0; border-radius: 4px; }
+  .signal .l { font-size: 10px; color: #8c8c8c; margin-bottom: 4px; }
+  .signal .v { font-size: 13px; font-weight: 600; color: #262626; display: flex; align-items: center; gap: 4px; }
+  .arrow-up { color: #52c41a; font-size: 10px; }
+  .arrow-down { color: #f5222d; font-size: 10px; }
+  .arrow-flat { color: #8c8c8c; font-size: 10px; }
+
+  .hook-list { padding-left: 0; list-style: none; }
+  .hook-list li { padding: 6px 0 6px 18px; position: relative; font-size: 12px; color: #595959; line-height: 1.55; }
+  .hook-list li::before { content: ""; position: absolute; left: 4px; top: 12px; width: 4px; height: 4px; border-radius: 50%; background: #07c160; }
+
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 4px; padding: 5px 10px; border-radius: 3px; font-size: 12px; cursor: pointer; border: 1px solid transparent; }
+  .btn-primary { background: #07c160; color: #fff; }
+  .btn-primary:hover { background: #06ad56; }
+  .btn-ghost { background: #fff; color: #07c160; border-color: #07c160; }
+  .btn-default { background: #fff; color: #595959; border: 1px solid #d9d9d9; }
+  .btn-small { padding: 3px 8px; font-size: 11px; }
+  .btn-block { width: 100%; }
+
+  .study-week { display: flex; gap: 6px; height: 50px; align-items: flex-end; margin: 6px 0 18px; }
+  .study-week .bar { flex: 1; background: linear-gradient(180deg, #91d5ff, #1890ff); border-radius: 2px; position: relative; }
+  .study-week .bar .lab { position: absolute; bottom: -16px; left: 0; right: 0; text-align: center; font-size: 10px; color: #8c8c8c; }
+  .study-week .bar.cur { background: linear-gradient(180deg, #ffd591, #fa8c16); }
+
+  .weak-pt { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px dashed #f0f0f0; font-size: 12px; }
+  .weak-pt:last-child { border-bottom: none; }
+  .weak-pt .name { color: #262626; }
+  .weak-pt .rate { color: #f5222d; font-weight: 600; font-size: 11px; }
+
+  .call-item { padding: 8px 10px; background: #fafafa; border-radius: 4px; margin-bottom: 6px; font-size: 11px; }
+  .call-item .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .call-item .time { color: #8c8c8c; }
+  .call-item .status { font-weight: 500; }
+  .call-item .status.success { color: #52c41a; }
+  .call-item .status.fail { color: #f5222d; }
+  .call-item .quote { color: #595959; padding: 4px 6px; background: #fff; border-left: 2px solid #1890ff; line-height: 1.5; font-style: italic; }
+
+  .topic-chip { display: inline-block; padding: 2px 7px; background: #e6f7ff; color: #1890ff; border-radius: 10px; font-size: 11px; margin-right: 4px; margin-bottom: 4px; }
+  .topic-chip.warn { background: #fff7e6; color: #fa8c16; }
+
+  .task-mini { padding: 7px 8px; background: #fafafa; border-radius: 4px; margin-bottom: 6px; font-size: 11px; display: flex; align-items: center; gap: 6px; }
+  .task-mini .ico { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: 10px; }
+  .ico.executed { background: #52c41a; }
+  .ico.pending { background: #8c8c8c; }
+  .ico.delayed { background: #fa8c16; }
+  .task-mini .name { flex: 1; color: #595959; }
+
+
+  .sb-footer { position: absolute; bottom: 0; left: 0; right: 0; background: #fff; border-top: 1px solid #f0f0f0; padding: 10px 14px; display: flex; gap: 8px; }
+  .sb-container { position: relative; flex: 1; display: flex; flex-direction: column; }
+
+  .layer-info-pop { position: absolute; top: 8px; right: 12px; background: #fff; border: 1px solid #f0f0f0; border-radius: 6px; padding: 10px; width: 260px; font-size: 11px; box-shadow: 0 4px 12px rgba(0,0,0,.08); z-index: 50; display: none; }
+  .layer-info-pop.show { display: block; }
+  .layer-info-pop .row { padding: 5px 0; border-bottom: 1px dashed #f0f0f0; display: flex; align-items: center; gap: 6px; }
+  .layer-info-pop .row:last-child { border-bottom: none; }
+  .layer-info-pop .name { font-weight: 600; color: #262626; min-width: 70px; }
+  .layer-info-pop .rule { color: #8c8c8c; font-size: 10.5px; }
+
+  .modal-mask { position: fixed; inset: 0; background: rgba(0,0,0,.4); display: none; z-index: 100; align-items: center; justify-content: center; }
+  .modal-mask.show { display: flex; }
+  .modal { width: 360px; background: #fff; border-radius: 8px; overflow: hidden; }
+  .modal-head { padding: 12px 16px; border-bottom: 1px solid #f0f0f0; font-weight: 600; font-size: 14px; }
+  .modal-body { padding: 14px 16px; }
+  .modal-foot { padding: 10px 16px; border-top: 1px solid #f0f0f0; display: flex; gap: 8px; justify-content: flex-end; }
+  .radio-row { padding: 9px 10px; border: 1px solid #f0f0f0; border-radius: 4px; margin-bottom: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 12px; }
+  .radio-row.checked { border-color: #07c160; background: #f6ffed; }
+  .modal textarea { width: 100%; margin-top: 8px; padding: 6px; border: 1px solid #d9d9d9; border-radius: 3px; font-size: 12px; resize: none; outline: none; font-family: inherit; }
+
+  .toast { position: fixed; top: 30%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,.8); color: #fff; padding: 10px 20px; border-radius: 4px; font-size: 13px; display: none; z-index: 999; }
+  .toast.show { display: block; animation: slideIn .25s; }
+  @keyframes slideIn { from { opacity: 0; transform: translateX(-50%) translateY(-10px); } to { opacity: 1; } }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-thumb { background: #d9d9d9; border-radius: 3px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <!-- ========================= 左侧企微聊天主界面 ========================= -->
+  <div class="wework">
+    <div class="ww-head">
+      <div class="left">
+        <span class="title">Heart010101</span>
+        <span class="tag">@微信</span>
+        <span class="tag" style="color:#fa8c16;background:#fff7e6;">A 高价值用户</span>
+      </div>
+      <div class="right">
+        <span class="ico" title="语音">📞</span>
+        <span class="ico" title="视频">📹</span>
+        <span class="ico" title="更多">⋯</span>
+      </div>
+    </div>
+
+    <div class="ww-chat" id="chatBox">
+      <div class="time-divider">2026-05-26 09:18</div>
+      <div class="ww-msg">
+        <div class="ww-avatar">U</div>
+        <div class="ww-bubble">老师，我这周月考又下滑了，自己也不知道哪里出了问题</div>
+      </div>
+      <div class="ww-msg self">
+        <div class="ww-avatar self">销</div>
+        <div class="ww-bubble">同学别急，我看下你最近的学情数据，咱们一起找原因</div>
+      </div>
+      <div class="ww-msg">
+        <div class="ww-avatar">U</div>
+        <div class="ww-bubble">是不是我基础没打好？我之前刷题刷了不少</div>
+      </div>
+
+      <div class="ww-sys-wrap"><span class="ww-sys">销售从侧边栏发送了学情诊断卡片</span></div>
+
+      <div class="ww-msg self">
+        <div class="ww-avatar self">销</div>
+        <div class="card-sent ww-bubble" style="padding:0;">
+          <div class="ttl">您的本周学情诊断</div>
+          <div class="desc">本周学习 186 分钟（↓ 22%）；薄弱知识点：分数运算、单位换算、应用题列式。建议 7 天专项补漏。</div>
+          <div class="ftr"><span>洋葱学情 AI</span><span>查看完整</span></div>
+        </div>
+      </div>
+
+      <div class="ww-msg">
+        <div class="ww-avatar">U</div>
+        <div class="ww-bubble">好的我看看，AI 定制班是怎么用啊？</div>
+      </div>
+    </div>
+
+    <div class="ww-input">
+      <div class="tools">
+        <span title="表情">😊</span><span title="图片">🖼</span><span title="文件">📎</span><span title="截图">✂️</span>
+      </div>
+      <div class="editor" contenteditable="true" id="editor"></div>
+      <div class="send-row">
+        <button class="btn-send">发送 (Enter)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================= 右侧 AI 用户画像侧边栏 ========================= -->
+  <div class="sidebar">
+    <div class="sb-toolbar">
+      <span class="tool">AI问答</span>
+      <span class="tool">Aily会话</span>
+      <span class="tool active">用户画像</span>
+      <span class="tool">常用工具</span>
+      <span class="expand">⇱ 展开</span>
+    </div>
+
+    <div class="sb-container">
+
+      <!-- 客户头部信息卡 -->
+      <div class="sb-head">
+        <div class="row1">
+          <div class="avatar">U</div>
+          <div class="info">
+            <div class="name">
+              Heart010101
+              <span class="layer-badge layer-A" onclick="toggleLayerPop()">A 高价值用户 ⓘ</span>
+            </div>
+            <div class="meta">北京 · 四年级 · 大会员 · 累计付费 ¥3,888 · 2 小时前更新</div>
+          </div>
+          <span class="feedback" onclick="openFeedback()">⚙ 反馈</span>
+        </div>
+        <div class="tag-cloud">
+          <div class="ttl">用户标签</div>
+          <span class="user-tag hot">高客单</span>
+          <span class="user-tag hot">大会员</span>
+          <span class="user-tag">AI定制班用户</span>
+          <span class="user-tag">活跃学习者</span>
+          <span class="user-tag cold">本周学时下滑</span>
+          <span class="user-tag cold">情感波动</span>
+          <span class="user-tag">价格不敏感</span>
+        </div>
+
+        <div class="layer-info-pop" id="layerPop">
+          <div style="font-weight:600; margin-bottom:6px; font-size:12px; color:#262626;">私域用户分层定义</div>
+          <div class="row"><span class="layer-badge layer-A">A</span><div><div class="name">高价值用户</div><div class="rule">累计付费 ≥ 500 元 / 大会员有效期内</div></div></div>
+          <div class="row"><span class="layer-badge layer-B">B</span><div><div class="name">付费用户</div><div class="rule">0 &lt; 累计付费 &lt; 500 元</div></div></div>
+          <div class="row"><span class="layer-badge layer-C">C</span><div><div class="name">活跃用户</div><div class="rule">未付费，近 7 天有学习</div></div></div>
+          <div class="row"><span class="layer-badge layer-D">D</span><div><div class="name">沉睡 / 新用户</div><div class="rule">未付费，近 7 天无学习</div></div></div>
+          <div style="padding:6px 0;font-size:10.5px;color:#8c8c8c;border-top:1px dashed #f0f0f0;margin-top:4px;">⚠️ <b>流失预警</b>：A / B 用户近 14 天无学习无对话时，作为附加风险标签出现在标签云</div>
+          <div style="text-align:right;margin-top:2px;"><span style="font-size:10px;color:#1890ff;cursor:pointer;" onclick="toggleLayerPop()">收起</span></div>
+        </div>
+      </div>
+
+      <div class="sb-tabs">
+        <div class="sb-tab active" data-pane="pane-portrait">画像</div>
+        <div class="sb-tab" data-pane="pane-study">学情</div>
+        <div class="sb-tab" data-pane="pane-call">外呼</div>
+        <div class="sb-tab" data-pane="pane-chat">对话<span class="dot"></span></div>
+      </div>
+
+      <div class="sb-body">
+        <!-- ============ Tab 1：画像 ============ -->
+        <div class="sb-pane active" id="pane-portrait">
+
+          <div class="ai-card">
+            <div class="head">
+              <div class="lab">🤖 AI 用户摘要</div>
+              <div class="model">gpt-4o · 0.4s</div>
+            </div>
+            <div class="summary">
+              当前为 <b>A 高价值用户</b>，本周学时下降 22%，对话情绪转负，主动提及"踩坑/没思路"。大会员将在 6 月到期，建议本次以学情诊断切入，避免直接推销新课。
+            </div>
+          </div>
+
+          <div class="block">
+            <div class="block-title">关键信号</div>
+            <div class="signal-grid">
+              <div class="signal">
+                <div class="l">本周学时</div>
+                <div class="v">186m <span class="arrow-down">↓22%</span></div>
+              </div>
+              <div class="signal">
+                <div class="l">答题正确率</div>
+                <div class="v">58% <span class="arrow-down">↓7%</span></div>
+              </div>
+              <div class="signal">
+                <div class="l">外呼接通率</div>
+                <div class="v">62% <span class="arrow-flat">→</span></div>
+              </div>
+              <div class="signal">
+                <div class="l">对话情感</div>
+                <div class="v" style="color:#fa8c16">负面 <span class="arrow-up">↑</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="block">
+            <div class="block-title">基于分层的跟进策略</div>
+            <ul class="hook-list">
+              <li>A 级核心动作：续费过渡 + 学情维稳</li>
+              <li>带数据沟通：本周学情诊断 + 排名变化</li>
+              <li>称谓使用"您 / 同学"，保持克制专业语气</li>
+              <li>避免：直接推销新课、价格谈判</li>
+              <li>下次跟进建议时间：7 天内</li>
+            </ul>
+          </div>
+
+          <div class="block">
+            <div class="block-title">基础信息</div>
+            <div class="row-kv"><span class="k">用户昵称</span><span class="v">Heart010101</span></div>
+            <div class="row-kv"><span class="k">所在地 · 年级</span><span class="v">北京 · 四年级</span></div>
+            <div class="row-kv"><span class="k">手机号</span><span class="v">138****8888</span></div>
+            <div class="row-kv"><span class="k">会员状态</span><span class="v">大会员（6月到期）</span></div>
+            <div class="row-kv"><span class="k">累计付费</span><span class="v">¥3,888</span></div>
+            <div class="row-kv"><span class="k">入私域时间</span><span class="v">2024-09-12（612 天）</span></div>
+          </div>
+        </div>
+
+        <!-- ============ Tab 2：学情 ============ -->
+        <div class="sb-pane" id="pane-study">
+          <div class="ai-card">
+            <div class="head">
+              <div class="lab">🤖 AI 学情周报</div>
+              <div class="model">gpt-4o · 0.6s</div>
+            </div>
+            <div class="summary">
+              本周学习意愿明显下降，周中接近停滞；薄弱集中在"分数运算"和"应用题列式"，反映 <b>基础运算掌握不稳</b>。建议先安排 7 天专项补漏，配合每日 15 分钟限时训练。
+            </div>
+          </div>
+
+          <div class="block">
+            <div class="block-title">本周学习时长 <span class="more">查看明细 →</span></div>
+            <div style="font-size:11px;color:#8c8c8c;">总计 <b style="color:#262626;font-size:14px">186</b> 分钟 · 同学段排名 <b style="color:#fa541c">42%</b> · ↓ 22%</div>
+            <div class="study-week">
+              <div class="bar" style="height: 38%"><div class="lab">周一</div></div>
+              <div class="bar" style="height: 55%"><div class="lab">周二</div></div>
+              <div class="bar" style="height: 28%"><div class="lab">周三</div></div>
+              <div class="bar" style="height: 45%"><div class="lab">周四</div></div>
+              <div class="bar" style="height: 22%"><div class="lab">周五</div></div>
+              <div class="bar" style="height: 70%"><div class="lab">周六</div></div>
+              <div class="bar cur" style="height: 18%"><div class="lab">周日</div></div>
+            </div>
+          </div>
+
+          <div class="block">
+            <div class="block-title">答题表现</div>
+            <div class="row-kv"><span class="k">本周答题量</span><span class="v">86 道（↓ 18%）</span></div>
+            <div class="row-kv"><span class="k">总正确率</span><span class="v" style="color:#f5222d">58%</span></div>
+            <div class="row-kv"><span class="k">同学段排名</span><span class="v">前 51%</span></div>
+            <div class="row-kv"><span class="k">连续学习天数</span><span class="v">3 天</span></div>
+          </div>
+
+          <div class="block">
+            <div class="block-title">知识点薄弱 Top 3</div>
+            <div class="weak-pt"><span class="name">分数运算 · 数与代数</span><span class="rate">正确率 32%</span></div>
+            <div class="weak-pt"><span class="name">单位换算 · 数与代数</span><span class="rate">正确率 41%</span></div>
+            <div class="weak-pt"><span class="name">应用题列式 · 数与代数</span><span class="rate">正确率 45%</span></div>
+            <div style="margin-top:10px;display:flex;gap:6px;">
+              <button class="btn btn-primary btn-block" onclick="sendCard('学情诊断卡片')">📤 发送学情诊断到聊天</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============ Tab 3：外呼 ============ -->
+        <div class="sb-pane" id="pane-call">
+          <div class="ai-card">
+            <div class="head">
+              <div class="lab">🤖 AI 通话洞察</div>
+              <div class="model">gpt-4o · 0.5s</div>
+            </div>
+            <div class="summary">
+              近 2 次通话主动询问 <b>AI 定制班</b>，价格敏感度中等。<b style="color:#fa8c16">负面信号</b>：3 次提到"成绩下滑"，1 次提到"踩坑"。建议用学情诊断切入，强调"7 天专项"的可见效果，不要直接报价。
+            </div>
+          </div>
+
+          <div class="block">
+            <div class="block-title">近 30 天外呼概况</div>
+            <div class="row-kv"><span class="k">通话次数</span><span class="v">8 次</span></div>
+            <div class="row-kv"><span class="k">平均通话时长</span><span class="v">4 分 32 秒</span></div>
+            <div class="row-kv"><span class="k">接通率</span><span class="v">62.5%</span></div>
+            <div class="row-kv"><span class="k">最近意向度</span><span class="v" style="color:#52c41a">高意向 ↑</span></div>
+          </div>
+
+          <div class="block">
+            <div class="block-title">最近 3 通通话</div>
+            <div class="call-item">
+              <div class="top"><span class="time">2026-05-24 19:30</span><span class="status success">已接通 · 6'12"</span></div>
+              <div class="quote">"老师您看我成绩这块，是数学拉分多还是其它科？上次月考是 …"</div>
+            </div>
+            <div class="call-item">
+              <div class="top"><span class="time">2026-05-20 20:05</span><span class="status success">已接通 · 3'48"</span></div>
+              <div class="quote">"今年试了好几种刷题方式，效果都一般，听同学说洋葱的 AI 定制班 …"</div>
+            </div>
+            <div class="call-item">
+              <div class="top"><span class="time">2026-05-17 18:15</span><span class="status fail">未接通</span></div>
+            </div>
+            <div style="margin-top:8px;">
+              <button class="btn btn-primary btn-block" onclick="toast('已唤起拨号 138****8888')">📞 立即拨号</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ============ Tab 4：对话 ============ -->
+        <div class="sb-pane" id="pane-chat">
+          <div class="ai-card">
+            <div class="head">
+              <div class="lab">🤖 AI 近 7 天对话摘要</div>
+              <div class="model">gpt-4o · 0.7s</div>
+            </div>
+            <div class="summary">
+              对话主线围绕<b>成绩波动与提分方法</b>，情绪从"寻求方法"逐步转为"焦虑/踩坑"。共提到 3 次"成绩下滑"、2 次"AI 定制班"、1 次"踩坑"。对学情数据反应正向，对单纯推销反应弱。
+            </div>
+            <div style="margin-top:8px">
+              <span class="topic-chip">AI 定制班</span>
+              <span class="topic-chip warn">成绩下滑</span>
+              <span class="topic-chip">学习方法</span>
+              <span class="topic-chip warn">踩坑</span>
+              <span class="topic-chip">提分</span>
+            </div>
+          </div>
+
+          <div class="block">
+            <div class="block-title">命中规则与待办</div>
+            <div class="row-kv"><span class="k">命中规则数</span><span class="v">5</span></div>
+            <div class="row-kv"><span class="k">待执行任务</span><span class="v" style="color:#fa8c16">2</span></div>
+            <div style="margin-top:8px">
+              <div class="task-mini">
+                <span class="ico executed">✓</span>
+                <span class="name">学情下滑唤醒：诊断卡已发送（09:30）</span>
+              </div>
+              <div class="task-mini">
+                <span class="ico pending">⏳</span>
+                <span class="name">6 月权益到期提醒：待 5/30 触发</span>
+              </div>
+              <div class="task-mini">
+                <span class="ico delayed">!</span>
+                <span class="name">专项学习清单：禁发时段顺延至明早 08:30</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="block">
+            <div class="block-title">对话情感曲线（近 7 天）</div>
+            <div style="display:flex;align-items:flex-end;gap:5px;height:50px;margin:6px 0;">
+              <div style="flex:1;background:#52c41a;border-radius:2px;height:60%;"></div>
+              <div style="flex:1;background:#52c41a;border-radius:2px;height:55%;"></div>
+              <div style="flex:1;background:#faad14;border-radius:2px;height:45%;"></div>
+              <div style="flex:1;background:#faad14;border-radius:2px;height:38%;"></div>
+              <div style="flex:1;background:#fa8c16;border-radius:2px;height:28%;"></div>
+              <div style="flex:1;background:#fa541c;border-radius:2px;height:22%;"></div>
+              <div style="flex:1;background:#fa541c;border-radius:2px;height:20%;"></div>
+            </div>
+            <div style="display:flex;gap:5px;font-size:10px;color:#8c8c8c;">
+              <span style="flex:1;text-align:center">5/20</span>
+              <span style="flex:1;text-align:center">21</span>
+              <span style="flex:1;text-align:center">22</span>
+              <span style="flex:1;text-align:center">23</span>
+              <span style="flex:1;text-align:center">24</span>
+              <span style="flex:1;text-align:center">25</span>
+              <span style="flex:1;text-align:center;color:#f5222d;font-weight:600">今天</span>
+            </div>
+            <div style="font-size:11px;color:#8c8c8c;margin-top:8px;">情感从平稳转为负面，建议本周尽快人工跟进。</div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="sb-footer">
+        <button class="btn btn-default btn-block" onclick="toast('已跳转到 CRM 用户详情')">在 CRM 中查看</button>
+        <button class="btn btn-primary btn-block" onclick="toast('已加入今日跟进任务')">加入跟进任务</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 分层纠正反馈弹窗 -->
+<div class="modal-mask" id="modalMask">
+  <div class="modal">
+    <div class="modal-head">用户分层不准？请提交反馈</div>
+    <div class="modal-body">
+      <div class="radio-row checked" onclick="pickRadio(this)"><input type="radio" name="ptype" checked /> <span>A 高价值用户 <span style="color:#aaa">· 当前层</span></span></div>
+      <div class="radio-row" onclick="pickRadio(this)"><input type="radio" name="ptype" /> <span>B 付费用户</span></div>
+      <div class="radio-row" onclick="pickRadio(this)"><input type="radio" name="ptype" /> <span>C 活跃用户</span></div>
+      <div class="radio-row" onclick="pickRadio(this)"><input type="radio" name="ptype" /> <span>D 沉睡 / 新用户</span></div>
+      <textarea rows="3" placeholder="补充说明（可选），将作为分层模型纠偏样本"></textarea>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-default btn-small" onclick="closeFeedback()">取消</button>
+      <button class="btn btn-primary btn-small" onclick="submitFeedback()">提交反馈</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  document.querySelectorAll('.sb-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.sb-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.sb-pane').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById(tab.dataset.pane).classList.add('active');
+      document.querySelector('.sb-body').scrollTop = 0;
+    });
+  });
+
+  document.querySelectorAll('.sb-toolbar .tool').forEach(t => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('.sb-toolbar .tool').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+    });
+  });
+
+  function toggleLayerPop() {
+    document.getElementById('layerPop').classList.toggle('show');
+  }
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.layer-badge') && !e.target.closest('.layer-info-pop')) {
+      document.getElementById('layerPop')?.classList.remove('show');
+    }
+  });
+
+  function openFeedback() { document.getElementById('modalMask').classList.add('show'); }
+  function closeFeedback() { document.getElementById('modalMask').classList.remove('show'); }
+  function pickRadio(row) {
+    row.closest('.modal-body').querySelectorAll('.radio-row').forEach(r => r.classList.remove('checked'));
+    row.classList.add('checked');
+    const inp = row.querySelector('input');
+    if (inp) inp.checked = true;
+  }
+  function submitFeedback() {
+    closeFeedback();
+    toast('反馈已提交，分层将在 24 小时内重新评估');
+  }
+
+  function sendCard(name) {
+    const chatBox = document.getElementById('chatBox');
+    const wrap = document.createElement('div');
+    wrap.className = 'ww-sys-wrap';
+    wrap.innerHTML = '<span class="ww-sys">销售从侧边栏发送了：' + name + '</span>';
+    chatBox.appendChild(wrap);
+    const msg = document.createElement('div');
+    msg.className = 'ww-msg self';
+    msg.innerHTML = '<div class="ww-avatar self">销</div>' +
+      '<div class="card-sent ww-bubble" style="padding:0;">' +
+      '<div class="ttl">' + name + '</div>' +
+      '<div class="desc">点击查看完整内容（演示原型 · 卡片由后端动态生成）</div>' +
+      '<div class="ftr"><span>洋葱企业素材</span><span>查看完整</span></div>' +
+      '</div>';
+    chatBox.appendChild(msg);
+    chatBox.scrollTop = chatBox.scrollHeight;
+    toast('已发送至聊天');
+  }
+
+  function toast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 1800);
+  }
+</script>
+</body>
+</html>
