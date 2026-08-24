@@ -193,6 +193,7 @@ tr.fallback-row:hover td { background: #fff7d6; }
 
 <div id="toastBox"></div>
 <div id="dlgHost"></div>
+<div id="dlgHost2"></div>
 
 <script>
 /* =======================================================================
@@ -299,6 +300,7 @@ function toast(msg, type, linkText, linkFn) {
 
 function openDialog(html) { $("dlgHost").innerHTML = '<div class="mask show">' + html + "</div>"; }
 function closeDialog() { $("dlgHost").innerHTML = ""; }
+function closeConfirm2() { $("dlgHost2").innerHTML = ""; }
 
 /** 二次确认弹窗 */
 function confirmBox(title, body, okText, onOk, okClass) {
@@ -313,6 +315,22 @@ function confirmBox(title, body, okText, onOk, okClass) {
       "</div>" +
     "</div>"
   );
+}
+
+/** 叠加在已有弹窗之上的二次确认，取消时保留下层弹窗 */
+function confirmBox2(title, body, okText, onOk, okClass) {
+  window.__confirm2Ok = onOk;
+  $("dlgHost2").innerHTML =
+    '<div class="mask show" style="z-index:200">' +
+      '<div class="dialog sm">' +
+        '<div class="dlg-head">' + esc(title) + '<button class="dlg-close" onclick="closeConfirm2()">&times;</button></div>' +
+        '<div class="dlg-body"><div class="desc">' + body + "</div></div>" +
+        '<div class="dlg-foot">' +
+          '<button class="btn" onclick="closeConfirm2()">取消</button>' +
+          '<button class="btn ' + (okClass || "primary") + '" onclick="var f=window.__confirm2Ok;closeConfirm2();f&&f()">' + esc(okText) + "</button>" +
+        "</div>" +
+      "</div>" +
+    "</div>";
 }
 
 function groupName(id) {
@@ -432,7 +450,7 @@ function renderSplit() {
       var delReason = null;
       if (g.type === "control") delReason = "对照组不可删除";
       else if (users > 0) delReason = "该分流组已有 " + users + " 个用户分配，不可删除";
-      else if (relCount > 0) delReason = "请先处理该分流组下的 " + relCount + " 个规则分组";
+      else if (relCount > 0) delReason = "请先把该分流组下的 " + relCount + " 个规则分组改到其他分流组";
 
       rowsHtml +=
         "<tr>" +
@@ -744,7 +762,7 @@ function renderRule() {
   }
 
   var emptyTip = (filterSplitId !== "all" && normalCount === 0)
-    ? '<div class="alert warn mb16">该分流组下暂无规则分组，可从其他分流组复制一份</div>' : "";
+    ? '<div class="alert warn mb16">该分流组下暂无规则分组，可从其他分流组复制一份，或把已有分组的所属分流组改到该分流组</div>' : "";
 
   $("pageRule").innerHTML =
     '<div class="card">' +
@@ -786,13 +804,10 @@ function openRuleGroupDialog(id) {
         '<div class="form-item"><div class="form-label"><span class="req">*</span>所属分流组</div><div class="form-ctl">' +
           (isFallback
             ? '<input type="text" value="全局兜底（不归属分流组）" disabled style="width:280px" />'
-            : (isNew
-              ? '<select id="rgSplit" style="width:280px" onchange="renderRgCondHint()">' + opts + "</select>"
-              : '<span class="tip"><select style="width:280px" disabled>' + opts + "</select>" +
-                '<span class="tip-text">所属分流组创建后不可修改，如需换组请使用复制</span></span>')) +
-          (isNew
-            ? '<div class="hint">命中条件只在同一分流组内查重，跨分流组允许条件相同</div>'
-            : '<div class="hint" style="color:#e6a23c">所属分流组创建后不可修改，如需换组请使用复制</div>') +
+            : '<select id="rgSplit" style="width:280px" onchange="renderRgCondHint()">' + opts + "</select>") +
+          (isFallback
+            ? '<div class="hint">兜底分组不归属任何分流组，所有分流组的用户在全部未命中时都会执行它</div>'
+            : '<div class="hint" id="rgSplitHint"></div>') +
         "</div></div>" +
 
         '<div class="form-item"><div class="form-label"><span class="req">*</span>分组名称</div><div class="form-ctl">' +
@@ -816,15 +831,34 @@ function openRuleGroupDialog(id) {
       "</div>" +
     "</div>"
   );
-  if (isNew) renderRgCondHint();
+  window.__rgOriginSplitId = isNew ? null : g.splitId;
+  window.__editingRuleGroupId = id;
+  renderRgCondHint();
 }
 
 function renderRgCondHint() {
-  var el = $("rgCondHint");
-  if (!el) return;
   var sel = $("rgSplit");
   if (!sel) return;
-  el.innerHTML = "提交时只与「" + esc(groupName(Number(sel.value))) + "」下的其他分组比对命中条件是否重复。";
+  var picked = Number(sel.value);
+  var origin = window.__rgOriginSplitId;
+
+  var condEl = $("rgCondHint");
+  if (condEl) condEl.innerHTML = "提交时只与「" + esc(groupName(picked)) + "」下的其他分组比对命中条件是否重复，跨分流组允许条件相同。";
+
+  var splitEl = $("rgSplitHint");
+  if (!splitEl) return;
+  if (origin === null) {
+    splitEl.innerHTML = "新建后仍可随时改到其他分流组。";
+    splitEl.style.color = "";
+  } else if (picked === origin) {
+    splitEl.innerHTML = "可随时改到其他分流组，命中条件保持不变。";
+    splitEl.style.color = "";
+  } else {
+    var n = (rules[window.__editingRuleGroupId] || []).length;
+    splitEl.innerHTML = "将从「" + esc(groupName(origin)) + "」改到「" + esc(groupName(picked)) +
+      "」，该分组及名下 " + n + " 条规则改为只对新分流组的用户生效。";
+    splitEl.style.color = "#e6a23c";
+  }
 }
 
 /** 只读风格的条件编辑区（原型内简化为可视化展示 + 可增删行的占位） */
@@ -874,11 +908,43 @@ function submitRuleGroup(id) {
     toast("创建成功");
   } else {
     var g = findRuleGroup(id);
-    g.name = name;
-    g.updated = "2026-08-24 16:20";
-    closeDialog();
-    renderRule();
-    toast("保存成功");
+    var sel2 = $("rgSplit");
+    var target = sel2 ? Number(sel2.value) : g.splitId;
+
+    if (!sel2 || target === g.splitId) {
+      g.name = name;
+      g.updated = "2026-08-24 18:40";
+      closeDialog();
+      renderRule();
+      toast("保存成功");
+      return;
+    }
+
+    // 改归属：先在目标分流组内比对命中条件是否重复
+    var mine = condText(groupConds[g.id]);
+    var clash = ruleGroupsOf(target).filter(function (o) {
+      return o.id !== g.id && condText(groupConds[o.id]) === mine;
+    })[0];
+    if (clash) {
+      toast("命中条件与目标分流组的分组「" + clash.name + "」重复，请修改后再调整归属", "err");
+      return;
+    }
+
+    var n = (rules[g.id] || []).length;
+    confirmBox2(
+      "调整所属分流组",
+      "该分组及其名下 " + n + " 条规则将改为只对「" + esc(groupName(target)) +
+        "」的用户生效，原分流组的用户不再执行这些规则。确认调整？",
+      "确认调整",
+      function () {
+        g.name = name;
+        g.splitId = target;
+        g.updated = "2026-08-24 18:40";
+        closeDialog();
+        renderRule();
+        toast("已调整所属分流组");
+      }
+    );
   }
 }
 
