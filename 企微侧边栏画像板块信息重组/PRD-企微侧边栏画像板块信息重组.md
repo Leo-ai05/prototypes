@@ -95,6 +95,8 @@ flowchart TD
 
 在线预览：[点击查看可交互原型](https://minio.yc345.tv/onionext/prototypes/wework-sidebar-profile-regroup/index.html)（内网，需飞连）
 
+GitHub 预览（公网）：[点击查看](https://leo-ai05.github.io/prototypes/%E4%BC%81%E5%BE%AE%E4%BE%A7%E8%BE%B9%E6%A0%8F%E7%94%BB%E5%83%8F%E6%9D%BF%E5%9D%97%E4%BF%A1%E6%81%AF%E9%87%8D%E7%BB%84/)
+
 原型模式：html-wireframe（非最终 UI）
 
 > 原型为单文件移动端页面，按现网侧边栏页面结构对齐绘制，用于评审调整后的板块顺序与关键信息落位。顶部「原型状态切换」控件不属于页面内容，仅用于演示归属正常与归属受限两种状态。
