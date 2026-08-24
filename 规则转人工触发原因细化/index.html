@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>规则转人工触发原因细化 - 可交互原型</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif; background:#f0f2f5; color:#303133; font-size:14px; line-height:1.5; }
+.layout { display:flex; min-height:100vh; }
+.sidebar { width:200px; background:#fff; border-right:1px solid #e4e7ed; flex-shrink:0; }
+.sidebar-title { padding:18px 16px; font-size:15px; font-weight:600; border-bottom:1px solid #e4e7ed; color:#606266; }
+.menu-item { padding:12px 16px; cursor:pointer; color:#606266; border-left:3px solid transparent; }
+.menu-item:hover { background:#f5f7fa; }
+.menu-item.active { background:#ecf5ff; color:#409eff; border-left-color:#409eff; font-weight:500; }
+.menu-item.disabled { color:#c0c4cc; cursor:not-allowed; }
+.main { flex:1; padding:20px; overflow:auto; }
+.page-header { margin-bottom:16px; }
+.page-title { font-size:20px; font-weight:600; }
+.page-desc { margin-top:8px; padding:10px 12px; background:#f4f4f5; border-left:3px solid #909399; color:#606266; font-size:13px; }
+.card { background:#fff; border:1px solid #e4e7ed; border-radius:4px; padding:16px; }
+.toolbar { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
+.toolbar .spacer { flex:1; }
+label.f { color:#606266; font-size:13px; }
+select,input[type=text] { height:32px; padding:0 10px; border:1px solid #dcdfe6; border-radius:4px; font-size:13px; color:#606266; background:#fff; outline:none; }
+select:focus,input[type=text]:focus { border-color:#409eff; }
+input[type=text]::placeholder { color:#c0c4cc; }
+.btn { height:32px; padding:0 16px; border:1px solid #dcdfe6; border-radius:4px; background:#fff; color:#606266; cursor:pointer; font-size:13px; }
+.btn:hover { color:#409eff; border-color:#c6e2ff; background:#ecf5ff; }
+.btn-primary { background:#409eff; border-color:#409eff; color:#fff; }
+.btn-primary:hover { background:#66b1ff; border-color:#66b1ff; color:#fff; }
+.btn[disabled] { background:#f5f7fa; border-color:#e4e7ed; color:#c0c4cc; cursor:not-allowed; }
+.btn[disabled]:hover { background:#f5f7fa; border-color:#e4e7ed; color:#c0c4cc; }
+table { width:100%; border-collapse:collapse; }
+th { background:#fafafa; text-align:left; padding:11px 12px; font-weight:500; color:#909399; border-bottom:1px solid #ebeef5; font-size:13px; }
+td { padding:11px 12px; border-bottom:1px solid #ebeef5; font-size:13px; }
+tr.group-head td { background:#f8f9fb; font-weight:600; color:#606266; }
+tr.hl { animation:hl 2s ease-out; }
+@keyframes hl { 0%{background:#f0f9eb;} 100%{background:transparent;} }
+.tag { display:inline-block; padding:1px 8px; border-radius:3px; font-size:12px; line-height:20px; }
+.tag-blue { background:#ecf5ff; color:#409eff; border:1px solid #d9ecff; }
+.tag-gray { background:#f4f4f5; color:#909399; border:1px solid #e9e9eb; }
+.tag-green { background:#f0f9eb; color:#67c23a; border:1px solid #e1f3d8; }
+.tag-red { background:#fef0f0; color:#f56c6c; border:1px solid #fde2e2; }
+.link { color:#409eff; cursor:pointer; }
+.link:hover { text-decoration:underline; }
+.link.dis { color:#c0c4cc; cursor:not-allowed; text-decoration:none; }
+.muted { color:#c0c4cc; }
+.empty { padding:48px 0; text-align:center; color:#909399; }
+.empty .ico { font-size:36px; color:#dcdfe6; margin-bottom:8px; }
+.pager { margin-top:16px; display:flex; justify-content:flex-end; align-items:center; gap:8px; color:#606266; font-size:13px; }
+.pg { min-width:28px; height:28px; border:1px solid #dcdfe6; border-radius:3px; background:#fff; cursor:pointer; }
+.pg.on { background:#409eff; border-color:#409eff; color:#fff; }
+.mask { position:fixed; inset:0; background:rgba(0,0,0,.5); display:none; align-items:center; justify-content:center; z-index:100; }
+.mask.show { display:flex; }
+.modal { background:#fff; border-radius:4px; width:520px; max-width:92vw; max-height:88vh; display:flex; flex-direction:column; }
+.modal.lg { width:760px; }
+.modal-head { padding:16px 20px; border-bottom:1px solid #ebeef5; display:flex; align-items:center; }
+.modal-head h3 { font-size:16px; font-weight:600; flex:1; }
+.close { cursor:pointer; color:#909399; font-size:18px; line-height:1; }
+.modal-body { padding:20px; overflow:auto; }
+.modal-foot { padding:12px 20px; border-top:1px solid #ebeef5; text-align:right; }
+.modal-foot .btn { margin-left:8px; }
+.form-row { display:flex; margin-bottom:18px; }
+.form-row .lbl { width:96px; flex-shrink:0; text-align:right; padding-right:12px; color:#606266; line-height:32px; }
+.form-row .lbl .req { color:#f56c6c; margin-right:2px; }
+.form-row .ctl { flex:1; }
+.form-row .ctl input[type=text] { width:100%; }
+.readonly { line-height:32px; color:#303133; }
+.count { text-align:right; font-size:12px; color:#909399; margin-top:4px; }
+.count.over { color:#f56c6c; }
+.err { color:#f56c6c; font-size:12px; margin-top:4px; display:none; }
+.err.show { display:block; }
+.input-err input[type=text],.input-err select { border-color:#f56c6c; }
+.note { background:#fdf6ec; border-left:3px solid #e6a23c; padding:8px 12px; color:#a16207; font-size:12px; margin-top:4px; }
+.toast { position:fixed; top:20px; left:50%; transform:translateX(-50%); padding:10px 20px; border-radius:4px; z-index:300; font-size:14px; display:none; }
+.toast.show { display:block; }
+.toast.ok { background:#f0f9eb; border:1px solid #e1f3d8; color:#67c23a; }
+.toast.fail { background:#fef0f0; border:1px solid #fde2e2; color:#f56c6c; }
+.action-box { border:1px solid #e4e7ed; border-radius:4px; padding:14px; margin-bottom:12px; background:#fafbfc; }
+.action-head { display:flex; align-items:center; gap:8px; margin-bottom:12px; }
+.action-head .name { font-weight:600; }
+.action-head .spacer { flex:1; }
+.field-line { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+.field-line .fl-lbl { width:96px; text-align:right; color:#606266; flex-shrink:0; }
+.field-line .fl-lbl .req { color:#f56c6c; margin-right:2px; }
+.hint { color:#909399; font-size:12px; }
+.switch { width:40px; height:20px; border-radius:10px; background:#dcdfe6; position:relative; cursor:pointer; flex-shrink:0; }
+.switch.on { background:#409eff; }
+.switch i { position:absolute; top:2px; left:2px; width:16px; height:16px; border-radius:50%; background:#fff; transition:left .2s; }
+.switch.on i { left:22px; }
+.sel-wrap { position:relative; width:260px; }
+.sel-box { height:32px; border:1px solid #dcdfe6; border-radius:4px; padding:0 28px 0 10px; line-height:30px; cursor:pointer; background:#fff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.sel-box.ph { color:#c0c4cc; }
+.sel-box:after { content:"\25BE"; position:absolute; right:10px; top:0; line-height:32px; color:#c0c4cc; }
+.sel-drop { display:none; position:absolute; top:36px; left:0; right:0; background:#fff; border:1px solid #e4e7ed; border-radius:4px; box-shadow:0 2px 12px rgba(0,0,0,.1); z-index:20; max-height:220px; overflow:auto; }
+.sel-drop.show { display:block; }
+.sel-opt { padding:8px 10px; cursor:pointer; }
+.sel-opt:hover { background:#f5f7fa; }
+.sel-opt.on { color:#409eff; font-weight:500; }
+.sel-empty { padding:16px 10px; text-align:center; color:#909399; font-size:13px; }
+.demo-bar { background:#fff; border:1px dashed #dcdfe6; border-radius:4px; padding:10px 14px; margin-bottom:16px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.demo-bar .t { color:#909399; font-size:12px; }
+.confirm-text { padding:8px 0 0; color:#606266; }
+</style>
+</head>
+<body>
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-title">企微机器人</div>
+    <div class="menu-item" data-view="rule">规则配置</div>
+    <div class="menu-item active" data-view="reason">转人工原因管理</div>
+    <div class="menu-item disabled">会话属性</div>
+    <div class="menu-item disabled">全局配置</div>
+    <div class="menu-item disabled">话术模板</div>
+    <div class="menu-item disabled">AI 员工管理</div>
+  </div>
+
+  <div class="main">
+    <!-- ============ 视图一：转人工原因管理 ============ -->
+    <div id="view-reason">
+      <div class="page-header">
+        <div class="page-title">转人工原因管理</div>
+        <div class="page-desc">仅规则引擎触发的转人工原因可新增与重命名，其余原因由系统写入，仅供查看。</div>
+      </div>
+
+      <div class="demo-bar">
+        <span class="t">原型演示开关：</span>
+        <button class="btn" onclick="togglePerm()"><span id="permTxt">当前：编辑权限</span></button>
+        <button class="btn" onclick="toggleEmpty()"><span id="emptyTxt">列表：正常</span></button>
+        <button class="btn" onclick="toggleFail()"><span id="failTxt">保存：成功</span></button>
+      </div>
+
+      <div class="card">
+        <div class="toolbar">
+          <label class="f">触发类型</label>
+          <select id="fType" onchange="renderReason()">
+            <option value="">全部</option>
+            <option value="规则引擎">规则引擎</option>
+            <option value="用户被动">用户被动</option>
+            <option value="销售主动">销售主动</option>
+            <option value="标签回调">标签回调</option>
+            <option value="无法识别消息">无法识别消息</option>
+            <option value="空闲自动转回">空闲自动转回</option>
+          </select>
+          <input type="text" id="fKw" placeholder="请输入原因名称" maxlength="20" onkeydown="if(event.key==='Enter')renderReason()">
+          <button class="btn" onclick="renderReason()">搜索</button>
+          <button class="btn" onclick="clearFilter()">重置</button>
+          <div class="spacer"></div>
+          <button class="btn btn-primary" id="btnAdd" onclick="openAdd()">新增原因</button>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th style="width:130px">触发类型</th>
+              <th style="width:110px">原因分类</th>
+              <th>原因名称</th>
+              <th style="width:110px">是否可维护</th>
+              <th style="width:150px">创建时间</th>
+              <th style="width:90px">操作</th>
+            </tr>
+          </thead>
+          <tbody id="reasonBody"></tbody>
+        </table>
+        <div id="reasonEmpty"></div>
+        <div class="pager" id="reasonPager"></div>
+      </div>
+    </div>
+
+    <!-- ============ 视图二：规则配置 ============ -->
+    <div id="view-rule" style="display:none">
+      <div class="page-header">
+        <div class="page-title">规则配置</div>
+        <div class="page-desc">规则命中后按所配置的转人工原因发起转人工，原因来源于「转人工原因管理」页面。</div>
+      </div>
+
+      <div class="demo-bar">
+        <span class="t">原型演示开关：</span>
+        <button class="btn" onclick="toggleOptEmpty()"><span id="optEmptyTxt">原因选项：正常</span></button>
+        <button class="btn" onclick="toggleOptFail()"><span id="optFailTxt">选项加载：成功</span></button>
+      </div>
+
+      <div class="card">
+        <div class="toolbar">
+          <div class="spacer"></div>
+          <button class="btn btn-primary" onclick="openRule(null)">新建规则</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width:60px">序号</th>
+              <th>规则名称</th>
+              <th style="width:170px">动作类型</th>
+              <th style="width:200px">转人工原因</th>
+              <th style="width:100px">状态</th>
+              <th style="width:80px">操作</th>
+            </tr>
+          </thead>
+          <tbody id="ruleBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 新增原因弹窗 -->
+<div class="mask" id="maskAdd">
+  <div class="modal">
+    <div class="modal-head"><h3>新增转人工原因</h3><span class="close" onclick="closeAdd()">&times;</span></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="lbl">触发类型</div>
+        <div class="ctl"><div class="readonly">规则引擎</div></div>
+      </div>
+      <div class="form-row">
+        <div class="lbl">原因分类</div>
+        <div class="ctl"><div class="readonly">规则命中</div></div>
+      </div>
+      <div class="form-row" id="addRow">
+        <div class="lbl"><span class="req">*</span>原因名称</div>
+        <div class="ctl">
+          <input type="text" id="addName" maxlength="20" placeholder="请输入原因名称，例如高意向信号" oninput="onAddInput()">
+          <div class="count" id="addCount">0/20</div>
+          <div class="err" id="addErr"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeAdd()">取消</button>
+      <button class="btn btn-primary" id="addOk" disabled title="请先填写原因名称" onclick="submitAdd()">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- 重命名弹窗 -->
+<div class="mask" id="maskRen">
+  <div class="modal">
+    <div class="modal-head"><h3>重命名转人工原因</h3><span class="close" onclick="closeRen()">&times;</span></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="lbl">原名称</div>
+        <div class="ctl"><div class="readonly" id="renOld"></div></div>
+      </div>
+      <div class="form-row" id="renRow">
+        <div class="lbl"><span class="req">*</span>新名称</div>
+        <div class="ctl">
+          <input type="text" id="renName" maxlength="20" oninput="onRenInput()">
+          <div class="count" id="renCount">0/20</div>
+          <div class="err" id="renErr"></div>
+        </div>
+      </div>
+      <div class="note">重命名后，已使用该原因的规则与历史转人工记录将同步显示新名称。</div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeRen()">取消</button>
+      <button class="btn btn-primary" id="renOk" disabled title="请填写新的原因名称" onclick="submitRen()">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- 规则弹窗 -->
+<div class="mask" id="maskRule">
+  <div class="modal lg">
+    <div class="modal-head"><h3 id="ruleTitle">新建规则</h3><span class="close" onclick="closeRule()">&times;</span></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="lbl"><span class="req">*</span>规则名称</div>
+        <div class="ctl"><input type="text" id="ruleName" maxlength="30" placeholder="请输入规则名称"></div>
+      </div>
+      <div class="form-row">
+        <div class="lbl">触发条件</div>
+        <div class="ctl"><div class="readonly hint">沿用现有条件配置（原型不展开）</div></div>
+      </div>
+
+      <div style="font-weight:600;margin:4px 0 12px">动作配置</div>
+      <div class="action-box">
+        <div class="action-head">
+          <span class="name">动作 1</span>
+          <select disabled><option>转人工</option></select>
+          <div class="spacer"></div>
+          <span class="hint">命中后立即执行</span>
+        </div>
+
+        <div class="field-line">
+          <div class="fl-lbl">目标接待状态</div>
+          <span class="tag tag-red">转人工接待</span>
+          <span class="hint">沿用现有配置，不可修改</span>
+        </div>
+
+        <div class="field-line" style="align-items:flex-start">
+          <div class="fl-lbl" style="line-height:32px"><span class="req">*</span>转人工原因</div>
+          <div>
+            <div class="sel-wrap" id="reasonSelWrap">
+              <div class="sel-box ph" id="reasonSelBox" onclick="toggleDrop()">请选择转人工原因</div>
+              <div class="sel-drop" id="reasonDrop"></div>
+            </div>
+            <div class="err" id="ruleErr">请选择转人工原因</div>
+          </div>
+          <span class="link" onclick="gotoReasonPage()">前往新增原因</span>
+        </div>
+
+        <div class="field-line">
+          <div class="fl-lbl">坐席通知</div>
+          <div class="switch" id="notifySw" onclick="this.classList.toggle('on')"><i></i></div>
+          <span class="hint">开启后转人工时向承接坐席发送提醒</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeRule()">取消</button>
+      <button class="btn btn-primary" onclick="submitRule()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 二次确认弹窗 -->
+<div class="mask" id="maskConfirm">
+  <div class="modal" style="width:420px">
+    <div class="modal-head"><h3>提示</h3><span class="close" onclick="closeConfirm()">&times;</span></div>
+    <div class="modal-body"><div class="confirm-text" id="confirmText"></div></div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeConfirm()">取消</button>
+      <button class="btn btn-primary" onclick="doConfirm()">确定</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ 数据 ============ */
+var reasons = [
+  { id:1, trigger:"规则引擎", cat:"规则命中", name:"触发器动作", sys:true,  time:"2026-06-10 17:37" },
+  { id:2, trigger:"用户被动", cat:"用户意向", name:"确认购买意向", sys:true, time:"2026-06-03 15:00" },
+  { id:3, trigger:"用户被动", cat:"用户意向", name:"主动要求转人工", sys:true, time:"2026-06-03 15:00" },
+  { id:4, trigger:"用户被动", cat:"用户意向", name:"复杂咨询超出智能助手范围", sys:true, time:"2026-06-03 15:00" },
+  { id:5, trigger:"用户被动", cat:"异常协助", name:"智能助手服务异常", sys:true, time:"2026-06-03 15:00" },
+  { id:6, trigger:"用户被动", cat:"异常协助", name:"敏感内容违规拦截", sys:true, time:"2026-06-03 15:00" },
+  { id:7, trigger:"用户被动", cat:"异常协助", name:"多轮无效对话", sys:true, time:"2026-06-03 15:00" },
+  { id:8, trigger:"销售主动", cat:"销售主动", name:"销售主动转人工", sys:true, time:"2026-06-03 15:00" },
+  { id:9, trigger:"标签回调", cat:"用户意向", name:"主动要求转人工", sys:true, time:"2026-06-03 15:00" },
+  { id:10,trigger:"无法识别消息", cat:"用户意向", name:"特殊消息转人工", sys:true, time:"2026-06-25 16:10" },
+  { id:11,trigger:"空闲自动转回", cat:"系统自动", name:"空闲超时自动转回机器人", sys:true, time:"2026-07-03 21:00" }
+];
+var nextId = 100;
+var rules = [
+  { id:1, name:"连续 3 条消息未识别自动转人工", reasonId:1, legacy:true,  status:"已启用" },
+  { id:2, name:"购买页访问超过 3 次转人工",     reasonId:1, legacy:true,  status:"已启用" },
+  { id:3, name:"夜间时段消息转人工",           reasonId:1, legacy:true,  status:"已停用" }
+];
+
+/* 演示开关 */
+var canEdit = true, listEmpty = false, saveFail = false, optEmpty = false, optFail = false;
+/* 状态 */
+var curPage = 1, pageSize = 20, hlId = 0, renId = 0, curRuleId = null, curSelReason = null, confirmCb = null;
+
+/* ============ 通用 ============ */
+function toast(msg, ok){
+  var t = document.getElementById("toast");
+  t.className = "toast show " + (ok === false ? "fail" : "ok");
+  t.textContent = msg;
+  setTimeout(function(){ t.className = "toast"; }, 2200);
+}
+function openConfirm(text, cb){
+  document.getElementById("confirmText").textContent = text;
+  document.getElementById("maskConfirm").classList.add("show");
+  confirmCb = cb;
+}
+function closeConfirm(){ document.getElementById("maskConfirm").classList.remove("show"); confirmCb = null; }
+function doConfirm(){ var cb = confirmCb; closeConfirm(); if (cb) cb(); }
+
+/* ============ 演示开关 ============ */
+function togglePerm(){
+  canEdit = !canEdit;
+  document.getElementById("permTxt").textContent = canEdit ? "当前：编辑权限" : "当前：仅查看权限";
+  renderReason();
+}
+function toggleEmpty(){
+  listEmpty = !listEmpty;
+  document.getElementById("emptyTxt").textContent = listEmpty ? "列表：空态" : "列表：正常";
+  renderReason();
+}
+function toggleFail(){
+  saveFail = !saveFail;
+  document.getElementById("failTxt").textContent = saveFail ? "保存：失败" : "保存：成功";
+}
+function toggleOptEmpty(){
+  optEmpty = !optEmpty;
+  document.getElementById("optEmptyTxt").textContent = optEmpty ? "原因选项：无可选" : "原因选项：正常";
+}
+function toggleOptFail(){
+  optFail = !optFail;
+  document.getElementById("optFailTxt").textContent = optFail ? "选项加载：失败" : "选项加载：成功";
+}
+
+/* ============ 菜单 ============ */
+document.querySelectorAll(".menu-item").forEach(function(m){
+  m.addEventListener("click", function(){
+    if (m.classList.contains("disabled")) return;
+    var v = m.getAttribute("data-view");
+    if (!v) return;
+    document.querySelectorAll(".menu-item").forEach(function(x){ x.classList.remove("active"); });
+    m.classList.add("active");
+    document.getElementById("view-reason").style.display = v === "reason" ? "" : "none";
+    document.getElementById("view-rule").style.display   = v === "rule"   ? "" : "none";
+  });
+});
+function gotoReasonPage(){
+  toast("已在新标签页打开转人工原因管理，当前规则内容已保留");
+  document.querySelectorAll(".menu-item").forEach(function(x){ x.classList.remove("active"); });
+  document.querySelector('[data-view="reason"]').classList.add("active");
+  document.getElementById("view-reason").style.display = "";
+  document.getElementById("view-rule").style.display = "none";
+  document.getElementById("maskRule").classList.remove("show");
+}
+
+/* ============ 原因列表 ============ */
+function ruleReasons(){ return reasons.filter(function(r){ return r.trigger === "规则引擎"; }); }
+function editable(r){ return r.trigger === "规则引擎" && !r.sys; }
+
+function filtered(){
+  if (listEmpty) return [];
+  var t = document.getElementById("fType").value;
+  var k = document.getElementById("fKw").value.trim();
+  var list = reasons.filter(function(r){
+    if (t && r.trigger !== t) return false;
+    if (k && r.name.indexOf(k) === -1) return false;
+    return true;
+  });
+  var order = ["规则引擎","用户被动","销售主动","标签回调","无法识别消息","空闲自动转回"];
+  list.sort(function(a,b){
+    var d = order.indexOf(a.trigger) - order.indexOf(b.trigger);
+    return d !== 0 ? d : (a.time < b.time ? -1 : a.time > b.time ? 1 : a.id - b.id);
+  });
+  return list;
+}
+function clearFilter(){
+  document.getElementById("fType").value = "";
+  document.getElementById("fKw").value = "";
+  listEmpty = false;
+  document.getElementById("emptyTxt").textContent = "列表：正常";
+  curPage = 1;
+  renderReason();
+}
+function renderReason(){
+  var body = document.getElementById("reasonBody");
+  var box  = document.getElementById("reasonEmpty");
+  var pgr  = document.getElementById("reasonPager");
+  var btn  = document.getElementById("btnAdd");
+
+  btn.disabled = !canEdit;
+  btn.title = canEdit ? "" : "暂无操作权限，请联系管理员";
+
+  var list = filtered();
+  body.innerHTML = ""; box.innerHTML = ""; pgr.innerHTML = "";
+
+  if (!list.length){
+    var hasFilter = document.getElementById("fType").value || document.getElementById("fKw").value.trim();
+    box.innerHTML = hasFilter
+      ? '<div class="empty"><div class="ico">&#9744;</div><div>没有符合条件的转人工原因</div><div style="margin-top:12px"><button class="btn" onclick="clearFilter()">清空筛选</button></div></div>'
+      : '<div class="empty"><div class="ico">&#9744;</div><div>暂无转人工原因，点击右上方新增</div><div style="margin-top:12px"><button class="btn btn-primary" onclick="openAdd()">新增原因</button></div></div>';
+    return;
+  }
+
+  var total = list.length;
+  var start = (curPage - 1) * pageSize;
+  var page  = list.slice(start, start + pageSize);
+  var lastTrigger = "";
+
+  page.forEach(function(r){
+    if (r.trigger !== lastTrigger){
+      lastTrigger = r.trigger;
+      var g = document.createElement("tr");
+      g.className = "group-head";
+      g.innerHTML = '<td colspan="6">' + r.trigger + '</td>';
+      body.appendChild(g);
+    }
+    var tr = document.createElement("tr");
+    if (r.id === hlId) tr.className = "hl";
+    var canRen = editable(r);
+    var op = canRen
+      ? (canEdit
+          ? '<span class="link" onclick="openRen(' + r.id + ')">重命名</span>'
+          : '<span class="link dis" title="暂无操作权限，请联系管理员">重命名</span>')
+      : '<span class="muted">—</span>';
+    tr.innerHTML =
+      '<td>' + r.trigger + '</td>' +
+      '<td>' + r.cat + '</td>' +
+      '<td>' + r.name + (r.sys && r.trigger === "规则引擎" ? ' <span class="tag tag-gray">系统默认</span>' : '') + '</td>' +
+      '<td>' + (canRen ? '<span class="tag tag-green">可维护</span>' : '<span class="tag tag-gray">系统内置</span>') + '</td>' +
+      '<td>' + (r.time || '<span class="muted">—</span>') + '</td>' +
+      '<td>' + op + '</td>';
+    body.appendChild(tr);
+  });
+  hlId = 0;
+
+  var pages = Math.max(1, Math.ceil(total / pageSize));
+  var html = '<span>共 ' + total + ' 条</span>';
+  for (var i = 1; i <= pages; i++){
+    html += '<button class="pg ' + (i === curPage ? 'on' : '') + '" onclick="curPage=' + i + ';renderReason()">' + i + '</button>';
+  }
+  pgr.innerHTML = html;
+}
+
+/* ============ 新增原因 ============ */
+function openAdd(){
+  if (!canEdit) return;
+  document.getElementById("addName").value = "";
+  document.getElementById("addCount").textContent = "0/20";
+  document.getElementById("addCount").className = "count";
+  document.getElementById("addErr").className = "err";
+  document.getElementById("addRow").classList.remove("input-err");
+  document.getElementById("addOk").disabled = true;
+  document.getElementById("maskAdd").classList.add("show");
+  setTimeout(function(){ document.getElementById("addName").focus(); }, 50);
+}
+function closeAdd(){
+  var v = document.getElementById("addName").value;
+  if (v.length){
+    openConfirm("填写的内容将不会保存，确认离开？", function(){
+      document.getElementById("maskAdd").classList.remove("show");
+    });
+    return;
+  }
+  document.getElementById("maskAdd").classList.remove("show");
+}
+function onAddInput(){
+  var v = document.getElementById("addName").value;
+  var c = document.getElementById("addCount");
+  c.textContent = v.length + "/20";
+  c.className = "count" + (v.length >= 20 ? " over" : "");
+  document.getElementById("addOk").disabled = v.trim().length === 0;
+  document.getElementById("addErr").className = "err";
+  document.getElementById("addRow").classList.remove("input-err");
+}
+function submitAdd(){
+  var name = document.getElementById("addName").value.trim();
+  var err  = document.getElementById("addErr");
+  if (!name){
+    err.textContent = "请输入原因名称"; err.className = "err show";
+    document.getElementById("addRow").classList.add("input-err");
+    return;
+  }
+  var dup = ruleReasons().some(function(r){ return r.name === name; });
+  if (dup){
+    err.textContent = "该原因名称已存在，请更换"; err.className = "err show";
+    document.getElementById("addRow").classList.add("input-err");
+    return;
+  }
+  var ok = document.getElementById("addOk");
+  ok.disabled = true; ok.textContent = "提交中…";
+  setTimeout(function(){
+    ok.textContent = "确定"; ok.disabled = false;
+    if (saveFail){ toast("新增失败，请重试", false); return; }
+    var now = new Date();
+    var pad = function(n){ return n < 10 ? "0" + n : "" + n; };
+    reasons.push({
+      id: nextId, trigger:"规则引擎", cat:"规则命中", name:name, sys:false,
+      time: now.getFullYear() + "-" + pad(now.getMonth()+1) + "-" + pad(now.getDate()) + " " + pad(now.getHours()) + ":" + pad(now.getMinutes())
+    });
+    hlId = nextId; nextId++;
+    document.getElementById("maskAdd").classList.remove("show");
+    document.getElementById("fType").value = "规则引擎";
+    document.getElementById("fKw").value = "";
+    curPage = 1;
+    renderReason();
+    toast("新增成功");
+  }, 400);
+}
+
+/* ============ 重命名 ============ */
+function openRen(id){
+  if (!canEdit) return;
+  var r = reasons.filter(function(x){ return x.id === id; })[0];
+  if (!r) return;
+  renId = id;
+  document.getElementById("renOld").textContent = r.name;
+  var inp = document.getElementById("renName");
+  inp.value = r.name;
+  document.getElementById("renCount").textContent = r.name.length + "/20";
+  document.getElementById("renErr").className = "err";
+  document.getElementById("renRow").classList.remove("input-err");
+  document.getElementById("renOk").disabled = true;
+  document.getElementById("maskRen").classList.add("show");
+  setTimeout(function(){ inp.focus(); inp.select(); }, 50);
+}
+function closeRen(){
+  var r = reasons.filter(function(x){ return x.id === renId; })[0];
+  var v = document.getElementById("renName").value;
+  if (r && v !== r.name){
+    openConfirm("修改的内容将不会保存，确认离开？", function(){
+      document.getElementById("maskRen").classList.remove("show");
+    });
+    return;
+  }
+  document.getElementById("maskRen").classList.remove("show");
+}
+function onRenInput(){
+  var v = document.getElementById("renName").value;
+  var r = reasons.filter(function(x){ return x.id === renId; })[0];
+  var c = document.getElementById("renCount");
+  c.textContent = v.length + "/20";
+  c.className = "count" + (v.length >= 20 ? " over" : "");
+  var ok = document.getElementById("renOk");
+  ok.disabled = (v.trim().length === 0 || (r && v.trim() === r.name));
+  ok.title = ok.disabled ? "请填写新的原因名称" : "";
+  document.getElementById("renErr").className = "err";
+  document.getElementById("renRow").classList.remove("input-err");
+}
+function submitRen(){
+  var name = document.getElementById("renName").value.trim();
+  var err  = document.getElementById("renErr");
+  var dup  = ruleReasons().some(function(r){ return r.name === name && r.id !== renId; });
+  if (dup){
+    err.textContent = "该原因名称已存在，请更换"; err.className = "err show";
+    document.getElementById("renRow").classList.add("input-err");
+    return;
+  }
+  setTimeout(function(){
+    if (saveFail){ toast("修改失败，请重试", false); return; }
+    reasons.forEach(function(r){ if (r.id === renId) r.name = name; });
+    document.getElementById("maskRen").classList.remove("show");
+    renderReason(); renderRule();
+    toast("修改成功");
+  }, 300);
+}
+
+/* ============ 规则列表 ============ */
+function reasonName(id){
+  var r = reasons.filter(function(x){ return x.id === id; })[0];
+  return r ? r.name : "";
+}
+function renderRule(){
+  var body = document.getElementById("ruleBody");
+  body.innerHTML = "";
+  rules.forEach(function(r, i){
+    var tr = document.createElement("tr");
+    var nm = reasonName(r.reasonId);
+    tr.innerHTML =
+      '<td>' + (i + 1) + '</td>' +
+      '<td>' + r.name + '</td>' +
+      '<td><span class="tag tag-red">转人工</span></td>' +
+      '<td>' + nm + (r.legacy ? ' <span class="tag tag-gray">上线前配置</span>' : '') + '</td>' +
+      '<td>' + (r.status === "已启用" ? '<span class="tag tag-green">已启用</span>' : '<span class="tag tag-gray">已停用</span>') + '</td>' +
+      '<td><span class="link" onclick="openRule(' + r.id + ')">编辑</span></td>';
+    body.appendChild(tr);
+  });
+}
+
+/* ============ 规则弹窗 ============ */
+function openRule(id){
+  curRuleId = id;
+  var r = id ? rules.filter(function(x){ return x.id === id; })[0] : null;
+  document.getElementById("ruleTitle").textContent = r ? "编辑规则" : "新建规则";
+  document.getElementById("ruleName").value = r ? r.name : "";
+  document.getElementById("notifySw").classList.remove("on");
+  curSelReason = r ? r.reasonId : null;
+  paintSel();
+  document.getElementById("ruleErr").className = "err";
+  document.getElementById("reasonDrop").classList.remove("show");
+  document.getElementById("maskRule").classList.add("show");
+}
+function closeRule(){ document.getElementById("maskRule").classList.remove("show"); }
+function paintSel(){
+  var box = document.getElementById("reasonSelBox");
+  if (curSelReason){
+    box.textContent = reasonName(curSelReason);
+    box.className = "sel-box";
+  } else {
+    box.textContent = "请选择转人工原因";
+    box.className = "sel-box ph";
+  }
+}
+function toggleDrop(){
+  var d = document.getElementById("reasonDrop");
+  if (d.classList.contains("show")){ d.classList.remove("show"); return; }
+  d.innerHTML = "";
+  if (optFail){
+    d.innerHTML = '<div class="sel-empty">加载失败，请重试<div style="margin-top:8px"><button class="btn" onclick="event.stopPropagation();toggleOptFail();toggleDrop();toggleDrop()">重新加载</button></div></div>';
+  } else if (optEmpty || !ruleReasons().length){
+    d.innerHTML = '<div class="sel-empty">暂无可选原因，请先前往转人工原因管理页面新增<div style="margin-top:8px"><button class="btn btn-primary" onclick="event.stopPropagation();gotoReasonPage()">前往新增</button></div></div>';
+  } else {
+    ruleReasons().forEach(function(r){
+      var o = document.createElement("div");
+      o.className = "sel-opt" + (r.id === curSelReason ? " on" : "");
+      o.textContent = r.name;
+      o.onclick = function(e){
+        e.stopPropagation();
+        curSelReason = r.id;
+        paintSel();
+        document.getElementById("ruleErr").className = "err";
+        d.classList.remove("show");
+      };
+      d.appendChild(o);
+    });
+  }
+  d.classList.add("show");
+}
+document.addEventListener("click", function(e){
+  var w = document.getElementById("reasonSelWrap");
+  if (w && !w.contains(e.target)) document.getElementById("reasonDrop").classList.remove("show");
+});
+function submitRule(){
+  var name = document.getElementById("ruleName").value.trim();
+  if (!name){ toast("请输入规则名称", false); return; }
+  if (!curSelReason){
+    document.getElementById("ruleErr").className = "err show";
+    document.getElementById("reasonSelBox").style.borderColor = "#f56c6c";
+    toast("请选择转人工原因", false);
+    return;
+  }
+  document.getElementById("reasonSelBox").style.borderColor = "";
+  if (curRuleId){
+    rules.forEach(function(r){
+      if (r.id === curRuleId){ r.name = name; r.reasonId = curSelReason; r.legacy = false; }
+    });
+  } else {
+    rules.push({ id: Date.now(), name:name, reasonId:curSelReason, legacy:false, status:"已启用" });
+  }
+  closeRule(); renderRule();
+  toast("保存成功");
+}
+
+/* ============ 初始化 ============ */
+renderReason();
+renderRule();
+</script>
+</body>
+</html>
