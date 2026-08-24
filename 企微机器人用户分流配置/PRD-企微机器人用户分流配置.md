@@ -5,6 +5,7 @@
 | 版本号 | 修改日期 | 修改原因 | 修订人 |
 |--------|----------|----------|--------|
 | v1.0 | 2026-08-24 | 初稿 | AI PRD Writer |
+| v1.1 | 2026-08-24 | 规则分组的所属分流组改为可随时修改，不再要求通过复制换组 | AI PRD Writer |
 
 ## 二、需求概述
 
@@ -116,7 +117,7 @@ flowchart TD
 
 ## 六、可交互原型
 
-在线预览：[点击查看可交互原型](https://minio.yc345.tv/onionext/prototypes/wework-bot-user-split/index.html)（内网，需飞连）
+在线预览：[点击查看可交互原型](https://minio.yc345.tv/onionext/prototypes/wework-bot-user-split/index-20260824105258292159.html)（内网，需飞连）
 
 GitHub 预览（公网）：[点击查看](https://leo-ai05.github.io/prototypes/%E4%BC%81%E5%BE%AE%E6%9C%BA%E5%99%A8%E4%BA%BA%E7%94%A8%E6%88%B7%E5%88%86%E6%B5%81%E9%85%8D%E7%BD%AE/)
 
