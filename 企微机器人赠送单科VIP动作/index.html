@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>企微机器人赠送单科VIP动作 · 可交互原型</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-size: 14px;
+    color: #303133;
+    background: #f5f7fa;
+  }
+  .page { padding: 16px 20px 40px; }
+  .crumb { color: #909399; font-size: 13px; margin-bottom: 12px; }
+  .crumb b { color: #303133; font-weight: 600; }
+  .card {
+    background: #fff;
+    border: 1px solid #ebeef5;
+    border-radius: 4px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .card-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .card-title { font-size: 15px; font-weight: 600; }
+  .hint { color: #909399; font-size: 12px; }
+
+  /* buttons */
+  .btn {
+    display: inline-flex; align-items: center; gap: 4px;
+    height: 32px; padding: 0 14px;
+    border: 1px solid #dcdfe6; border-radius: 4px;
+    background: #fff; color: #606266;
+    font-size: 13px; cursor: pointer; white-space: nowrap;
+  }
+  .btn:hover { border-color: #c6e2ff; color: #409eff; }
+  .btn-primary { background: #409eff; border-color: #409eff; color: #fff; }
+  .btn-primary:hover { background: #66b1ff; border-color: #66b1ff; color: #fff; }
+  .btn-danger { background: #f56c6c; border-color: #f56c6c; color: #fff; }
+  .btn-danger:hover { background: #f78989; border-color: #f78989; color: #fff; }
+  .btn-text { border: none; background: transparent; color: #409eff; padding: 0 6px; height: 24px; }
+  .btn-sm { height: 26px; padding: 0 10px; font-size: 12px; }
+  .btn-circle {
+    width: 26px; height: 26px; padding: 0; border-radius: 50%;
+    justify-content: center; font-size: 14px; line-height: 1;
+  }
+
+  /* table */
+  table { width: 100%; border-collapse: collapse; }
+  th, td {
+    border-bottom: 1px solid #ebeef5;
+    padding: 10px 8px; text-align: left; font-size: 13px; vertical-align: middle;
+  }
+  th { background: #fafafa; color: #606266; font-weight: 600; }
+  td { color: #606266; }
+  .rule-name { color: #303133; font-weight: 500; }
+
+  /* tags */
+  .tag {
+    display: inline-block; padding: 0 8px; height: 22px; line-height: 20px;
+    border-radius: 3px; font-size: 12px; margin: 2px 4px 2px 0; white-space: nowrap;
+  }
+  .tag-primary { background: #ecf5ff; border: 1px solid #d9ecff; color: #409eff; }
+  .tag-success { background: #f0f9eb; border: 1px solid #e1f3d8; color: #67c23a; }
+  .tag-warning { background: #fdf6ec; border: 1px solid #faecd8; color: #e6a23c; }
+  .tag-danger  { background: #fef0f0; border: 1px solid #fde2e2; color: #f56c6c; }
+  .tag-info    { background: #f4f4f5; border: 1px solid #e9e9eb; color: #909399; }
+  .tag-new { box-shadow: 0 0 0 2px rgba(103,194,58,.18); }
+
+  .switch {
+    display: inline-block; width: 40px; height: 20px; border-radius: 10px;
+    background: #67c23a; position: relative; vertical-align: middle;
+  }
+  .switch.off { background: #dcdfe6; }
+  .switch::after {
+    content: ""; position: absolute; top: 2px; right: 2px;
+    width: 16px; height: 16px; border-radius: 50%; background: #fff;
+  }
+  .switch.off::after { right: auto; left: 2px; }
+
+  /* dialog */
+  .mask {
+    position: fixed; inset: 0; background: rgba(0,0,0,.5);
+    display: none; align-items: flex-start; justify-content: center;
+    z-index: 100; overflow: auto; padding: 40px 0;
+  }
+  .mask.show { display: flex; }
+  .dialog {
+    width: 900px; background: #fff; border-radius: 4px;
+    box-shadow: 0 12px 32px rgba(0,0,0,.12);
+  }
+  .dialog-head {
+    padding: 16px 20px; border-bottom: 1px solid #ebeef5;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .dialog-title { font-size: 16px; font-weight: 600; }
+  .close { cursor: pointer; color: #909399; font-size: 18px; line-height: 1; }
+  .dialog-body { padding: 20px; max-height: 62vh; overflow: auto; }
+  .dialog-foot {
+    padding: 12px 20px; border-top: 1px solid #ebeef5;
+    display: flex; justify-content: flex-end; gap: 10px;
+  }
+
+  .form-row { display: flex; align-items: flex-start; margin-bottom: 16px; }
+  .form-label {
+    width: 110px; flex: 0 0 110px; text-align: right; padding-right: 12px;
+    color: #606266; line-height: 32px; font-size: 13px;
+  }
+  .form-label .req { color: #f56c6c; margin-right: 2px; }
+  .form-ctrl { flex: 1; min-width: 0; }
+
+  .input, .select {
+    height: 32px; border: 1px solid #dcdfe6; border-radius: 4px;
+    background: #fff; padding: 0 30px 0 11px; font-size: 13px; color: #303133;
+    width: 100%; outline: none;
+  }
+  .input:focus { border-color: #409eff; }
+
+  .sec-title {
+    font-size: 14px; font-weight: 600; margin: 4px 0 12px;
+    padding-left: 8px; border-left: 3px solid #409eff;
+  }
+
+  /* select component */
+  .sel-wrap { position: relative; display: inline-block; vertical-align: top; }
+  .sel-trigger {
+    min-height: 32px; border: 1px solid #dcdfe6; border-radius: 4px; background: #fff;
+    padding: 3px 30px 3px 8px; cursor: pointer; position: relative;
+    display: flex; align-items: center; flex-wrap: wrap; gap: 4px;
+    font-size: 13px;
+  }
+  .sel-trigger.open { border-color: #409eff; }
+  .sel-trigger .ph { color: #c0c4cc; padding-left: 3px; }
+  .sel-trigger .val { color: #303133; padding-left: 3px; }
+  .caret {
+    position: absolute; right: 9px; top: 50%; transform: translateY(-50%);
+    color: #c0c4cc; font-size: 11px; transition: transform .2s;
+  }
+  .sel-trigger.open .caret { transform: translateY(-50%) rotate(180deg); }
+  .clear {
+    position: absolute; right: 9px; top: 50%; transform: translateY(-50%);
+    color: #c0c4cc; font-size: 13px; background: #fff; display: none;
+  }
+  .sel-wrap:hover .clear.has { display: block; }
+  .sel-wrap:hover .clear.has + .caret { display: none; }
+
+  .chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    height: 24px; padding: 0 6px; background: #f4f4f5;
+    border: 1px solid #e9e9eb; border-radius: 3px;
+    color: #909399; font-size: 12px;
+  }
+  .chip i { cursor: pointer; font-style: normal; font-size: 13px; }
+  .chip i:hover { color: #606266; }
+
+  .dropdown {
+    position: absolute; top: calc(100% + 6px); left: 0; z-index: 20;
+    min-width: 100%; background: #fff; border: 1px solid #e4e7ed;
+    border-radius: 4px; box-shadow: 0 2px 12px rgba(0,0,0,.1);
+    padding: 6px 0; display: none;
+  }
+  .dropdown.show { display: block; }
+  .dd-search { padding: 0 8px 6px; }
+  .dd-search input {
+    width: 100%; height: 28px; border: 1px solid #dcdfe6;
+    border-radius: 4px; padding: 0 8px; font-size: 13px; outline: none;
+  }
+  .dd-list { max-height: 244px; overflow: auto; }
+  .opt {
+    padding: 0 20px; height: 34px; line-height: 34px;
+    font-size: 13px; color: #606266; cursor: pointer;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .opt:hover { background: #f5f7fa; }
+  .opt.selected { color: #409eff; font-weight: 600; }
+  .opt.disabled { color: #c0c4cc; cursor: not-allowed; }
+  .opt.disabled:hover { background: transparent; }
+  .opt .mark { color: #409eff; }
+  .opt .note { color: #909399; font-size: 12px; font-weight: 400; }
+  .dd-empty { padding: 12px 20px; color: #909399; font-size: 13px; }
+
+  .action-card {
+    background: #f8f9fb; border: 1px solid #ebeef5; border-radius: 4px;
+    padding: 14px; margin-bottom: 12px;
+  }
+  .action-line { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .action-line:last-child { margin-bottom: 0; }
+  .action-line .lb { font-size: 13px; color: #606266; width: 62px; flex: 0 0 62px; }
+  .w200 { width: 200px; }
+  .w420 { width: 420px; }
+
+  .checkbox { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; color: #606266; }
+  .box {
+    width: 14px; height: 14px; border: 1px solid #dcdfe6; border-radius: 2px;
+    background: #fff; display: inline-block; position: relative;
+  }
+  .checkbox.on .box { background: #409eff; border-color: #409eff; }
+  .checkbox.on .box::after {
+    content: ""; position: absolute; left: 4px; top: 1px;
+    width: 4px; height: 7px; border: 1px solid #fff;
+    border-left: 0; border-top: 0; transform: rotate(45deg);
+  }
+  .checkbox.disabled { color: #c0c4cc; cursor: not-allowed; }
+
+  /* toast */
+  .toast-area {
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+    z-index: 300; display: flex; flex-direction: column; gap: 10px; align-items: center;
+  }
+  .toast {
+    min-width: 300px; padding: 11px 16px; border-radius: 4px;
+    font-size: 13px; display: flex; align-items: center; gap: 8px;
+    box-shadow: 0 2px 12px rgba(0,0,0,.1);
+  }
+  .toast.warn { background: #fdf6ec; border: 1px solid #faecd8; color: #e6a23c; }
+  .toast.ok { background: #f0f9eb; border: 1px solid #e1f3d8; color: #67c23a; }
+
+  .tip-inline { color: #909399; font-size: 12px; }
+  .steps { color: #909399; font-size: 12px; line-height: 1.9; }
+  .steps b { color: #606266; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="crumb">企业微信机器人 / <b>规则配置</b></div>
+
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <span class="card-title">规则分组：新客首日跟进</span>
+        <span class="hint" style="margin-left:10px;">共 3 条规则</span>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <button class="btn">同步会话属性</button>
+        <button class="btn btn-primary" onclick="openDialog('create')">+ 新建规则</button>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width:80px;">规则ID</th>
+          <th style="min-width:160px;">规则名称</th>
+          <th style="width:110px;">触发类型</th>
+          <th style="min-width:230px;">动作类型</th>
+          <th style="width:150px;">更新时间</th>
+          <th style="width:90px;">启用状态</th>
+          <th style="width:150px;">操作</th>
+        </tr>
+      </thead>
+      <tbody id="ruleRows">
+        <tr>
+          <td>1042</td>
+          <td class="rule-name">新客加微后 5 分钟欢迎语</td>
+          <td>消息触发</td>
+          <td><span class="tag tag-primary">发送企业微信消息</span></td>
+          <td>2026-08-24 10:12</td>
+          <td><span class="switch"></span></td>
+          <td>
+            <button class="btn btn-text" onclick="openDialog('edit', 1042)">编辑</button>
+            <button class="btn btn-text">执行明细</button>
+          </td>
+        </tr>
+        <tr>
+          <td>1043</td>
+          <td class="rule-name">未成单客户第 2 日激活</td>
+          <td>定时任务</td>
+          <td>
+            <span class="tag tag-primary">发送企业微信消息</span>
+            <span class="tag tag-success">发送会员</span>
+          </td>
+          <td>2026-08-24 11:30</td>
+          <td><span class="switch"></span></td>
+          <td>
+            <button class="btn btn-text" onclick="openDialog('edit', 1043)">编辑</button>
+            <button class="btn btn-text">执行明细</button>
+          </td>
+        </tr>
+        <tr>
+          <td>1044</td>
+          <td class="rule-name">试听未转化客户单科体验召回</td>
+          <td>定时任务</td>
+          <td>
+            <span class="tag tag-primary">发送企业微信消息</span>
+            <span class="tag tag-success">赠送单科VIP</span>
+          </td>
+          <td>2026-08-25 09:05</td>
+          <td><span class="switch off"></span></td>
+          <td>
+            <button class="btn btn-text" onclick="openDialog('edit', 1044)">编辑</button>
+            <button class="btn btn-text">执行明细</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title" style="margin-bottom:8px;">原型体验路径</div>
+    <div class="steps">
+      1. 点击 <b>+ 新建规则</b> → 动作配置区展开「动作类型」下拉，可见新增的 <b>赠送单科VIP</b>（排在「发送会员」之后）。<br />
+      2. 选中后出现 <b>科目</b>（多选，最多 4 科，可搜索、可移除、可清空）与 <b>赠送天数</b>（1-7 天）两个配置项。<br />
+      3. 不选科目或不选天数直接点「确认」，会被阻断并给出对应提示。<br />
+      4. 勾选 <b>启用企业微信官方群发</b>，「赠送单科VIP」在下拉中置灰并标注「（不支持）」；已配置该动作时点「确认」会被阻断。<br />
+      5. 校验通过后规则列表新增一行，动作类型列出现绿色 <b>赠送单科VIP</b> 标签；点「编辑」可看到科目与天数回显。
+    </div>
+  </div>
+</div>
+
+<div class="mask" id="mask">
+  <div class="dialog">
+    <div class="dialog-head">
+      <span class="dialog-title" id="dlgTitle">新建规则</span>
+      <span class="close" onclick="closeDialog()">✕</span>
+    </div>
+
+    <div class="dialog-body">
+      <div class="sec-title">基础信息</div>
+      <div class="form-row">
+        <div class="form-label"><span class="req">*</span>规则名称</div>
+        <div class="form-ctrl"><input class="input" id="ruleName" placeholder="请输入规则名称" /></div>
+      </div>
+      <div class="form-row">
+        <div class="form-label">规则描述</div>
+        <div class="form-ctrl"><input class="input" id="ruleDesc" placeholder="请输入规则描述" /></div>
+      </div>
+
+      <div class="sec-title">触发配置</div>
+      <div class="form-row">
+        <div class="form-label"><span class="req">*</span>触发类型</div>
+        <div class="form-ctrl">
+          <div class="sel-wrap w200">
+            <div class="sel-trigger"><span class="val">定时任务</span><span class="caret">▾</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-label">官方群发</div>
+        <div class="form-ctrl">
+          <span class="checkbox" id="obCheck" onclick="toggleBroadcast()">
+            <span class="box"></span>启用企业微信官方群发
+          </span>
+          <div class="tip-inline" style="margin-top:6px;">
+            勾选后走企微官方群发：每外部联系人每自然日 1 次，仅支持静态文案，不支持学情类动作
+          </div>
+        </div>
+      </div>
+
+      <div class="sec-title">动作配置</div>
+      <div style="margin-bottom:12px;">
+        <button class="btn btn-primary btn-sm" onclick="addAction()">+ 添加动作</button>
+      </div>
+      <div id="actionList"></div>
+    </div>
+
+    <div class="dialog-foot">
+      <button class="btn" onclick="closeDialog()">取消</button>
+      <button class="btn btn-primary" onclick="submitRule()">确认</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-area" id="toastArea"></div>
+
+<script>
+  /* ---------- 数据 ---------- */
+  var ACTION_TYPES = [
+    { label: "发送企业微信消息", value: "msg",        color: "tag-primary" },
+    { label: "更新变量",         value: "variable",   color: "tag-info" },
+    { label: "发送会员",         value: "membership", color: "tag-success" },
+    { label: "赠送单科VIP",      value: "subjectVip", color: "tag-success", isNew: true },
+    { label: "学情报告",         value: "report",     color: "tag-warning", broadcastForbidden: true },
+    { label: "学情话术解析",     value: "analysis",   color: "tag-warning", broadcastForbidden: true },
+    { label: "转人工",           value: "human",      color: "tag-danger" },
+    { label: "发送小程序",       value: "mini",       color: "tag-primary" },
+    { label: "更新企业微信标签", value: "tag",        color: "tag-success" },
+    { label: "发送专属链接课包", value: "coursePkg",  color: "tag-danger" },
+    { label: "跳转APP",          value: "jumpApp",    color: "tag-primary", broadcastForbidden: true },
+    { label: "AI话术生成",       value: "aiScript",   color: "tag-primary", broadcastForbidden: true }
+  ];
+  /* 赠送单科VIP 在官方群发下不可选 */
+  ACTION_TYPES[3].broadcastForbidden = true;
+
+  var SUBJECTS = [
+    "小学数学", "小学思维培优", "小学实验", "小学语文", "小学英语",
+    "初中数学", "初中物理", "初中化学", "初中语文", "初中英语",
+    "初中生物", "初中地理", "初中科学", "初中道德与法治", "初中历史",
+    "高中数学", "高中物理", "高中语文", "高中化学", "高中生物",
+    "高中英语", "高中地理", "高中历史", "高中思想政治",
+    "从小学物理", "从小学生物", "从小学地理", "试卷库VIP"
+  ];
+  var PROVINCE_ONLY = { "初中科学": "仅浙江地区" };
+  var SUBJECT_MAX = 4;
+  var DAYS = [1, 2, 3, 4, 5, 6, 7];
+
+  /* 已存在规则（用于编辑回显） */
+  var RULES = {
+    1042: { name: "新客加微后 5 分钟欢迎语", desc: "新客加微后发送欢迎语", broadcast: false,
+            actions: [{ type: "msg" }] },
+    1043: { name: "未成单客户第 2 日激活", desc: "次日未成单客户发送会员", broadcast: false,
+            actions: [{ type: "msg" }, { type: "membership" }] },
+    1044: { name: "试听未转化客户单科体验召回", desc: "试听未转化客户赠送单科体验权益", broadcast: false,
+            actions: [{ type: "msg" }, { type: "subjectVip", subjects: ["初中数学", "初中物理"], days: 3 }] }
+  };
+
+  /* ---------- 弹窗状态 ---------- */
+  var state = { mode: "create", ruleId: null, broadcast: false, actions: [] };
+  var openedDropdown = null;
+
+  function toast(msg, type) {
+    var area = document.getElementById("toastArea");
+    var el = document.createElement("div");
+    el.className = "toast " + (type === "ok" ? "ok" : "warn");
+    el.textContent = (type === "ok" ? "✓  " : "!  ") + msg;
+    area.appendChild(el);
+    setTimeout(function () { area.removeChild(el); }, 2600);
+  }
+
+  function openDialog(mode, ruleId) {
+    state.mode = mode;
+    state.ruleId = ruleId || null;
+    closeDropdown();
+    if (mode === "edit") {
+      var r = RULES[ruleId];
+      document.getElementById("dlgTitle").textContent = "编辑规则";
+      document.getElementById("ruleName").value = r.name;
+      document.getElementById("ruleDesc").value = r.desc;
+      state.broadcast = r.broadcast;
+      state.actions = JSON.parse(JSON.stringify(r.actions));
+    } else {
+      document.getElementById("dlgTitle").textContent = "新建规则";
+      document.getElementById("ruleName").value = "";
+      document.getElementById("ruleDesc").value = "";
+      state.broadcast = false;
+      state.actions = [{ type: "subjectVip", subjects: [], days: null }];
+    }
+    renderBroadcast();
+    renderActions();
+    document.getElementById("mask").classList.add("show");
+  }
+
+  function closeDialog() {
+    closeDropdown();
+    document.getElementById("mask").classList.remove("show");
+  }
+
+  function toggleBroadcast() {
+    state.broadcast = !state.broadcast;
+    renderBroadcast();
+    renderActions();
+  }
+
+  function renderBroadcast() {
+    var el = document.getElementById("obCheck");
+    el.className = "checkbox" + (state.broadcast ? " on" : "");
+  }
+
+  function addAction() {
+    state.actions.push({ type: null, subjects: [], days: null });
+    renderActions();
+  }
+
+  function removeAction(i) {
+    state.actions.splice(i, 1);
+    renderActions();
+  }
+
+  function typeLabel(v) {
+    for (var i = 0; i < ACTION_TYPES.length; i++) {
+      if (ACTION_TYPES[i].value === v) return ACTION_TYPES[i].label;
+    }
+    return "";
+  }
+
+  function typeColor(v) {
+    for (var i = 0; i < ACTION_TYPES.length; i++) {
+      if (ACTION_TYPES[i].value === v) return ACTION_TYPES[i].color;
+    }
+    return "tag-info";
+  }
+
+  /* ---------- 渲染动作卡片 ---------- */
+  function renderActions() {
+    var wrap = document.getElementById("actionList");
+    wrap.innerHTML = "";
+
+    state.actions.forEach(function (act, i) {
+      var card = document.createElement("div");
+      card.className = "action-card";
+
+      var head = document.createElement("div");
+      head.className = "action-line";
+      head.innerHTML =
+        '<span class="lb">动作类型</span>' +
+        '<div class="sel-wrap w200" id="typeWrap' + i + '">' +
+          '<div class="sel-trigger" onclick="toggleTypeDropdown(' + i + ')">' +
+            (act.type
+              ? '<span class="val">' + typeLabel(act.type) + "</span>"
+              : '<span class="ph">请选择动作类型</span>') +
+            '<span class="caret">▾</span>' +
+          "</div>" +
+          '<div class="dropdown" id="typeDd' + i + '"></div>' +
+        "</div>" +
+        '<button class="btn btn-danger btn-circle" title="删除动作" onclick="removeAction(' + i + ')">−</button>';
+      card.appendChild(head);
+
+      if (act.type === "subjectVip") {
+        var subLine = document.createElement("div");
+        subLine.className = "action-line";
+        subLine.innerHTML =
+          '<span class="lb">科目</span>' +
+          '<div class="sel-wrap w420" id="subWrap' + i + '">' +
+            '<div class="sel-trigger" onclick="toggleSubDropdown(' + i + ')" id="subTrigger' + i + '">' +
+              renderChips(act, i) +
+              '<span class="clear' + (act.subjects.length ? " has" : "") +
+                '" onclick="clearSubjects(event,' + i + ')" title="清空">⊗</span>' +
+              '<span class="caret">▾</span>' +
+            "</div>" +
+            '<div class="dropdown" id="subDd' + i + '"></div>' +
+          "</div>" +
+          '<span class="tip-inline">最多选择 ' + SUBJECT_MAX + " 个科目</span>";
+        card.appendChild(subLine);
+
+        var dayLine = document.createElement("div");
+        dayLine.className = "action-line";
+        dayLine.innerHTML =
+          '<span class="lb">赠送天数</span>' +
+          '<div class="sel-wrap w200" id="dayWrap' + i + '">' +
+            '<div class="sel-trigger" onclick="toggleDayDropdown(' + i + ')">' +
+              (act.days
+                ? '<span class="val">' + act.days + "天</span>"
+                : '<span class="ph">请选择赠送天数</span>') +
+              '<span class="caret">▾</span>' +
+            "</div>" +
+            '<div class="dropdown" id="dayDd' + i + '"></div>' +
+          "</div>";
+        card.appendChild(dayLine);
+      } else if (act.type === "membership") {
+        var mLine = document.createElement("div");
+        mLine.className = "action-line";
+        mLine.innerHTML =
+          '<span class="lb">会员天数</span>' +
+          '<div class="sel-wrap w200"><div class="sel-trigger">' +
+          '<span class="val">3天</span><span class="caret">▾</span></div></div>';
+        card.appendChild(mLine);
+      } else if (act.type === "msg") {
+        var tLine = document.createElement("div");
+        tLine.className = "action-line";
+        tLine.innerHTML =
+          '<span class="lb">消息内容</span>' +
+          '<span class="tip-inline">（沿用现有素材配置，本原型不展开）</span>';
+        card.appendChild(tLine);
+      } else if (act.type) {
+        var oLine = document.createElement("div");
+        oLine.className = "action-line";
+        oLine.innerHTML = '<span class="tip-inline">该动作沿用现有配置，本原型不展开。</span>';
+        card.appendChild(oLine);
+      }
+
+      wrap.appendChild(card);
+    });
+  }
+
+  function renderChips(act, i) {
+    if (!act.subjects.length) return '<span class="ph">请选择科目</span>';
+    return act.subjects
+      .map(function (s) {
+        return '<span class="chip">' + s +
+          '<i onclick="removeSubject(event,' + i + ",'" + s + "')\">×</i></span>";
+      })
+      .join("");
+  }
+
+  /* ---------- 下拉：动作类型 ---------- */
+  function toggleTypeDropdown(i) {
+    var dd = document.getElementById("typeDd" + i);
+    var trigger = dd.previousElementSibling;
+    if (dd.classList.contains("show")) return closeDropdown();
+    closeDropdown();
+
+    dd.innerHTML =
+      '<div class="dd-list">' +
+      ACTION_TYPES.map(function (t) {
+        var disabled = state.broadcast && t.broadcastForbidden;
+        return (
+          '<div class="opt' +
+          (disabled ? " disabled" : "") +
+          (t.value === state.actions[i].type ? " selected" : "") +
+          '" ' +
+          (disabled ? "" : 'onclick="pickType(' + i + ",'" + t.value + "')\"") +
+          ">" +
+          "<span>" + t.label + (disabled ? '<span class="note">（不支持）</span>' : "") + "</span>" +
+          (t.value === state.actions[i].type ? '<span class="mark">✓</span>' : "") +
+          "</div>"
+        );
+      }).join("") +
+      "</div>";
+
+    dd.classList.add("show");
+    trigger.classList.add("open");
+    openedDropdown = { dd: dd, trigger: trigger };
+  }
+
+  function pickType(i, v) {
+    var act = state.actions[i];
+    if (act.type !== v) {
+      /* 切换类型时清空原类型的专属配置 */
+      act.type = v;
+      act.subjects = [];
+      act.days = null;
+    }
+    closeDropdown();
+    renderActions();
+  }
+
+  /* ---------- 下拉：科目多选 ---------- */
+  function toggleSubDropdown(i) {
+    var dd = document.getElementById("subDd" + i);
+    if (dd.classList.contains("show")) return closeDropdown();
+    closeDropdown();
+    renderSubOptions(i, "");
+    dd.classList.add("show");
+    var trigger = document.getElementById("subTrigger" + i);
+    trigger.classList.add("open");
+    openedDropdown = { dd: dd, trigger: trigger };
+    setTimeout(function () {
+      var input = document.getElementById("subSearch" + i);
+      if (input) input.focus();
+    }, 0);
+  }
+
+  function renderSubOptions(i, keyword) {
+    var act = state.actions[i];
+    var dd = document.getElementById("subDd" + i);
+    var full = act.subjects.length >= SUBJECT_MAX;
+    var list = SUBJECTS.filter(function (s) {
+      return !keyword || s.indexOf(keyword) > -1;
+    });
+
+    var body = list.length
+      ? list
+          .map(function (s) {
+            var picked = act.subjects.indexOf(s) > -1;
+            var disabled = full && !picked;
+            return (
+              '<div class="opt' +
+              (picked ? " selected" : "") +
+              (disabled ? " disabled" : "") +
+              '" ' +
+              (disabled
+                ? 'title="单次最多选择 ' + SUBJECT_MAX + ' 个科目"'
+                : 'onclick="pickSubject(' + i + ",'" + s + "')\"") +
+              ">" +
+              "<span>" + s +
+                (PROVINCE_ONLY[s] ? '<span class="note">（' + PROVINCE_ONLY[s] + "）</span>" : "") +
+              "</span>" +
+              (picked ? '<span class="mark">✓</span>' : "") +
+              "</div>"
+            );
+          })
+          .join("")
+      : '<div class="dd-empty">无匹配科目</div>';
+
+    dd.innerHTML =
+      '<div class="dd-search"><input id="subSearch' + i +
+      '" placeholder="搜索科目" value="' + (keyword || "") +
+      '" oninput="onSubSearch(' + i + ', this.value)" onclick="event.stopPropagation()" /></div>' +
+      '<div class="dd-list">' + body + "</div>";
+  }
+
+  function onSubSearch(i, val) {
+    renderSubOptions(i, val);
+    setTimeout(function () {
+      var input = document.getElementById("subSearch" + i);
+      if (input) { input.focus(); input.setSelectionRange(val.length, val.length); }
+    }, 0);
+  }
+
+  function pickSubject(i, s) {
+    var act = state.actions[i];
+    var idx = act.subjects.indexOf(s);
+    if (idx > -1) {
+      act.subjects.splice(idx, 1);
+    } else {
+      if (act.subjects.length >= SUBJECT_MAX) {
+        return toast("单次最多选择 " + SUBJECT_MAX + " 个科目");
+      }
+      act.subjects.push(s);
+    }
+    var kw = (document.getElementById("subSearch" + i) || {}).value || "";
+    var trigger = document.getElementById("subTrigger" + i);
+    trigger.innerHTML =
+      renderChips(act, i) +
+      '<span class="clear' + (act.subjects.length ? " has" : "") +
+      '" onclick="clearSubjects(event,' + i + ')" title="清空">⊗</span>' +
+      '<span class="caret">▾</span>';
+    renderSubOptions(i, kw);
+  }
+
+  function removeSubject(e, i, s) {
+    e.stopPropagation();
+    var act = state.actions[i];
+    var idx = act.subjects.indexOf(s);
+    if (idx > -1) act.subjects.splice(idx, 1);
+    closeDropdown();
+    renderActions();
+  }
+
+  function clearSubjects(e, i) {
+    e.stopPropagation();
+    state.actions[i].subjects = [];
+    closeDropdown();
+    renderActions();
+  }
+
+  /* ---------- 下拉：赠送天数 ---------- */
+  function toggleDayDropdown(i) {
+    var dd = document.getElementById("dayDd" + i);
+    var trigger = dd.previousElementSibling;
+    if (dd.classList.contains("show")) return closeDropdown();
+    closeDropdown();
+    dd.innerHTML =
+      '<div class="dd-list">' +
+      DAYS.map(function (d) {
+        return (
+          '<div class="opt' + (state.actions[i].days === d ? " selected" : "") +
+          '" onclick="pickDay(' + i + "," + d + ')">' +
+          "<span>" + d + "天</span>" +
+          (state.actions[i].days === d ? '<span class="mark">✓</span>' : "") +
+          "</div>"
+        );
+      }).join("") +
+      "</div>";
+    dd.classList.add("show");
+    trigger.classList.add("open");
+    openedDropdown = { dd: dd, trigger: trigger };
+  }
+
+  function pickDay(i, d) {
+    state.actions[i].days = d;
+    closeDropdown();
+    renderActions();
+  }
+
+  function closeDropdown() {
+    if (!openedDropdown) return;
+    openedDropdown.dd.classList.remove("show");
+    openedDropdown.trigger.classList.remove("open");
+    openedDropdown = null;
+  }
+
+  document.addEventListener("click", function (e) {
+    if (!openedDropdown) return;
+    if (!e.target.closest(".sel-wrap")) closeDropdown();
+  });
+
+  /* ---------- 提交校验 ---------- */
+  function submitRule() {
+    var name = document.getElementById("ruleName").value.trim();
+    if (!name) return toast("请输入规则名称");
+    if (!state.actions.length) return toast("请至少配置一个动作");
+
+    for (var i = 0; i < state.actions.length; i++) {
+      var act = state.actions[i];
+      var no = i + 1;
+      if (!act.type) return toast("动作 " + no + "：请选择动作类型");
+      if (act.type === "subjectVip") {
+        if (!act.subjects.length) return toast("动作 " + no + "：请至少选择一个科目");
+        if (act.subjects.length > SUBJECT_MAX)
+          return toast("动作 " + no + "：单次最多选择 " + SUBJECT_MAX + " 个科目");
+        if (!act.days) return toast("动作 " + no + "：请选择赠送天数");
+      }
+    }
+
+    if (state.broadcast) {
+      var hasSubjectVip = state.actions.some(function (a) { return a.type === "subjectVip"; });
+      if (hasSubjectVip) return toast("启用官方群发后不允许包含赠送单科VIP动作");
+    }
+
+    saveRule(name);
+    closeDialog();
+    toast("保存成功", "ok");
+  }
+
+  function saveRule(name) {
+    var actions = JSON.parse(JSON.stringify(state.actions));
+    var tags = actions
+      .map(function (a) {
+        return '<span class="tag ' + typeColor(a.type) +
+          (a.type === "subjectVip" ? " tag-new" : "") + '">' + typeLabel(a.type) + "</span>";
+      })
+      .join("");
+    var now = new Date();
+    var stamp =
+      now.getFullYear() + "-" +
+      String(now.getMonth() + 1).padStart(2, "0") + "-" +
+      String(now.getDate()).padStart(2, "0") + " " +
+      String(now.getHours()).padStart(2, "0") + ":" +
+      String(now.getMinutes()).padStart(2, "0");
+
+    if (state.mode === "edit") {
+      RULES[state.ruleId].name = name;
+      RULES[state.ruleId].actions = actions;
+      RULES[state.ruleId].broadcast = state.broadcast;
+      var row = document.querySelector('tr[data-id="' + state.ruleId + '"]');
+      if (!row) {
+        var rows = document.querySelectorAll("#ruleRows tr");
+        for (var k = 0; k < rows.length; k++) {
+          if (rows[k].cells[0].textContent.trim() === String(state.ruleId)) { row = rows[k]; break; }
+        }
+      }
+      if (row) {
+        row.cells[1].textContent = name;
+        row.cells[3].innerHTML = tags;
+        row.cells[4].textContent = stamp;
+      }
+      return;
+    }
+
+    var newId = 1045;
+    while (RULES[newId]) newId++;
+    RULES[newId] = { name: name, desc: "", broadcast: state.broadcast, actions: actions };
+    var tr = document.createElement("tr");
+    tr.setAttribute("data-id", String(newId));
+    tr.innerHTML =
+      "<td>" + newId + "</td>" +
+      '<td class="rule-name">' + name + "</td>" +
+      "<td>定时任务</td>" +
+      "<td>" + tags + "</td>" +
+      "<td>" + stamp + "</td>" +
+      '<td><span class="switch off"></span></td>' +
+      '<td><button class="btn btn-text" onclick="openDialog(\'edit\',' + newId +
+        ')">编辑</button><button class="btn btn-text">执行明细</button></td>';
+    document.getElementById("ruleRows").appendChild(tr);
+  }
+</script>
+</body>
+</html>
