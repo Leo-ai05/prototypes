@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>企微机器人用户分流配置 · 可交互原型</title>
+<title>企微机器人用户分流配置 · 方案A 分流组 Tab</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
@@ -165,6 +165,35 @@ tr.fallback-row:hover td { background: #fff7d6; }
 }
 .tip:hover .tip-text { visibility: visible; opacity: 1; }
 .hide { display: none !important; }
+/* ---------- 分流组 Tab ---------- */
+.tabs {
+  display: flex; align-items: stretch; border-bottom: 1px solid #e4e7ed;
+  margin-bottom: 16px; flex-wrap: wrap;
+}
+.tab {
+  padding: 9px 18px 9px 14px; cursor: pointer; border-bottom: 2px solid transparent;
+  color: #606266; position: relative; min-width: 96px; border-right: 1px solid #f0f2f5;
+}
+.tab:hover { background: #f5f7fa; }
+.tab.active { color: #409eff; border-bottom-color: #409eff; }
+.tab .t-name { font-size: 14px; font-weight: 500; white-space: nowrap; }
+.tab .t-sub { font-size: 12px; color: #909399; margin-top: 3px; white-space: nowrap; }
+.tab.active .t-sub { color: #79bbff; }
+.tab .t-ops { position: absolute; top: 3px; right: 3px; display: none; gap: 4px; }
+.tab:hover .t-ops { display: flex; }
+.t-op { font-size: 12px; color: #909399; cursor: pointer; line-height: 1; padding: 1px 2px; }
+.t-op:hover { color: #409eff; }
+.t-op.del:hover { color: #f56c6c; }
+.t-op.off { color: #dcdfe6; cursor: not-allowed; }
+.t-op.off:hover { color: #dcdfe6; }
+.tab-add { padding: 9px 16px; color: #409eff; cursor: pointer; font-size: 14px; align-self: center; }
+.tab-add:hover { background: #ecf5ff; }
+.tab-add.off { color: #c0c4cc; cursor: not-allowed; }
+.tab-add.off:hover { background: none; }
+.split-bar {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 12px 16px; background: #fafbfc; border: 1px solid #ebeef5; border-radius: 6px;
+}
 </style>
 </head>
 <body>
@@ -174,7 +203,6 @@ tr.fallback-row:hover td { background: #fff7d6; }
     <div class="group-title">企业微信机器人</div>
     <a>AI 员工明细</a>
     <a id="navRule" onclick="go('rule')">规则配置</a>
-    <a id="navSplit" onclick="go('split')">分流配置</a>
     <a>会话属性</a>
     <a>私域分层配置</a>
     <a>学习规划模版</a>
@@ -184,8 +212,7 @@ tr.fallback-row:hover td { background: #fff7d6; }
   <div class="main">
     <div class="topbar"><div class="crumb" id="crumb"></div></div>
     <div class="content">
-      <div id="pageSplit"></div>
-      <div id="pageRule" class="hide"></div>
+      <div id="pageRule"></div>
       <div id="pageDetail" class="hide"></div>
     </div>
   </div>
@@ -373,17 +400,11 @@ function condText(cond) {
    页面路由
    ======================================================================= */
 function go(page, arg) {
-  ["pageSplit", "pageRule", "pageDetail"].forEach(function (id) { $(id).classList.add("hide"); });
+  ["pageRule", "pageDetail"].forEach(function (id) { $(id).classList.add("hide"); });
   $("navRule").classList.remove("active");
-  $("navSplit").classList.remove("active");
+  draft = splitGroups;
 
-  if (page === "split") {
-    $("navSplit").classList.add("active");
-    $("crumb").innerHTML = '企业微信机器人 / <b>分流配置</b>';
-    draft = JSON.parse(JSON.stringify(splitGroups));
-    renderSplit();
-    $("pageSplit").classList.remove("hide");
-  } else if (page === "rule") {
+  if (page === "rule") {
     $("navRule").classList.add("active");
     $("crumb").innerHTML = '企业微信机器人 / <b>规则配置</b>';
     if (arg !== undefined) filterSplitId = arg;
@@ -423,7 +444,7 @@ function totalAssigned() {
   return s;
 }
 
-function renderSplit() {
+function renderSplitLegacyUnused() {
   var sum = ratioSum();
   var blockReason = switchBlockReason();
   var total = totalAssigned();
@@ -522,14 +543,14 @@ function askToggleSplit() {
       "开启用户分流",
       "开启后新增用户将按流量比例分配分流组，分配结果不可修改。<br>开启前已存在的用户固定按对照组执行。",
       "确认开启",
-      function () { splitOn = true; renderSplit(); toast("已开启用户分流"); }
+      function () { splitOn = true; renderRule(); toast("已开启用户分流"); }
     );
   } else {
     confirmBox(
       "关闭用户分流",
       "关闭后所有用户按对照组名下的规则分组执行，实验组的规则不再触发。<br>已分配的分流组归属保留不变。",
       "确认关闭",
-      function () { splitOn = false; renderSplit(); toast("已关闭用户分流", "warn"); },
+      function () { splitOn = false; renderRule(); toast("已关闭用户分流", "warn"); },
       "danger"
     );
   }
@@ -598,10 +619,11 @@ function openGroupDialog(id) {
 function onTypePick() {
   var picked = document.querySelector('input[name=gType]:checked').value;
   if (picked === "control") {
-    var other = draft.filter(function (g) { return g.type === "control" && g.id !== window.__editingGroupId; });
+    var other = splitGroups.filter(function (g) { return g.type === "control" && g.id !== window.__editingGroupId; });
     if (other.length > 0) {
-      toast("已存在对照组，请先把原对照组改为实验组", "warn");
-      document.querySelector('input[name=gType][value=exp]').checked = true;
+      toast(other[0].users > 0
+        ? "「" + other[0].name + "」已有 " + other[0].users + " 个用户分配，类型不可修改"
+        : "确定后「" + other[0].name + "」将自动改为实验组", other[0].users > 0 ? "warn" : "info");
     }
   }
   onGroupInput();
@@ -653,35 +675,61 @@ function submitGroupDialog() {
   var desc = $("gDesc").value.trim();
   var id = window.__editingGroupId;
 
-  if (id === null || id === undefined) {
-    var newId = 100;
-    draft.forEach(function (g) { if (g.id >= newId) newId = g.id + 1; });
-    draft.push({ id: newId, name: name, type: type, ratio: ratio, users: 0, desc: desc, updated: "待保存" });
-  } else {
-    for (var i = 0; i < draft.length; i++) {
-      if (draft[i].id === id) {
-        draft[i].name = name; draft[i].type = type; draft[i].ratio = ratio;
-        draft[i].desc = desc; draft[i].updated = "待保存";
-      }
+  // 对照组唯一：原对照组已有用户分配时不允许改判，拦截本次提交
+  if (type === "control") {
+    var oldCtrl = splitGroups.filter(function (g) { return g.type === "control" && g.id !== id; })[0];
+    if (oldCtrl && oldCtrl.users > 0) {
+      toast("原对照组「" + oldCtrl.name + "」已有 " + oldCtrl.users +
+        " 个用户分配，类型不可修改，无法把本组设为对照组", "err");
+      return;
     }
   }
-  closeDialog();
-  renderSplit();
-  toast("已添加到列表，请点击保存配置生效", "info");
+
+  if (id === null || id === undefined) {
+    var newId = 100;
+    splitGroups.forEach(function (g) { if (g.id >= newId) newId = g.id + 1; });
+    if (type === "control") {
+      splitGroups.forEach(function (g) { if (g.type === "control") g.type = "exp"; });
+    }
+    splitGroups.push({ id: newId, name: name, type: type, ratio: ratio, users: 0, desc: desc, updated: "2026-08-25 10:40" });
+    closeDialog();
+    filterSplitId = newId;
+    renderRule();
+    toast("分流组已创建");
+  } else {
+    if (type === "control") {
+      splitGroups.forEach(function (g) { if (g.type === "control" && g.id !== id) g.type = "exp"; });
+    }
+    for (var i = 0; i < splitGroups.length; i++) {
+      if (splitGroups[i].id === id) {
+        splitGroups[i].name = name; splitGroups[i].type = type; splitGroups[i].ratio = ratio;
+        splitGroups[i].desc = desc; splitGroups[i].updated = "2026-08-25 10:40";
+      }
+    }
+    closeDialog();
+    renderRule();
+    toast("保存成功");
+  }
+  var s = ratioSum();
+  if (s !== 100) toast("流量比例合计为 " + s + "%，需调整到 100% 才能开启分流", "warn");
 }
 
 /* ---------- 删除分流组 ---------- */
 function askDeleteGroup(id) {
   confirmBox("删除分流组", "删除后该分流组不再参与分流，确认删除？", "确认删除", function () {
-    draft = draft.filter(function (g) { return g.id !== id; });
-    renderSplit();
-    if (draft.length < 2 && splitOn) {
+    splitGroups = splitGroups.filter(function (g) { return g.id !== id; });
+    draft = splitGroups;
+    if (String(filterSplitId) === String(id)) filterSplitId = "all";
+    if (splitGroups.length < 2 && splitOn) {
       splitOn = false;
-      renderSplit();
-      toast("分流组不足 2 个，分流已不可开启", "warn");
-    } else {
-      toast("已从列表移除，请点击保存配置生效", "info");
+      renderRule();
+      toast("分流组不足 2 个，分流已自动关闭", "warn");
+      return;
     }
+    renderRule();
+    toast("分流组已删除");
+    var s = ratioSum();
+    if (s !== 100) toast("流量比例合计为 " + s + "%，需调整到 100% 才能开启分流", "warn");
   }, "danger");
 }
 
@@ -711,7 +759,7 @@ function saveSplit() {
   ruleGroups = ruleGroups.filter(function (g) { return g.fallback || ids.indexOf(g.splitId) >= 0; });
 
   draft = JSON.parse(JSON.stringify(splitGroups));
-  renderSplit();
+  renderRule();
   toast("保存成功");
 }
 
@@ -740,9 +788,11 @@ function renderRule() {
         "<td>" + (g.fallback ? "🛡️ " : "") +
           '<span class="link" style="' + (g.fallback ? "color:#fa8c16;font-weight:600" : "") +
           '" onclick="go(\'detail\',' + g.id + ')">' + esc(g.name) + "</span></td>" +
-        "<td>" + (g.fallback
-            ? '<span class="tag orange">全局兜底</span>'
-            : esc(groupName(g.splitId)) + (isControl(g.splitId) ? ' <span class="tag blue">对照组</span>' : "")) + "</td>" +
+        (filterSplitId === "all"
+          ? "<td>" + (g.fallback
+              ? '<span class="tag orange">全局兜底</span>'
+              : esc(groupName(g.splitId)) + (isControl(g.splitId) ? ' <span class="tag blue">对照组</span>' : "")) + "</td>"
+          : "") +
         "<td>" + (g.fallback ? '<span class="tag orange">兜底</span>' : esc(condSummary(g))) + "</td>" +
         "<td>" + g.ruleCount + "</td>" +
         "<td class=\"muted small\">" + esc(g.updated) + "</td>" +
@@ -758,27 +808,99 @@ function renderRule() {
   });
 
   if (list.length === 0) {
-    rowsHtml = '<tr><td colspan="7"><div class="empty">暂无规则分组</div></td></tr>';
+    rowsHtml = '<tr><td colspan="' + (filterSplitId === "all" ? 7 : 6) +
+      '"><div class="empty">暂无规则分组</div></td></tr>';
   }
 
   var emptyTip = (filterSplitId !== "all" && normalCount === 0)
     ? '<div class="alert warn mb16">该分流组下暂无规则分组，可从其他分流组复制一份，或把已有分组的所属分流组改到该分流组</div>' : "";
 
+  var sumWarn = (splitOn && ratioSum() !== 100)
+    ? '<div class="alert warn mb16">流量比例合计为 ' + ratioSum() +
+      '%，未覆盖的流量按对照组分配，请尽快调整比例</div>' : "";
+
   $("pageRule").innerHTML =
-    '<div class="card">' +
+    '<div class="card">' + splitBarHtml() + sumWarn + tabsHtml() +
       '<div class="row mb16">' +
-        "<span>所属分流组</span>" +
-        '<select style="width:220px" onchange="go(\'rule\', this.value)">' + opts + "</select>" +
-        '<span class="muted small">兜底分组在任意筛选下都展示</span>' +
-        '<span style="flex:1"></span>' +
         '<button class="btn primary" onclick="openRuleGroupDialog(null)">+ 新建分组</button>' +
+        '<span class="muted small">' +
+          (filterSplitId === "all"
+            ? "当前展示全部分流组的规则分组，兜底分组固定在末行"
+            : "当前展示「" + esc(groupName(Number(filterSplitId))) + "」名下的规则分组，兜底分组固定在末行") +
+        "</span>" +
       "</div>" +
       emptyTip +
       "<table><thead><tr>" +
-        "<th>分组名称</th><th>所属分流组</th><th>命中条件</th><th>规则数</th>" +
+        "<th>分组名称</th>" +
+        (filterSplitId === "all" ? "<th>所属分流组</th>" : "") +
+        "<th>命中条件</th><th>规则数</th>" +
         "<th>更新时间</th><th>启用状态</th><th style=\"width:200px\">操作</th>" +
       "</tr></thead><tbody>" + rowsHtml + "</tbody></table>" +
     "</div>";
+}
+
+/* ---------- 顶部分流总开关条 ---------- */
+function splitBarHtml() {
+  var blockReason = switchBlockReason();
+  var sum = ratioSum();
+  return '<div class="split-bar mb16">' +
+    '<span style="font-weight:500">用户分流</span>' +
+    (blockReason
+      ? '<span class="tip"><span class="switch disabled' + (splitOn ? " on" : "") + '"></span>' +
+        '<span class="tip-text">' + esc(blockReason) + "</span></span>"
+      : '<span class="switch' + (splitOn ? " on" : "") + '" onclick="askToggleSplit()"></span>') +
+    '<span class="' + (splitOn ? "tag green" : "tag gray") + '">' + (splitOn ? "分流生效中" : "分流未生效") + "</span>" +
+    '<span class="' + (sum === 100 ? "tag blue" : "tag red") + '">比例合计 ' + sum + "%</span>" +
+    '<span class="muted small">' +
+      (splitOn
+        ? "新增用户按各分流组比例分配，分配后固定不变"
+        : "所有用户按对照组名下的规则分组执行，兜底分组照常生效") +
+    "</span>" +
+  "</div>";
+}
+
+/* ---------- 分流组 Tab 条 ---------- */
+function tabsHtml() {
+  var total = totalAssigned();
+  var sorted = splitGroups.slice().sort(function (a, b) {
+    if (a.type === "control") return -1;
+    if (b.type === "control") return 1;
+    return b.ratio - a.ratio;
+  });
+
+  var html = '<div class="tabs">' +
+    '<div class="tab' + (filterSplitId === "all" ? " active" : "") + '" onclick="go(\'rule\',\'all\')">' +
+      '<div class="t-name">全部</div>' +
+      '<div class="t-sub">' + ruleGroups.filter(function (g) { return !g.fallback; }).length + " 个规则分组</div>" +
+    "</div>";
+
+  sorted.forEach(function (g) {
+    var pct = total > 0 ? ((g.users / total) * 100).toFixed(1) + "%" : "—";
+    var relCount = ruleGroupsOf(g.id).length;
+    var delReason = null;
+    if (g.type === "control") delReason = "对照组不可删除";
+    else if (g.users > 0) delReason = "该分流组已有 " + g.users + " 个用户分配，不可删除";
+    else if (relCount > 0) delReason = "请先把该分流组下的 " + relCount + " 个规则分组改到其他分流组";
+
+    html += '<div class="tab' + (String(filterSplitId) === String(g.id) ? " active" : "") +
+        '" onclick="go(\'rule\',' + g.id + ')">' +
+        '<div class="t-name">' + esc(g.name) +
+          (g.type === "control" ? ' <span class="tag blue" style="height:18px;line-height:16px">对照</span>' : "") + "</div>" +
+        '<div class="t-sub">' + g.ratio + "% · " + g.users + "人 · 实际 " + pct + "</div>" +
+        '<div class="t-ops">' +
+          '<span class="t-op" title="编辑分流组" onclick="event.stopPropagation();openGroupDialog(' + g.id + ')">✎</span>' +
+          (delReason
+            ? '<span class="tip"><span class="t-op off">✕</span><span class="tip-text">' + esc(delReason) + "</span></span>"
+            : '<span class="t-op del" title="删除分流组" onclick="event.stopPropagation();askDeleteGroup(' + g.id + ')">✕</span>') +
+        "</div>" +
+      "</div>";
+  });
+
+  html += splitGroups.length >= 5
+    ? '<span class="tip"><span class="tab-add off">+ 新增分流组</span><span class="tip-text">最多配置 5 个分流组</span></span>'
+    : '<span class="tab-add" onclick="openGroupDialog(null)">+ 新增分流组</span>';
+
+  return html + "</div>";
 }
 
 /* ---------- 新建 / 编辑规则分组弹窗 ---------- */
@@ -1245,7 +1367,7 @@ function submitCopyRule(ruleId) {
 }
 
 /* 初始化 */
-go("split");
+go("rule", "all");
 </script>
 </body>
 </html>
