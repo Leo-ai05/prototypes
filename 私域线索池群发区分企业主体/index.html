@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>可交互原型 · 私域线索池群发区分企业主体</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #f0f2f5;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", Helvetica, Arial, sans-serif;
+    color: #303133;
+    font-size: 14px;
+  }
+  .proto-bar {
+    position: sticky; top: 0; z-index: 40;
+    background: #fff; border-bottom: 1px solid #e4e7ed;
+    padding: 12px 24px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+    box-shadow: 0 1px 4px rgba(0,0,0,.04);
+  }
+  .proto-bar h1 { font-size: 15px; margin: 0 16px 0 0; font-weight: 600; }
+  .proto-bar .tabs { display: flex; gap: 4px; }
+  .tab {
+    padding: 6px 14px; border-radius: 4px; cursor: pointer; color: #606266;
+    border: 1px solid transparent; font-size: 13px; user-select: none;
+  }
+  .tab:hover { color: #409eff; }
+  .tab.active { background: #ecf5ff; color: #409eff; border-color: #b3d8ff; }
+  .scene-box { margin-left: auto; display: flex; align-items: center; gap: 8px; font-size: 13px; color: #606266; }
+  select, .el-select {
+    height: 32px; border: 1px solid #dcdfe6; border-radius: 4px; padding: 0 10px;
+    background: #fff; color: #303133; font-size: 13px; outline: none; cursor: pointer;
+  }
+  .stage { padding: 24px; display: flex; justify-content: center; }
+  .modal {
+    background: #fff; border-radius: 6px; width: 100%; max-width: 940px;
+    box-shadow: 0 8px 28px rgba(0,0,0,.12); overflow: hidden;
+  }
+  .modal.narrow { max-width: 840px; }
+  .modal-hd {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 24px; font-size: 17px; font-weight: 600; border-bottom: 1px solid #f0f0f0;
+  }
+  .modal-hd .close { color: #909399; cursor: pointer; font-size: 18px; line-height: 1; }
+  .modal-bd { padding: 20px 24px; max-height: calc(100vh - 210px); overflow-y: auto; }
+  .modal-ft {
+    padding: 14px 24px; border-top: 1px solid #f0f0f0; display: flex; justify-content: flex-end; gap: 10px;
+    background: #fff;
+  }
+  .alert {
+    display: flex; gap: 8px; padding: 12px 14px; border-radius: 4px; font-size: 13px; line-height: 1.7;
+    background: #f4f4f5; color: #606266; margin-bottom: 18px;
+  }
+  .alert .ico { flex: none; }
+  .alert.warn { background: #fdf6ec; color: #b88230; }
+  .alert.error { background: #fef0f0; color: #c45656; }
+  .alert.info-blue { background: #ecf5ff; color: #5a7fa6; }
+  .sec-title {
+    font-size: 15px; font-weight: 600; margin: 22px 0 14px; padding-left: 10px;
+    border-left: 3px solid #409eff; line-height: 1.2;
+  }
+  .sec-title:first-child { margin-top: 0; }
+  .form-row { display: flex; margin-bottom: 16px; }
+  .form-label {
+    width: 108px; flex: none; text-align: right; padding-right: 12px; color: #606266;
+    line-height: 32px; font-size: 13px;
+  }
+  .form-label .req { color: #f56c6c; margin-right: 3px; }
+  .form-ctrl { flex: 1; min-width: 0; }
+  .opt-group { display: flex; flex-wrap: wrap; gap: 10px; }
+  .opt {
+    padding: 6px 16px; border: 1px solid #dcdfe6; border-radius: 18px; cursor: pointer;
+    background: #fff; font-size: 13px; user-select: none; display: inline-flex; align-items: center; gap: 6px;
+    transition: all .15s;
+  }
+  .opt:hover { border-color: #409eff; color: #409eff; }
+  .opt.checked { border-color: #409eff; color: #409eff; background: #ecf5ff; font-weight: 500; }
+  .opt.disabled { background: #f5f7fa; color: #c0c4cc; cursor: not-allowed; border-color: #e4e7ed; }
+  .opt.disabled:hover { border-color: #e4e7ed; color: #c0c4cc; }
+  .opt.square { border-radius: 4px; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+  .dot.on { background: #67c23a; }
+  .dot.off { background: #c0c4cc; }
+  .hint { color: #909399; font-size: 12px; margin-top: 8px; line-height: 1.7; }
+  .hint.strong { color: #606266; font-size: 13px; }
+  .input, .textarea {
+    width: 100%; border: 1px solid #dcdfe6; border-radius: 4px; padding: 6px 11px;
+    font-size: 13px; color: #303133; outline: none; font-family: inherit;
+  }
+  .input { height: 32px; }
+  .textarea { min-height: 62px; resize: vertical; }
+  .input:focus, .textarea:focus { border-color: #409eff; }
+  .counter { text-align: right; font-size: 12px; color: #c0c4cc; margin-top: 2px; }
+  .tag-group-name { font-size: 13px; color: #303133; font-weight: 600; margin: 6px 0 10px; }
+  .tag-group-name:not(:first-child) { margin-top: 18px; }
+  .placeholder-box {
+    border: 1px dashed #dcdfe6; border-radius: 4px; padding: 18px; color: #909399;
+    font-size: 13px; background: #fafafa; text-align: center;
+  }
+  .estimate {
+    display: flex; gap: 28px; background: #f7f9fc; border-radius: 6px; padding: 18px 20px; margin-top: 18px;
+  }
+  .estimate .left { width: 190px; flex: none; }
+  .estimate .lbl { color: #909399; font-size: 13px; margin-bottom: 10px; }
+  .estimate .num { font-size: 34px; font-weight: 700; color: #409eff; line-height: 1.1; }
+  .estimate .num.over { color: #f56c6c; }
+  .estimate .right { flex: 1; min-width: 0; }
+  table.grid { width: 100%; border-collapse: collapse; font-size: 12px; background: #fff; }
+  table.grid th, table.grid td {
+    border: 1px solid #ebeef5; padding: 7px 10px; text-align: left; color: #606266;
+  }
+  table.grid th { background: #fafafa; color: #303133; font-weight: 600; }
+  .quota {
+    margin-top: 16px; padding: 11px 14px; border-radius: 4px; font-size: 13px;
+    background: #f4f4f5; color: #606266;
+  }
+  .quota.danger { background: #fef0f0; color: #c45656; }
+  .quota.muted { background: #fafafa; color: #909399; }
+  .btn {
+    height: 32px; padding: 0 18px; border-radius: 4px; border: 1px solid #dcdfe6; background: #fff;
+    color: #606266; font-size: 13px; cursor: pointer; font-family: inherit;
+  }
+  .btn:hover { color: #409eff; border-color: #c6e2ff; }
+  .btn.primary { background: #409eff; border-color: #409eff; color: #fff; }
+  .btn.primary:hover { background: #66b1ff; border-color: #66b1ff; color: #fff; }
+  .btn.danger { background: #f56c6c; border-color: #f56c6c; color: #fff; }
+  .btn.danger:hover { background: #f78989; border-color: #f78989; color: #fff; }
+  .btn[disabled] { background: #a0cfff; border-color: #a0cfff; color: #fff; cursor: not-allowed; }
+  .btn.plain[disabled] { background: #f5f7fa; border-color: #e4e7ed; color: #c0c4cc; }
+  .btn-wrap { position: relative; display: inline-block; }
+  .btn-wrap .tip {
+    display: none; position: absolute; bottom: 40px; right: 0; background: #303133; color: #fff;
+    font-size: 12px; padding: 7px 10px; border-radius: 4px; white-space: nowrap; z-index: 20;
+  }
+  .btn-wrap:hover .tip.show { display: block; }
+  .stat-cards { display: flex; gap: 14px; margin-bottom: 18px; }
+  .stat-card {
+    flex: 1; border: 1px solid #ebeef5; border-radius: 6px; padding: 16px 18px; border-left-width: 4px;
+  }
+  .stat-card .v { font-size: 28px; font-weight: 700; line-height: 1.2; }
+  .stat-card .k { color: #909399; font-size: 13px; margin-top: 6px; }
+  .filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
+  .filters .input, .filters select { width: 190px; height: 32px; }
+  .link { color: #409eff; cursor: pointer; text-decoration: none; }
+  .link:hover { color: #66b1ff; }
+  .badge { display: inline-block; padding: 2px 9px; border-radius: 3px; font-size: 12px; }
+  .badge.wait { background: #fdf6ec; color: #e6a23c; }
+  .badge.done { background: #f0f9eb; color: #67c23a; }
+  .badge.send { background: #ecf5ff; color: #409eff; }
+  .badge.gray { background: #f4f4f5; color: #909399; }
+  .empty { padding: 42px 0; text-align: center; color: #909399; font-size: 13px; }
+  .empty .btn { margin-top: 14px; }
+  .kv { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .kv th, .kv td { border: 1px solid #ebeef5; padding: 10px 14px; text-align: left; }
+  .kv th { background: #fafafa; color: #606266; font-weight: 400; width: 130px; }
+  .kv td { color: #303133; }
+  .bubble {
+    background: #95ec69; border-radius: 6px; padding: 12px 14px; margin-bottom: 10px;
+    max-width: 78%; font-size: 13px; line-height: 1.8; color: #1a1a1a;
+  }
+  .mask {
+    position: fixed; inset: 0; background: rgba(0,0,0,.45); display: flex;
+    align-items: center; justify-content: center; z-index: 60;
+  }
+  .mask.hidden { display: none; }
+  .dialog { background: #fff; border-radius: 6px; width: 440px; padding: 22px 24px; }
+  .dialog h3 { margin: 0 0 14px; font-size: 16px; }
+  .dialog p { margin: 0 0 20px; font-size: 13px; color: #606266; line-height: 1.9; }
+  .dialog .acts { display: flex; justify-content: flex-end; gap: 10px; }
+  .toast {
+    position: fixed; top: 76px; left: 50%; transform: translateX(-50%);
+    background: #f0f9eb; color: #67c23a; border: 1px solid #e1f3d8; padding: 10px 20px;
+    border-radius: 4px; font-size: 13px; z-index: 90; display: none;
+  }
+  .toast.err { background: #fef0f0; color: #f56c6c; border-color: #fde2e2; }
+  .hidden { display: none !important; }
+  .mini-note { font-size: 12px; color: #909399; margin-left: 8px; }
+  .corp-chip { display: inline-block; padding: 2px 10px; background: #f4f4f5; border-radius: 3px; font-size: 12px; color: #606266; }
+</style>
+</head>
+<body>
+
+<div class="proto-bar">
+  <h1>私域线索池群发区分企业主体 · 可交互原型</h1>
+  <div class="tabs">
+    <div class="tab active" data-page="create">新建群发任务弹窗</div>
+    <div class="tab" data-page="record">群发任务记录弹窗</div>
+    <div class="tab" data-page="detail">群发任务详情弹窗</div>
+    <div class="tab" data-page="approve">群发任务审批弹窗</div>
+  </div>
+  <div class="scene-box">
+    <span>场景</span>
+    <select id="sceneSel">
+      <option value="both">双主体云设备均在线</option>
+      <option value="single">仅葱粉园云设备在线</option>
+      <option value="none">无在线主体</option>
+      <option value="quota">双主体在线 · 葱粉园配额已用尽</option>
+      <option value="notag">双主体在线 · 洋葱学园暂无标签</option>
+      <option value="tagfail">双主体在线 · 标签读取失败</option>
+    </select>
+  </div>
+</div>
+
+<div class="stage">
+
+  <!-- ============ 新建群发任务弹窗 ============ -->
+  <section class="modal" id="page-create">
+    <div class="modal-hd"><span>新建群发任务</span><span class="close">×</span></div>
+    <div class="modal-bd">
+
+      <div class="alert" id="offlineAlert" style="display:none"></div>
+
+      <div class="alert">
+        <span class="ico">ⓘ</span>
+        <span>群发任务提交后将自动路由给直属 TL 周组长 审批；审批通过后由系统按频控策略发送（相邻消息间隔 30 ~ 120 秒，自动排除近 7 天已群发线索）。本期群发限制：单次目标线索数 ≤ 200 人；同一账号在同一企业主体下 48 小时内仅可发起 1 次群发任务；定时发送需不早于当前时间 30 分钟。</span>
+      </div>
+
+      <div class="sec-title">企业主体</div>
+      <div id="corpArea"></div>
+
+      <div class="sec-title">基础信息</div>
+      <div class="form-row">
+        <div class="form-label"><span class="req">*</span>任务名称</div>
+        <div class="form-ctrl">
+          <input class="input" id="taskName" value="8月C层唤醒" maxlength="30" />
+          <div class="counter"><span id="nameLen">6</span> / 30</div>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-label">任务说明</div>
+        <div class="form-ctrl">
+          <textarea class="textarea" id="taskDesc" maxlength="200">针对C层沉默线索的暑期课包唤醒</textarea>
+          <div class="counter"><span id="descLen">15</span> / 200</div>
+        </div>
+      </div>
+
+      <div class="sec-title">目标筛选条件</div>
+      <div class="form-row">
+        <div class="form-label"><span class="req">*</span>线索分层</div>
+        <div class="form-ctrl"><div class="opt-group" id="tierArea"></div></div>
+      </div>
+      <div class="form-row">
+        <div class="form-label">企业微信标签</div>
+        <div class="form-ctrl" id="tagArea"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-label">企微添加时间</div>
+        <div class="form-ctrl"><div class="opt-group" id="timeArea"></div></div>
+      </div>
+
+      <div class="estimate">
+        <div class="left">
+          <div class="lbl">预估目标线索数（去重）</div>
+          <div class="num" id="estNum">--</div>
+          <div class="hint" id="estHint">请先选择企业主体</div>
+        </div>
+        <div class="right">
+          <div class="lbl">抽样预览（前 5 条）</div>
+          <div id="sampleArea"></div>
+        </div>
+      </div>
+
+      <div class="quota" id="quotaRow"></div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn">取消</button>
+      <span class="btn-wrap">
+        <button class="btn primary" id="submitBtn">提交审批</button>
+        <span class="tip" id="submitTip"></span>
+      </span>
+    </div>
+  </section>
+
+  <!-- ============ 群发任务记录弹窗 ============ -->
+  <section class="modal hidden" id="page-record">
+    <div class="modal-hd"><span>群发任务记录</span><span class="close">×</span></div>
+    <div class="modal-bd">
+      <div class="stat-cards">
+        <div class="stat-card" style="border-left-color:#e6a23c"><div class="v">1</div><div class="k">待审核任务数</div></div>
+        <div class="stat-card" style="border-left-color:#409eff"><div class="v">0</div><div class="k">审核通过未发送</div></div>
+        <div class="stat-card" style="border-left-color:#67c23a"><div class="v">0</div><div class="k">发送中任务数</div></div>
+        <div class="stat-card" style="border-left-color:#909399"><div class="v">2</div><div class="k">本月已完成</div></div>
+      </div>
+      <div class="alert">
+        <span class="ico">ⓘ</span>
+        <span>默认展示本人提交的群发任务；管理者可按创建人筛选查看下属任务。任务提交后将自动路由至直属 TL 审批，审批通过后由后台调度入队发送。</span>
+      </div>
+      <div class="filters">
+        <input class="input" placeholder="任务名称" />
+        <select><option>全部状态</option><option>待审核</option><option>已完成</option></select>
+        <select id="recordCorpFilter">
+          <option value="all">全部主体</option>
+          <option value="cfy">葱粉园</option>
+          <option value="yxxy">洋葱学园</option>
+        </select>
+        <button class="btn primary">查询</button>
+        <button class="btn" id="recordReset">重置</button>
+      </div>
+      <div id="recordTableArea"></div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn primary" id="toCreate">+ 新建群发任务</button>
+      <button class="btn">关闭</button>
+    </div>
+  </section>
+
+  <!-- ============ 群发任务详情弹窗 ============ -->
+  <section class="modal narrow hidden" id="page-detail">
+    <div class="modal-hd"><span>群发任务详情</span><span class="close">×</span></div>
+    <div class="modal-bd">
+      <div class="sec-title">基础信息</div>
+      <table class="kv">
+        <tr><th>任务名称</th><td id="dTaskName">8月C层唤醒-葱粉园</td><th>任务状态</th><td><span class="badge wait">待审核</span></td></tr>
+        <tr><th>创建人</th><td>张小销</td><th>企业主体</th><td><span class="corp-chip" id="dCorp">葱粉园</span></td></tr>
+        <tr><th>目标线索数</th><td id="dTarget">168 人</td><th>消息条数</th><td>2</td></tr>
+        <tr><th>创建时间</th><td>2026-08-21 09:12</td><th>发送方式</th><td>审批通过后立即发送</td></tr>
+        <tr><th>任务说明</th><td colspan="3">针对C层沉默线索的暑期课包唤醒</td></tr>
+      </table>
+      <div class="sec-title">目标筛选条件</div>
+      <table class="kv">
+        <tr><th>企业主体</th><td id="dCorp2">葱粉园</td></tr>
+        <tr><th>线索分层</th><td>C 类–低意向/潜在</td></tr>
+        <tr><th>企业微信标签</th><td id="dTags">暑期意向、已试听</td></tr>
+        <tr><th>企微添加时间</th><td>不限</td></tr>
+      </table>
+      <div class="hint">标签只读展示为所属主体下的标签，不做跨主体映射；任务提交后不可变更所属企业主体。</div>
+      <div class="sec-title">消息内容</div>
+      <div class="bubble">同学你好，我是洋葱的张老师~ 暑期最后一期的《初中数学思维突破》今晚 8 点开课。</div>
+      <div class="bubble">名额只剩 12 个，需要我帮你占一个吗？</div>
+    </div>
+    <div class="modal-ft"><button class="btn" id="detailBack">返回任务记录</button></div>
+  </section>
+
+  <!-- ============ 群发任务审批弹窗 ============ -->
+  <section class="modal narrow hidden" id="page-approve">
+    <div class="modal-hd"><span>群发任务审批</span><span class="close">×</span></div>
+    <div class="modal-bd">
+      <div class="alert warn"><span class="ico">!</span><span>请仔细核对目标人数与文案合规性；通过后任务将自动进入发送队列，无法再次修改。</span></div>
+      <div class="sec-title">提交信息</div>
+      <table class="kv">
+        <tr><th>提交人</th><td>张小销</td><th>提交时间</th><td>2026-08-21 09:12</td></tr>
+        <tr><th>企业主体</th><td><span class="corp-chip" id="aCorp">葱粉园</span></td><th>目标人数</th><td><span class="link" id="aTarget">168</span> 人</td></tr>
+        <tr><th>消息条数</th><td>2</td><th>发送方式</th><td>审批通过后立即发送</td></tr>
+        <tr><th>任务说明</th><td colspan="3">针对C层沉默线索的暑期课包唤醒</td></tr>
+      </table>
+      <div class="sec-title">目标筛选条件</div>
+      <table class="kv">
+        <tr><th>企业主体</th><td id="aCorp2">葱粉园</td></tr>
+        <tr><th>线索分层</th><td>C 类–低意向/潜在</td></tr>
+        <tr><th>企业微信标签</th><td id="aTags">暑期意向、已试听</td></tr>
+        <tr><th>企微添加时间</th><td>不限</td></tr>
+      </table>
+      <div class="hint">审批人只读展示主体信息，不可在审批环节修改任务所属主体；需要更换主体时只能驳回后由申请人重新发起。</div>
+      <div class="sec-title">消息内容</div>
+      <div class="bubble">同学你好，我是洋葱的张老师~ 暑期最后一期的《初中数学思维突破》今晚 8 点开课。</div>
+      <div class="bubble">名额只剩 12 个，需要我帮你占一个吗？</div>
+      <div class="sec-title">审批意见</div>
+      <textarea class="textarea" placeholder="通过可不填；驳回必填"></textarea>
+    </div>
+    <div class="modal-ft">
+      <button class="btn">关闭</button>
+      <button class="btn danger">驳回</button>
+      <button class="btn primary">通过</button>
+    </div>
+  </section>
+</div>
+
+<div class="mask hidden" id="confirmMask">
+  <div class="dialog">
+    <h3>提交确认</h3>
+    <p id="confirmText"></p>
+    <div class="acts">
+      <button class="btn" id="confirmCancel">再想想</button>
+      <button class="btn primary" id="confirmOk">确认提交</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------------- 模拟数据 ---------------- */
+var CORPS = {
+  cfy:  { key: 'cfy',  name: '葱粉园' },
+  yxxy: { key: 'yxxy', name: '洋葱学园' }
+};
+
+var TIERS = {
+  cfy:  [ {k:'A',n:'A 类–高意向',c:46}, {k:'B',n:'B 类–中意向',c:133}, {k:'C',n:'C 类–低意向/潜在',c:168}, {k:'D',n:'D 类–无意向',c:214} ],
+  yxxy: [ {k:'A',n:'A 类–高意向',c:21}, {k:'B',n:'B 类–中意向',c:92},  {k:'C',n:'C 类–低意向/潜在',c:77},  {k:'D',n:'D 类–无意向',c:130} ]
+};
+
+var TAGS = {
+  cfy: [
+    { g: '意向阶段', items: ['暑期意向', '已试听', '待跟进'] },
+    { g: '年级',     items: ['初一', '初二', '初三'] }
+  ],
+  yxxy: [
+    { g: '课程偏好', items: ['数学思维', '英语启蒙', '物理提分'] },
+    { g: '活跃度',   items: ['高活跃', '沉默 30 天'] }
+  ]
+};
+
+var SAMPLE_NAMES = ['王一诺', '李梓涵', '陈奕辰', '刘思远', '赵语汐'];
+
+var RECORDS = [
+  { name: '8月C层唤醒-葱粉园',   owner: '张小销', corp: 'cfy',  target: 168, msg: 2, status: 'wait', badge: '待审核', cls: 'wait' },
+  { name: '8月B层续报提醒-洋葱学园', owner: '张小销', corp: 'yxxy', target: 92,  msg: 1, status: 'done', badge: '已完成', cls: 'done' },
+  { name: '7月末A层回访',        owner: '张小销', corp: 'cfy',  target: 140, msg: 2, status: 'done', badge: '已完成', cls: 'done', legacy: true }
+];
+
+/* ---------------- 场景与状态 ---------------- */
+var SCENES = {
+  both:    { online: ['cfy','yxxy'], quotaUsed: { cfy:0, yxxy:0 }, tagState: 'ok' },
+  single:  { online: ['cfy'],        quotaUsed: { cfy:0, yxxy:0 }, tagState: 'ok' },
+  none:    { online: [],             quotaUsed: { cfy:0, yxxy:0 }, tagState: 'ok' },
+  quota:   { online: ['cfy','yxxy'], quotaUsed: { cfy:1, yxxy:0 }, tagState: 'ok' },
+  notag:   { online: ['cfy','yxxy'], quotaUsed: { cfy:0, yxxy:0 }, tagState: 'empty-yxxy' },
+  tagfail: { online: ['cfy','yxxy'], quotaUsed: { cfy:0, yxxy:0 }, tagState: 'fail' }
+};
+
+var QUOTA_LIMIT = 1;
+var SINGLE_LIMIT = 200;
+
+var st = {
+  scene: 'both',
+  corp: null,
+  offlineCorp: null,      // 选中后被模拟为离线的主体
+  tiers: [],
+  tags: [],
+  addTime: '不限',
+  tagRetried: false,
+  recordFilter: 'all'
+};
+
+function scene() { return SCENES[st.scene]; }
+function onlineCorps() {
+  return scene().online.filter(function (k) { return k !== st.offlineCorp; });
+}
+function corpName(k) { return CORPS[k] ? CORPS[k].name : '—'; }
+
+/* ---------------- 场景切换 ---------------- */
+document.getElementById('sceneSel').addEventListener('change', function (e) {
+  st.scene = e.target.value;
+  st.corp = null;
+  st.offlineCorp = null;
+  st.tiers = [];
+  st.tags = [];
+  st.tagRetried = false;
+  var on = scene().online;
+  if (on.length === 1) { st.corp = on[0]; st.tiers = ['C']; }
+  renderCreate();
+});
+
+/* ---------------- Tab 切换 ---------------- */
+var tabs = document.querySelectorAll('.tab');
+for (var i = 0; i < tabs.length; i++) {
+  tabs[i].addEventListener('click', function () { goPage(this.getAttribute('data-page')); });
+}
+function goPage(page) {
+  var all = ['create', 'record', 'detail', 'approve'];
+  all.forEach(function (p) {
+    document.getElementById('page-' + p).classList.toggle('hidden', p !== page);
+  });
+  for (var j = 0; j < tabs.length; j++) {
+    tabs[j].classList.toggle('active', tabs[j].getAttribute('data-page') === page);
+  }
+  window.scrollTo(0, 0);
+}
+document.getElementById('toCreate').addEventListener('click', function () { goPage('create'); });
+document.getElementById('detailBack').addEventListener('click', function () { goPage('record'); });
+
+/* ---------------- 新建弹窗渲染 ---------------- */
+function renderCreate() {
+  renderOfflineAlert();
+  renderCorpArea();
+  renderTiers();
+  renderTags();
+  renderTime();
+  renderEstimate();
+  renderQuota();
+  renderSubmit();
+}
+
+function renderOfflineAlert() {
+  var box = document.getElementById('offlineAlert');
+  if (st.offlineCorp && scene().online.indexOf(st.offlineCorp) > -1) {
+    box.className = 'alert error';
+    box.style.display = 'flex';
+    box.innerHTML = '<span class="ico">!</span><span>所选企业主体的云设备已离线，请重新选择</span>';
+  } else {
+    box.style.display = 'none';
+  }
+}
+
+function renderCorpArea() {
+  var box = document.getElementById('corpArea');
+  var on = onlineCorps();
+  var all = scene().online;
+
+  if (all.length === 0) {
+    box.innerHTML =
+      '<div class="alert warn"><span class="ico">!</span><span>当前没有云设备在线的企业主体，请先在' +
+      '<a class="link" id="goProfile">个人信息</a>中登录云设备后再发起群发。</span></div>';
+    document.getElementById('goProfile').addEventListener('click', function () {
+      toast('已跳转到个人信息页 → 关联企业微信列表（原型内不展开该页面）', true);
+    });
+    return;
+  }
+
+  var html = '<div class="opt-group">';
+  all.forEach(function (k) {
+    var isOff = (k === st.offlineCorp);
+    var checked = (st.corp === k && !isOff);
+    var locked = (all.length === 1);
+    html += '<div class="opt ' + (checked ? 'checked ' : '') + (isOff ? 'disabled' : '') + '" data-corp="' + k + '">' +
+      corpName(k) +
+      '<span class="dot ' + (isOff ? 'off' : 'on') + '"></span>' +
+      (isOff ? '<span style="font-size:12px">云设备已离线</span>' : '') +
+      '</div>';
+    if (locked && !isOff) {
+      html += '<span class="mini-note" style="line-height:32px">仅此主体云设备在线，已自动选中且不可切换</span>';
+    }
+  });
+  html += '</div>';
+  html += '<div class="hint strong">本次群发仅触达所选企业主体下的好友，标签、目标人数与发起次数均按该主体单独计算。</div>';
+
+  if (st.corp && !st.offlineCorp && all.length > 1) {
+    html += '<div class="hint"><a class="link" id="mockOffline">模拟：所选主体云设备中途离线</a></div>';
+  }
+  if (st.offlineCorp) {
+    html += '<div class="hint"><a class="link" id="mockOnline">模拟：云设备恢复在线</a></div>';
+  }
+  box.innerHTML = html;
+
+  var opts = box.querySelectorAll('.opt');
+  for (var i = 0; i < opts.length; i++) {
+    opts[i].addEventListener('click', function () {
+      if (this.classList.contains('disabled')) return;
+      if (scene().online.length === 1) return;
+      var k = this.getAttribute('data-corp');
+      if (st.corp === k) return;
+      st.corp = k;
+      st.tags = [];          // 切换主体清空已选标签
+      st.tagRetried = false;
+      renderCreate();
+    });
+  }
+  var off = document.getElementById('mockOffline');
+  if (off) off.addEventListener('click', function () {
+    st.offlineCorp = st.corp;
+    renderCreate();
+  });
+  var onBtn = document.getElementById('mockOnline');
+  if (onBtn) onBtn.addEventListener('click', function () {
+    st.offlineCorp = null;
+    renderCreate();
+  });
+}
+
+function renderTiers() {
+  var box = document.getElementById('tierArea');
+  var effective = effectiveCorp();
+  var list = effective ? TIERS[effective] : TIERS.cfy;
+  var html = '';
+  list.forEach(function (t) {
+    var checked = st.tiers.indexOf(t.k) > -1;
+    html += '<div class="opt square ' + (checked ? 'checked' : '') + '" data-tier="' + t.k + '">' +
+      t.n + ' (' + (effective ? t.c : '--') + ')</div>';
+  });
+  box.innerHTML = html;
+  var opts = box.querySelectorAll('.opt');
+  for (var i = 0; i < opts.length; i++) {
+    opts[i].addEventListener('click', function () {
+      var k = this.getAttribute('data-tier');
+      var idx = st.tiers.indexOf(k);
+      if (idx > -1) st.tiers.splice(idx, 1); else st.tiers.push(k);
+      renderCreate();
+    });
+  }
+}
+
+function effectiveCorp() {
+  if (!st.corp) return null;
+  if (st.corp === st.offlineCorp) return null;
+  if (scene().online.indexOf(st.corp) < 0) return null;
+  return st.corp;
+}
+
+function renderTags() {
+  var box = document.getElementById('tagArea');
+  var c = effectiveCorp();
+  if (!c) {
+    box.innerHTML = '<div class="placeholder-box">请先选择企业主体后再选择标签</div>';
+    return;
+  }
+  if (scene().tagState === 'fail' && !st.tagRetried) {
+    box.innerHTML = '<div class="alert error" style="margin-bottom:0"><span class="ico">!</span>' +
+      '<span>标签读取失败，请重试 &nbsp;<a class="link" id="tagRetry">重新加载</a>' +
+      '<br/>不影响按线索分层与企微添加时间筛选后提交。</span></div>';
+    document.getElementById('tagRetry').addEventListener('click', function () {
+      st.tagRetried = true;
+      renderCreate();
+      toast('标签已重新加载');
+    });
+    return;
+  }
+  if (scene().tagState === 'empty-yxxy' && c === 'yxxy') {
+    box.innerHTML = '<div class="placeholder-box">当前企业主体下暂无可选标签，可不按标签筛选直接提交</div>';
+    return;
+  }
+  var html = '';
+  TAGS[c].forEach(function (grp) {
+    html += '<div class="tag-group-name">' + grp.g + '</div><div class="opt-group">';
+    grp.items.forEach(function (t) {
+      var checked = st.tags.indexOf(t) > -1;
+      html += '<div class="opt ' + (checked ? 'checked' : '') + '" data-tag="' + t + '">' + t + '</div>';
+    });
+    html += '</div>';
+  });
+  html += '<div class="hint">不勾选视为「不限制」，可跨组多选；仅展示当前企业主体（' + corpName(c) + '）下的标签，不混入另一主体的同名标签。</div>';
+  box.innerHTML = html;
+  var opts = box.querySelectorAll('.opt');
+  for (var i = 0; i < opts.length; i++) {
+    opts[i].addEventListener('click', function () {
+      var t = this.getAttribute('data-tag');
+      var idx = st.tags.indexOf(t);
+      if (idx > -1) st.tags.splice(idx, 1); else st.tags.push(t);
+      renderCreate();
+    });
+  }
+}
+
+function renderTime() {
+  var box = document.getElementById('timeArea');
+  var list = ['不限', '今日', '近 3 天', '近 7 天', '近 30 天', '近 90 天', '自定义'];
+  var html = '';
+  list.forEach(function (t) {
+    html += '<div class="opt square ' + (st.addTime === t ? 'checked' : '') + '" data-time="' + t + '">' + t + '</div>';
+  });
+  box.innerHTML = html;
+  var opts = box.querySelectorAll('.opt');
+  for (var i = 0; i < opts.length; i++) {
+    opts[i].addEventListener('click', function () {
+      st.addTime = this.getAttribute('data-time');
+      renderCreate();
+    });
+  }
+}
+
+function estimateCount() {
+  var c = effectiveCorp();
+  if (!c || st.tiers.length === 0) return null;
+  var total = 0;
+  TIERS[c].forEach(function (t) { if (st.tiers.indexOf(t.k) > -1) total += t.c; });
+  for (var i = 0; i < st.tags.length; i++) total = Math.floor(total * 0.8);
+  if (st.addTime !== '不限') total = Math.floor(total * 0.7);
+  return total;
+}
+
+function renderEstimate() {
+  var c = effectiveCorp();
+  var num = document.getElementById('estNum');
+  var hint = document.getElementById('estHint');
+  var sample = document.getElementById('sampleArea');
+
+  if (!c) {
+    num.textContent = '--';
+    num.className = 'num';
+    hint.textContent = '请先选择企业主体';
+    sample.innerHTML = '<div class="placeholder-box">选择企业主体后展示抽样线索</div>';
+    return;
+  }
+  var n = estimateCount();
+  if (n === null) {
+    num.textContent = '--';
+    num.className = 'num';
+    hint.textContent = '请至少选择一个线索分层';
+    sample.innerHTML = '<div class="placeholder-box">选择线索分层后展示抽样线索</div>';
+    return;
+  }
+  num.textContent = n;
+  num.className = n > SINGLE_LIMIT ? 'num over' : 'num';
+  hint.innerHTML = n > SINGLE_LIMIT
+    ? '<span style="color:#f56c6c">超出单次上限 ' + SINGLE_LIMIT + ' 人，请缩小筛选范围（上限按' + corpName(c) + '独立判定，不合并两个主体人数）</span>'
+    : '仅统计在' + corpName(c) + '下与本人存在正常好友关系的线索，已排除该主体下近 7 天已群发线索';
+
+  var rows = '<table class="grid"><thead><tr><th>昵称</th><th>分层</th><th>洋葱ID</th><th>承接员工</th><th>所属企业主体</th></tr></thead><tbody>';
+  var tier = st.tiers.length ? st.tiers[0] : 'C';
+  for (var i = 0; i < 5; i++) {
+    rows += '<tr><td>' + SAMPLE_NAMES[i] + '</td><td>' + tier + '</td><td>' + (10000 + i + (c === 'yxxy' ? 500 : 0)) +
+      '</td><td>张小销</td><td>' + corpName(c) + '</td></tr>';
+  }
+  rows += '</tbody></table>';
+  sample.innerHTML = rows;
+}
+
+function renderQuota() {
+  var box = document.getElementById('quotaRow');
+  var c = effectiveCorp();
+  if (!c) {
+    box.className = 'quota muted';
+    box.textContent = '请先选择企业主体后查看本周期可发起次数';
+    return;
+  }
+  var used = scene().quotaUsed[c] || 0;
+  var left = QUOTA_LIMIT - used;
+  if (left <= 0) {
+    box.className = 'quota danger';
+    box.innerHTML = '本周期在' + corpName(c) + '已发起 ' + used + ' 次 / 上限 ' + QUOTA_LIMIT +
+      ' 次，剩余 0 次。预计 2026-08-23 09:12 释放后可再次发起。（配额按销售账号与企业主体的组合独立计数，另一主体不受影响）';
+  } else {
+    box.className = 'quota';
+    box.innerHTML = '本周期在' + corpName(c) + '已发起 ' + used + ' 次 / 上限 ' + QUOTA_LIMIT +
+      ' 次，剩余 ' + left + ' 次。（另一主体配额独立计算，互不占用）';
+  }
+}
+
+function disableReason() {
+  var all = scene().online;
+  if (all.length === 0) return '当前没有云设备在线的企业主体，暂不可发起群发';
+  if (st.offlineCorp && st.corp === st.offlineCorp) return '所选企业主体的云设备已离线，请重新选择';
+  var c = effectiveCorp();
+  if (!c) return '请先选择企业主体';
+  if ((scene().quotaUsed[c] || 0) >= QUOTA_LIMIT) return '该企业主体本周期群发次数已达上限，暂不可提交';
+  if (st.tiers.length === 0) return '请至少选择一个线索分层';
+  var n = estimateCount();
+  if (n === 0) return '预估目标线索数为 0，请调整筛选条件';
+  if (n > SINGLE_LIMIT) return '预估目标线索数超过单次上限 ' + SINGLE_LIMIT + ' 人';
+  return null;
+}
+
+function renderSubmit() {
+  var btn = document.getElementById('submitBtn');
+  var tip = document.getElementById('submitTip');
+  var reason = disableReason();
+  if (reason) {
+    btn.setAttribute('disabled', 'disabled');
+    tip.textContent = reason;
+    tip.classList.add('show');
+  } else {
+    btn.removeAttribute('disabled');
+    tip.textContent = '';
+    tip.classList.remove('show');
+  }
+}
+
+document.getElementById('submitBtn').addEventListener('click', function () {
+  if (disableReason()) return;
+  var c = effectiveCorp();
+  document.getElementById('confirmText').innerHTML =
+    '确认提交本次群发任务给直属上级审批？<br/>企业主体：<b>' + corpName(c) + '</b>，目标线索：<b>' + estimateCount() +
+    ' 人</b>，消息条数：<b>2 条</b>。<br/>提交后无法直接发送，且该主体本周期剩余可发起次数将变为 0 次。';
+  document.getElementById('confirmMask').classList.remove('hidden');
+});
+document.getElementById('confirmCancel').addEventListener('click', function () {
+  document.getElementById('confirmMask').classList.add('hidden');
+});
+document.getElementById('confirmOk').addEventListener('click', function () {
+  var c = effectiveCorp();
+  document.getElementById('confirmMask').classList.add('hidden');
+  scene().quotaUsed[c] = (scene().quotaUsed[c] || 0) + 1;
+  toast('已提交，等待审批');
+  renderCreate();
+  st.recordFilter = 'all';
+  document.getElementById('recordCorpFilter').value = 'all';
+  renderRecords();
+  setTimeout(function () { goPage('record'); }, 500);
+});
+
+/* 名称/说明字数 */
+document.getElementById('taskName').addEventListener('input', function () {
+  document.getElementById('nameLen').textContent = this.value.length;
+});
+document.getElementById('taskDesc').addEventListener('input', function () {
+  document.getElementById('descLen').textContent = this.value.length;
+});
+
+/* ---------------- 任务记录 ---------------- */
+document.getElementById('recordCorpFilter').addEventListener('change', function (e) {
+  st.recordFilter = e.target.value;
+  renderRecords();
+});
+document.getElementById('recordReset').addEventListener('click', function () {
+  st.recordFilter = 'all';
+  document.getElementById('recordCorpFilter').value = 'all';
+  renderRecords();
+});
+
+function renderRecords() {
+  var box = document.getElementById('recordTableArea');
+  var list = RECORDS.filter(function (r) { return st.recordFilter === 'all' || r.corp === st.recordFilter; });
+  if (list.length === 0) {
+    box.innerHTML = '<div class="empty">当前企业主体下暂无群发任务，可调整筛选条件<br/>' +
+      '<button class="btn" id="clearFilter">清空筛选</button></div>';
+    document.getElementById('clearFilter').addEventListener('click', function () {
+      st.recordFilter = 'all';
+      document.getElementById('recordCorpFilter').value = 'all';
+      renderRecords();
+    });
+    return;
+  }
+  var html = '<table class="grid" style="font-size:13px"><thead><tr>' +
+    '<th>任务名称</th><th>创建人</th><th>企业主体</th><th>目标线索数</th><th>消息条数</th><th>状态</th><th>审批人</th><th>操作</th>' +
+    '</tr></thead><tbody>';
+  list.forEach(function (r, idx) {
+    html += '<tr>' +
+      '<td><span class="link" data-detail="' + idx + '">' + r.name + '</span></td>' +
+      '<td>' + r.owner + '</td>' +
+      '<td>' + corpName(r.corp) + (r.legacy ? '<span class="mini-note">历史任务兜底</span>' : '') + '</td>' +
+      '<td>' + r.target + '</td>' +
+      '<td>' + r.msg + '</td>' +
+      '<td><span class="badge ' + r.cls + '">' + r.badge + '</span></td>' +
+      '<td>周组长</td>' +
+      '<td><span class="link" data-detail="' + idx + '">查看详情</span>' +
+      (r.status === 'wait' ? ' / <span class="link" data-approve="' + idx + '">去审批</span>' : '') + '</td>' +
+      '</tr>';
+  });
+  html += '</tbody></table><div class="hint" style="text-align:right">共 ' + list.length + ' 条</div>';
+  box.innerHTML = html;
+
+  var dets = box.querySelectorAll('[data-detail]');
+  for (var i = 0; i < dets.length; i++) {
+    dets[i].addEventListener('click', function () {
+      openDetail(list[parseInt(this.getAttribute('data-detail'), 10)]);
+    });
+  }
+  var apps = box.querySelectorAll('[data-approve]');
+  for (var j = 0; j < apps.length; j++) {
+    apps[j].addEventListener('click', function (e) {
+      e.stopPropagation();
+      openApprove(list[parseInt(this.getAttribute('data-approve'), 10)]);
+    });
+  }
+}
+
+function openDetail(r) {
+  document.getElementById('dTaskName').textContent = r.name;
+  document.getElementById('dCorp').textContent = corpName(r.corp);
+  document.getElementById('dCorp2').textContent = corpName(r.corp);
+  document.getElementById('dTarget').textContent = r.target + ' 人';
+  document.getElementById('dTags').textContent = r.corp === 'cfy' ? '暑期意向、已试听' : '数学思维、高活跃';
+  goPage('detail');
+}
+
+function openApprove(r) {
+  document.getElementById('aCorp').textContent = corpName(r.corp);
+  document.getElementById('aCorp2').textContent = corpName(r.corp);
+  document.getElementById('aTarget').textContent = r.target;
+  document.getElementById('aTags').textContent = r.corp === 'cfy' ? '暑期意向、已试听' : '数学思维、高活跃';
+  goPage('approve');
+}
+
+/* ---------------- 提示 ---------------- */
+var toastTimer = null;
+function toast(msg, isErr) {
+  var el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast' + (isErr ? ' err' : '');
+  el.style.display = 'block';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function () { el.style.display = 'none'; }, 2600);
+}
+
+/* ---------------- 初始化 ---------------- */
+renderCreate();
+renderRecords();
+</script>
+</body>
+</html>
