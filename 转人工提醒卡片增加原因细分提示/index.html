@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>转人工提醒卡片增加原因细分提示 · 可交互原型</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:#f0f2f5;color:#1f2329;font-size:14px;line-height:1.6}
+.wrap{max-width:1320px;margin:0 auto;padding:24px 20px 60px}
+.topbar{background:#fff;border-radius:10px;padding:20px 24px;margin-bottom:18px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.topbar h1{font-size:20px;font-weight:600;margin-bottom:6px}
+.topbar p{color:#646a73;font-size:13px}
+.topbar .badge{display:inline-block;background:#e8f3ff;color:#1456f0;border-radius:4px;padding:2px 8px;font-size:12px;margin-left:8px;vertical-align:middle}
+.tabs{display:flex;gap:4px;background:#fff;border-radius:10px 10px 0 0;padding:6px 6px 0;border-bottom:1px solid #e5e6eb}
+.tab{padding:11px 22px;cursor:pointer;font-size:14px;color:#646a73;border-radius:8px 8px 0 0;position:relative;top:1px;border:1px solid transparent;border-bottom:none;user-select:none}
+.tab:hover{color:#1456f0}
+.tab.on{color:#1456f0;font-weight:600;background:#fff;border-color:#e5e6eb;background:#f7f9ff}
+.panel{background:#fff;border-radius:0 0 10px 10px;padding:22px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.cols{display:flex;gap:26px;align-items:flex-start;flex-wrap:wrap}
+.ctrl{flex:0 0 380px;min-width:320px}
+.view{flex:1;min-width:340px}
+.sec{border:1px solid #e5e6eb;border-radius:8px;padding:16px;margin-bottom:14px}
+.sec h3{font-size:13px;font-weight:600;margin-bottom:14px;color:#1f2329;display:flex;align-items:center;gap:6px}
+.sec h3::before{content:'';width:3px;height:13px;background:#1456f0;border-radius:2px}
+.f{margin-bottom:14px}
+.f:last-child{margin-bottom:0}
+.f label{display:block;font-size:12px;color:#646a73;margin-bottom:6px}
+.f select,.f input[type=text],.f textarea{width:100%;border:1px solid #d0d3d6;border-radius:6px;padding:8px 10px;font-size:13px;font-family:inherit;background:#fff;color:#1f2329;outline:none}
+.f select:focus,.f input:focus,.f textarea:focus{border-color:#1456f0;box-shadow:0 0 0 2px rgba(20,86,240,.1)}
+.f textarea{resize:vertical;min-height:62px}
+.cnt{text-align:right;font-size:11px;color:#8f959e;margin-top:4px}
+.cnt.warn{color:#d83931}
+.sw{display:flex;align-items:flex-start;gap:10px;padding:9px 0;cursor:pointer;user-select:none}
+.sw+.sw{border-top:1px dashed #e5e6eb}
+.sw .knob{flex:0 0 38px;height:21px;background:#c9cdd4;border-radius:11px;position:relative;transition:.2s;margin-top:1px}
+.sw .knob::after{content:'';position:absolute;top:2px;left:2px;width:17px;height:17px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.sw.on .knob{background:#1456f0}
+.sw.on .knob::after{left:19px}
+.sw .txt strong{display:block;font-size:13px;font-weight:500}
+.sw .txt span{font-size:11px;color:#8f959e;line-height:1.5}
+.resolved{background:#f7f8fa;border-radius:6px;padding:12px 14px;font-size:12px;color:#4e5969}
+.resolved .r{display:flex;justify-content:space-between;padding:4px 0}
+.resolved .r b{font-weight:500;color:#1f2329}
+.resolved .r.miss b{color:#d83931}
+.vhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px}
+.vhead .t{font-size:13px;font-weight:600}
+.seg{display:inline-flex;border:1px solid #d0d3d6;border-radius:6px;overflow:hidden}
+.seg button{border:none;background:#fff;padding:6px 15px;font-size:12px;cursor:pointer;color:#4e5969;font-family:inherit}
+.seg button.on{background:#1456f0;color:#fff}
+.note{font-size:11px;color:#8f959e;margin-top:12px;line-height:1.7}
+.note code{background:#f2f3f5;padding:1px 5px;border-radius:3px;font-size:11px;color:#d83931}
+
+/* ---------- 企业微信 ---------- */
+.wxphone{width:340px;margin:0 auto;background:#ededed;border-radius:26px;padding:0 0 14px;box-shadow:0 6px 24px rgba(0,0,0,.14);overflow:hidden;border:1px solid #dcdfe6}
+.wxbar{background:#f7f7f7;padding:11px 16px;text-align:center;font-size:15px;font-weight:600;color:#191919;border-bottom:1px solid #e3e3e3}
+.wxbody{padding:16px 14px;min-height:320px}
+.wxtime{text-align:center;font-size:11px;color:#a8a8a8;margin-bottom:14px}
+.wxrow{display:flex;gap:9px;align-items:flex-start}
+.wxava{flex:0 0 36px;height:36px;border-radius:5px;background:linear-gradient(135deg,#3aa4f5,#0082ef);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;line-height:1.15;text-align:center;font-weight:600;padding:3px}
+.wxcard{flex:1;background:#fff;border-radius:7px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.07)}
+.wxcard .ct{font-size:15px;font-weight:600;color:#191919;padding:14px 14px 9px}
+.wxcard .cd{padding:0 14px 13px;font-size:13px;color:#6b6b6b;white-space:pre-wrap;word-break:break-word}
+.wxcard .cd .hl{color:#191919}
+.wxcard .cf{border-top:1px solid #f0f0f0;padding:10px 14px;font-size:12px;color:#a8a8a8;display:flex;justify-content:space-between;align-items:center}
+.wxcard .cf .ar{color:#c8c8c8}
+.newline{background:#fffbe6;border-radius:2px;box-shadow:0 0 0 2px #fffbe6}
+.diffon .newline{background:#fff3c4;box-shadow:0 0 0 2px #fff3c4}
+
+/* ---------- 飞书 ---------- */
+.fsapp{width:400px;margin:0 auto;background:#f2f3f5;border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,.14);overflow:hidden;border:1px solid #dee0e3}
+.fsbar{background:#fff;padding:11px 16px;font-size:14px;font-weight:600;border-bottom:1px solid #e5e6eb;display:flex;align-items:center;gap:8px}
+.fsbar .dot{width:7px;height:7px;border-radius:50%;background:#34c724}
+.fsbody{padding:16px 14px;min-height:320px}
+.fsrow{display:flex;gap:9px;align-items:flex-start}
+.fsava{flex:0 0 34px;height:34px;border-radius:8px;background:linear-gradient(135deg,#4e83fd,#1456f0);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px}
+.fsmeta{font-size:11px;color:#8f959e;margin-bottom:5px}
+.fscard{background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);width:100%}
+.fshdr{background:#3370ff;color:#fff;padding:10px 14px;font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px}
+.fsbd{padding:13px 14px 4px}
+.fsline{display:flex;font-size:13px;padding:5px 0;line-height:1.6}
+.fsline .k{flex:0 0 82px;color:#8f959e}
+.fsline .v{flex:1;color:#1f2329;word-break:break-word}
+.fsline .v.miss{color:#d83931}
+.fsftr{border-top:1px solid #f0f1f3;margin-top:9px;padding:9px 14px;font-size:11px;color:#8f959e}
+.empty{background:#fff;border:1px dashed #d0d3d6;border-radius:8px;padding:34px 20px;text-align:center;color:#8f959e;font-size:13px}
+.empty .ic{font-size:26px;margin-bottom:8px;opacity:.4}
+.tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:3px;margin-left:6px}
+.tag.new{background:#e6f4ea;color:#218555}
+.tag.old{background:#f2f3f5;color:#8f959e}
+.legend{display:flex;gap:16px;font-size:11px;color:#8f959e;margin-top:12px;align-items:center;flex-wrap:wrap}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:2px;background:#fff3c4;margin-right:5px;vertical-align:-1px}
+.warnbox{background:#fff8e6;border:1px solid #ffd591;border-radius:6px;padding:10px 12px;font-size:12px;color:#8a5a00;margin-top:12px;line-height:1.7}
+@media(max-width:900px){.ctrl{flex:1 1 100%}.wxphone,.fsapp{width:100%}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <h1>转人工提醒卡片增加原因细分提示<span class="badge">可交互原型 v1.0</span></h1>
+    <p>在企微机器人板块的企业微信提醒卡片与飞书机器人提醒卡片中，新增转人工类型、原因分类、具体原因三行，并在存在补充说明时追加一行。左侧调整场景，右侧实时查看卡片效果；黄色高亮为本次新增内容。</p>
+  </div>
+
+  <div class="tabs">
+    <div class="tab on" data-tab="wx">企业微信提醒卡片（被动转人工）</div>
+    <div class="tab" data-tab="fs">飞书机器人提醒卡片（规则引擎转人工）</div>
+  </div>
+
+  <!-- ============ 企业微信 ============ -->
+  <div class="panel" id="p-wx">
+    <div class="cols">
+      <div class="ctrl">
+        <div class="sec">
+          <h3>转人工场景</h3>
+          <div class="f">
+            <label>具体原因（被动转人工共 6 条明细）</label>
+            <select id="wxReason">
+              <option value="确认购买意向|用户意向">确认购买意向</option>
+              <option value="主动要求转人工|用户意向">主动要求转人工</option>
+              <option value="复杂咨询/超出 AI 范围|用户意向">复杂咨询/超出 AI 范围</option>
+              <option value="AI 服务异常|异常协助">AI 服务异常</option>
+              <option value="敏感内容/违规拦截|异常协助">敏感内容/违规拦截</option>
+              <option value="多轮无效对话|异常协助">多轮无效对话</option>
+            </select>
+          </div>
+          <div class="f">
+            <label>客户昵称</label>
+            <input type="text" id="wxNick" value="洋葱家长-小明妈妈">
+          </div>
+          <div class="f">
+            <label>补充说明（最长 200 字，企业微信卡片超 30 字截断）</label>
+            <textarea id="wxNote" placeholder="留空则整行不展示">客户已询问优惠券使用方式</textarea>
+            <div class="cnt" id="wxCnt">已输入 12 字</div>
+          </div>
+        </div>
+
+        <div class="sec">
+          <h3>边界场景</h3>
+          <div class="sw" id="wxMiss"><div class="knob"></div><div class="txt"><strong>模拟原因信息缺失</strong><span>历史会话或字典未配置对照关系，三行均展示「未记录」</span></div></div>
+          <div class="sw" id="wxLong"><div class="knob"></div><div class="txt"><strong>一键填入超长补充说明</strong><span>填入超过 30 字的文本，验证截取前 30 字并追加省略号</span></div></div>
+        </div>
+
+        <div class="sec">
+          <h3>解析结果</h3>
+          <div class="resolved" id="wxResolved"></div>
+        </div>
+      </div>
+
+      <div class="view">
+        <div class="vhead">
+          <div class="t">承接销售的企业微信应用消息</div>
+          <div class="seg" id="wxSeg">
+            <button data-v="after" class="on">改造后</button>
+            <button data-v="before">改造前</button>
+          </div>
+        </div>
+        <div class="wxphone" id="wxPhone">
+          <div class="wxbar">AI 助理</div>
+          <div class="wxbody">
+            <div class="wxtime">今天 14:32</div>
+            <div class="wxrow">
+              <div class="wxava">AI<br>助理</div>
+              <div class="wxcard">
+                <div class="ct">转人工会话待处理</div>
+                <div class="cd" id="wxDesc"></div>
+                <div class="cf"><span>详情</span><span class="ar">&gt;</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="legend"><span><i></i>本次新增行</span><span>标题与跳转链接沿用现有配置</span></div>
+        <div class="note">发送条件沿用现有配置：仅被动转人工且方向为「转人工接待」时发送。销售主动转人工、标签回调转人工、无法识别消息转人工、规则引擎转人工均不发送本卡片。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 飞书 ============ -->
+  <div class="panel" id="p-fs" style="display:none">
+    <div class="cols">
+      <div class="ctrl">
+        <div class="sec">
+          <h3>转人工场景</h3>
+          <div class="f">
+            <label>具体原因（规则引擎转人工共 7 条明细）</label>
+            <select id="fsReason">
+              <option>关键词命中</option>
+              <option>频次阈值命中</option>
+              <option>行为模式匹配</option>
+              <option>时间窗口命中</option>
+              <option>用户意向匹配</option>
+              <option>兜底规则</option>
+              <option>触发器动作</option>
+            </select>
+          </div>
+          <div class="f">
+            <label>客户昵称</label>
+            <input type="text" id="fsNick" value="洋葱家长-小明妈妈">
+          </div>
+          <div class="f">
+            <label>命中规则名</label>
+            <input type="text" id="fsRule" value="高意向客户即时承接规则">
+          </div>
+          <div class="f">
+            <label>补充说明（飞书卡片完整展示，不截断）</label>
+            <textarea id="fsNote" placeholder="留空则整行不展示">客户连续 3 次询问价格，已命中高意向关键词</textarea>
+            <div class="cnt" id="fsCnt">已输入 23 字</div>
+          </div>
+        </div>
+
+        <div class="sec">
+          <h3>边界场景</h3>
+          <div class="sw" id="fsMiss"><div class="knob"></div><div class="txt"><strong>模拟原因信息缺失</strong><span>字典未配置对照关系，三行均展示「未记录」</span></div></div>
+          <div class="sw" id="fsTpl"><div class="knob"></div><div class="txt"><strong>模拟卡片模板尚未扩展</strong><span>通知服务侧模板未更新时，新增四行不展示，卡片按现有样式正常发送</span></div></div>
+          <div class="sw" id="fsOff"><div class="knob"></div><div class="txt"><strong>关闭该规则的坐席通知开关</strong><span>开关关闭时不发送飞书卡片，扩展内容随之不展示</span></div></div>
+        </div>
+
+        <div class="sec">
+          <h3>解析结果</h3>
+          <div class="resolved" id="fsResolved"></div>
+        </div>
+      </div>
+
+      <div class="view">
+        <div class="vhead">
+          <div class="t">承接坐席的飞书机器人会话</div>
+          <div class="seg" id="fsSeg">
+            <button data-v="after" class="on">改造后</button>
+            <button data-v="before">改造前</button>
+          </div>
+        </div>
+        <div class="fsapp" id="fsApp">
+          <div class="fsbar"><span class="dot"></span>企微机器人助手</div>
+          <div class="fsbody" id="fsBody"></div>
+        </div>
+        <div class="legend"><span><i></i>本次新增行</span><span>客户昵称、命中规则名、切换时间沿用现有配置</span></div>
+        <div class="warnbox">上线顺序依赖：飞书卡片的正文排版由通知服务侧的卡片模板维护，需先完成模板内容扩展，再发布本侧改动。模板未扩展时新增四行不展示，卡片仍正常发送。</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+var LONG = '客户在会话中连续询问课程价格与优惠活动，并主动索要购课链接，属于高意向线索，请优先承接处理并及时跟进转化。';
+var MISS = '未记录';
+
+function $(id){return document.getElementById(id)}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+/* tabs */
+document.querySelectorAll('.tab').forEach(function(t){
+  t.onclick=function(){
+    document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('on')});
+    t.classList.add('on');
+    $('p-wx').style.display = t.dataset.tab==='wx' ? '' : 'none';
+    $('p-fs').style.display = t.dataset.tab==='fs' ? '' : 'none';
+  };
+});
+
+/* switches */
+function bindSw(id,cb){
+  var el=$(id);
+  el.onclick=function(){el.classList.toggle('on');cb(el.classList.contains('on'))};
+}
+function isOn(id){return $(id).classList.contains('on')}
+
+/* segmented */
+function bindSeg(id,cb){
+  document.querySelectorAll('#'+id+' button').forEach(function(b){
+    b.onclick=function(){
+      document.querySelectorAll('#'+id+' button').forEach(function(x){x.classList.remove('on')});
+      b.classList.add('on');cb(b.dataset.v);
+    };
+  });
+}
+
+/* ================= 企业微信 ================= */
+var wxMode='after';
+bindSeg('wxSeg',function(v){wxMode=v;renderWx()});
+bindSw('wxMiss',renderWx);
+bindSw('wxLong',function(on){ $('wxNote').value = on ? LONG : '客户已询问优惠券使用方式'; renderWx(); });
+['wxReason','wxNick','wxNote'].forEach(function(id){
+  $(id).addEventListener('input',renderWx);
+  $(id).addEventListener('change',renderWx);
+});
+
+function truncate(s,n){ return s.length>n ? s.slice(0,n)+'……' : s; }
+
+function renderWx(){
+  var pair=$('wxReason').value.split('|');
+  var reason=pair[0], category=pair[1];
+  var miss=isOn('wxMiss');
+  var nick=$('wxNick').value.trim();
+  var note=$('wxNote').value.trim();
+
+  var type = miss?MISS:'用户被动';
+  var cat  = miss?MISS:category;
+  var rsn  = miss?MISS:reason;
+
+  /* 解析结果面板 */
+  $('wxResolved').innerHTML =
+    row('转人工类型',type,miss)+row('原因分类',cat,miss)+row('具体原因',rsn,miss)+
+    row('补充说明', note? (note.length>30? '超长，截取前 30 字' : '完整展示') : '为空，整行不展示', false);
+
+  /* 卡片正文 */
+  var L1='您的好友【'+esc(nick)+'】由AI转为人工接待';
+  var L6='请点击卡片跳转，接待完成后，请在“AI助理”中切换为Ai接待';
+
+  var html='';
+  if(wxMode==='before'){
+    html = '<span class="hl">'+L1+'，'+L6+'</span>';
+  }else{
+    html = '<span class="hl">'+L1+'</span>\n';
+    html += '<span class="newline">转人工类型：'+esc(type)+'</span>\n';
+    html += '<span class="newline">原因分类：'+esc(cat)+'</span>\n';
+    html += '<span class="newline">具体原因：'+esc(rsn)+'</span>\n';
+    if(note) html += '<span class="newline">补充说明：'+esc(truncate(note,30))+'</span>\n';
+    html += L6;
+  }
+  $('wxDesc').innerHTML=html;
+
+  /* 字数统计 */
+  var c=$('wxCnt');
+  c.textContent='已输入 '+note.length+' 字'+(note.length>30?'（卡片内截取前 30 字）':'');
+  c.className = note.length>30 ? 'cnt warn':'cnt';
+  c.className += note.length>200 ? ' warn':'';
+}
+
+function row(k,v,miss){
+  return '<div class="r'+(miss?' miss':'')+'"><span>'+k+'</span><b>'+esc(v)+'</b></div>';
+}
+
+/* ================= 飞书 ================= */
+var fsMode='after';
+bindSeg('fsSeg',function(v){fsMode=v;renderFs()});
+bindSw('fsMiss',renderFs);
+bindSw('fsTpl',renderFs);
+bindSw('fsOff',renderFs);
+['fsReason','fsNick','fsRule','fsNote'].forEach(function(id){
+  $(id).addEventListener('input',renderFs);
+  $(id).addEventListener('change',renderFs);
+});
+
+function renderFs(){
+  var miss=isOn('fsMiss'), tplOld=isOn('fsTpl'), off=isOn('fsOff');
+  var reason=$('fsReason').value;
+  var nick=$('fsNick').value.trim();
+  var rule=$('fsRule').value.trim();
+  var note=$('fsNote').value.trim();
+
+  var type = miss?MISS:'规则引擎';
+  var cat  = miss?MISS:'规则命中';
+  var rsn  = miss?MISS:reason;
+
+  $('fsResolved').innerHTML =
+    row('转人工类型',type,miss)+row('原因分类',cat,miss)+row('具体原因',rsn,miss)+
+    row('补充说明', note? '完整展示，不截断' : '为空，整行不展示', false)+
+    row('是否发送', off? '不发送（坐席通知开关关闭）':'发送', off);
+
+  var cnt=$('fsCnt');
+  cnt.textContent='已输入 '+note.length+' 字';
+  cnt.className = note.length>200 ? 'cnt warn':'cnt';
+
+  if(off){
+    $('fsBody').innerHTML='<div class="empty"><div class="ic">🔕</div>该规则的坐席通知开关已关闭<br>本次规则引擎转人工不发送飞书提醒卡片</div>';
+    return;
+  }
+
+  var showNew = (fsMode==='after') && !tplOld;
+  var lines='';
+  lines += line('客户昵称', nick||'—', false, false);
+  lines += line('命中规则名', rule||'—', false, false);
+  if(showNew){
+    lines += line('转人工类型', type, miss, true);
+    lines += line('原因分类', cat, miss, true);
+    lines += line('具体原因', rsn, miss, true);
+    if(note) lines += line('补充说明', note, false, true);
+  }
+  lines += line('切换时间', '2026-09-01 14:32:08', false, false);
+
+  var tip = tplOld && fsMode==='after'
+    ? '<div class="warnbox" style="margin:10px 0 0">卡片模板尚未扩展：新增四行不展示，卡片按现有样式正常发送，不报错、不阻断转人工主流程。</div>'
+    : '';
+
+  $('fsBody').innerHTML =
+    '<div class="fsrow"><div class="fsava">🤖</div><div style="flex:1">'+
+      '<div class="fsmeta">企微机器人助手 · 今天 14:32</div>'+
+      '<div class="fscard">'+
+        '<div class="fshdr">⚠️ 客户已转人工接待，请及时承接</div>'+
+        '<div class="fsbd">'+lines+'</div>'+
+        '<div class="fsftr">来源：企微机器人规则引擎</div>'+
+      '</div>'+
+    '</div></div>'+tip;
+}
+
+function line(k,v,miss,isNew){
+  return '<div class="fsline'+(isNew?' newline':'')+'"><span class="k">'+k+'</span>'+
+         '<span class="v'+(miss?' miss':'')+'">'+esc(v)+'</span></div>';
+}
+
+renderWx();
+renderFs();
+</script>
+</body>
+</html>
