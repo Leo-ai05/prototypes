@@ -141,7 +141,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 
   <div class="topbar">
     <h1>转人工提醒卡片增加原因细分提示<span class="badge">可交互原型 v1.1</span></h1>
-    <p>在企微机器人板块的企业微信提醒卡片与飞书机器人提醒卡片中，新增转人工类型、原因分类、具体原因三行，并在存在补充说明时追加一行；同时在 AI员工明细的转人工明细弹窗中为每条切换记录补上转人工类型与原因分类，并新增按原因分类筛选。左侧调整场景，右侧实时查看效果；黄色高亮为本次新增内容。</p>
+    <p>在企微机器人板块的企业微信提醒卡片与飞书机器人提醒卡片中，新增转人工类型、原因分类、具体原因、用户手机号四行，并在存在补充说明时追加一行；同时在 AI员工明细的转人工明细弹窗中为每条切换记录补上转人工类型与原因分类，并新增按原因分类筛选（弹窗不展示用户手机号）。左侧调整场景，右侧实时查看效果；黄色高亮为本次新增内容。</p>
   </div>
 
   <div class="tabs">
@@ -172,6 +172,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
             <input type="text" id="wxNick" value="洋葱家长-小明妈妈">
           </div>
           <div class="f">
+            <label>用户手机号（会话画像中的用户号码，完整展示 11 位）</label>
+            <input type="text" id="wxMobile" value="13812345678">
+          </div>
+          <div class="f">
             <label>补充说明（最长 200 字，企业微信卡片超 30 字截断）</label>
             <textarea id="wxNote" placeholder="留空则整行不展示">客户已询问优惠券使用方式</textarea>
             <div class="cnt" id="wxCnt">已输入 12 字</div>
@@ -181,6 +185,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
         <div class="sec">
           <h3>边界场景</h3>
           <div class="sw" id="wxMiss"><div class="knob"></div><div class="txt"><strong>模拟原因信息缺失</strong><span>历史会话或字典未配置对照关系，三行均展示「未记录」</span></div></div>
+          <div class="sw" id="wxNoPhone"><div class="knob"></div><div class="txt"><strong>模拟手机号读取不到</strong><span>客户未绑定洋葱账号、账号上号码为空或画像尚未写入，该行展示「未获取到」</span></div></div>
           <div class="sw" id="wxLong"><div class="knob"></div><div class="txt"><strong>一键填入超长补充说明</strong><span>填入超过 30 字的文本，验证截取前 30 字并追加省略号</span></div></div>
         </div>
 
@@ -245,6 +250,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
             <input type="text" id="fsRule" value="高意向客户即时承接规则">
           </div>
           <div class="f">
+            <label>用户手机号（会话画像中的用户号码，完整展示 11 位）</label>
+            <input type="text" id="fsMobile" value="13812345678">
+          </div>
+          <div class="f">
             <label>补充说明（飞书卡片完整展示，不截断）</label>
             <textarea id="fsNote" placeholder="留空则整行不展示">客户连续 3 次询问价格，已命中高意向关键词</textarea>
             <div class="cnt" id="fsCnt">已输入 23 字</div>
@@ -254,7 +263,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
         <div class="sec">
           <h3>边界场景</h3>
           <div class="sw" id="fsMiss"><div class="knob"></div><div class="txt"><strong>模拟原因信息缺失</strong><span>字典未配置对照关系，三行均展示「未记录」</span></div></div>
-          <div class="sw" id="fsTpl"><div class="knob"></div><div class="txt"><strong>模拟卡片模板尚未扩展</strong><span>通知服务侧模板未更新时，新增四行不展示，卡片按现有样式正常发送</span></div></div>
+          <div class="sw" id="fsNoPhone"><div class="knob"></div><div class="txt"><strong>模拟手机号读取不到</strong><span>客户未绑定洋葱账号、账号上号码为空或画像尚未写入，该行展示「未获取到」</span></div></div>
+          <div class="sw" id="fsTpl"><div class="knob"></div><div class="txt"><strong>模拟卡片模板尚未扩展</strong><span>通知服务侧模板未更新时，新增五行不展示，卡片按现有样式正常发送</span></div></div>
           <div class="sw" id="fsOff"><div class="knob"></div><div class="txt"><strong>关闭该规则的坐席通知开关</strong><span>开关关闭时不发送飞书卡片，扩展内容随之不展示</span></div></div>
         </div>
 
@@ -277,7 +287,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
           <div class="fsbody" id="fsBody"></div>
         </div>
         <div class="legend"><span><i></i>本次新增行</span><span>客户昵称、命中规则名、切换时间沿用现有配置</span></div>
-        <div class="warnbox">上线顺序依赖：飞书卡片的正文排版由通知服务侧的卡片模板维护，需先完成模板内容扩展，再发布本侧改动。模板未扩展时新增四行不展示，卡片仍正常发送。</div>
+        <div class="warnbox">上线顺序依赖：飞书卡片的正文排版由通知服务侧的卡片模板维护，需先完成模板内容扩展，再发布本侧改动。模板未扩展时新增五行不展示，卡片仍正常发送。</div>
       </div>
     </div>
   </div>
@@ -365,6 +375,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 <script>
 var LONG = '客户在会话中连续询问课程价格与优惠活动，并主动索要购课链接，属于高意向线索，请优先承接处理并及时跟进转化。';
 var MISS = '未记录';
+var NOPHONE = '未获取到';
 
 function $(id){return document.getElementById(id)}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
@@ -400,8 +411,9 @@ function bindSeg(id,cb){
 var wxMode='after';
 bindSeg('wxSeg',function(v){wxMode=v;renderWx()});
 bindSw('wxMiss',renderWx);
+bindSw('wxNoPhone',renderWx);
 bindSw('wxLong',function(on){ $('wxNote').value = on ? LONG : '客户已询问优惠券使用方式'; renderWx(); });
-['wxReason','wxNick','wxNote'].forEach(function(id){
+['wxReason','wxNick','wxMobile','wxNote'].forEach(function(id){
   $(id).addEventListener('input',renderWx);
   $(id).addEventListener('change',renderWx);
 });
@@ -412,16 +424,21 @@ function renderWx(){
   var pair=$('wxReason').value.split('|');
   var reason=pair[0], category=pair[1];
   var miss=isOn('wxMiss');
+  var noPhone=isOn('wxNoPhone');
   var nick=$('wxNick').value.trim();
+  var mobileIn=$('wxMobile').value.trim();
   var note=$('wxNote').value.trim();
 
   var type = miss?MISS:'用户被动';
   var cat  = miss?MISS:category;
   var rsn  = miss?MISS:reason;
+  var noMobile = noPhone || !mobileIn;
+  var mobile = noMobile ? NOPHONE : mobileIn;
 
   /* 解析结果面板 */
   $('wxResolved').innerHTML =
     row('转人工类型',type,miss)+row('原因分类',cat,miss)+row('具体原因',rsn,miss)+
+    row('用户手机号',mobile,noMobile)+
     row('补充说明', note? (note.length>30? '超长，截取前 30 字' : '完整展示') : '为空，整行不展示', false);
 
   /* 卡片正文 */
@@ -436,6 +453,7 @@ function renderWx(){
     html += '<span class="newline">转人工类型：'+esc(type)+'</span>\n';
     html += '<span class="newline">原因分类：'+esc(cat)+'</span>\n';
     html += '<span class="newline">具体原因：'+esc(rsn)+'</span>\n';
+    html += '<span class="newline">用户手机号：'+esc(mobile)+'</span>\n';
     if(note) html += '<span class="newline">补充说明：'+esc(truncate(note,30))+'</span>\n';
     html += L6;
   }
@@ -456,26 +474,31 @@ function row(k,v,miss){
 var fsMode='after';
 bindSeg('fsSeg',function(v){fsMode=v;renderFs()});
 bindSw('fsMiss',renderFs);
+bindSw('fsNoPhone',renderFs);
 bindSw('fsTpl',renderFs);
 bindSw('fsOff',renderFs);
-['fsReason','fsNick','fsRule','fsNote'].forEach(function(id){
+['fsReason','fsNick','fsRule','fsMobile','fsNote'].forEach(function(id){
   $(id).addEventListener('input',renderFs);
   $(id).addEventListener('change',renderFs);
 });
 
 function renderFs(){
-  var miss=isOn('fsMiss'), tplOld=isOn('fsTpl'), off=isOn('fsOff');
+  var miss=isOn('fsMiss'), noPhone=isOn('fsNoPhone'), tplOld=isOn('fsTpl'), off=isOn('fsOff');
   var reason=$('fsReason').value;
   var nick=$('fsNick').value.trim();
   var rule=$('fsRule').value.trim();
+  var mobileIn=$('fsMobile').value.trim();
   var note=$('fsNote').value.trim();
 
   var type = miss?MISS:'规则引擎';
   var cat  = miss?MISS:'规则命中';
   var rsn  = miss?MISS:reason;
+  var noMobile = noPhone || !mobileIn;
+  var mobile = noMobile ? NOPHONE : mobileIn;
 
   $('fsResolved').innerHTML =
     row('转人工类型',type,miss)+row('原因分类',cat,miss)+row('具体原因',rsn,miss)+
+    row('用户手机号',mobile,noMobile)+
     row('补充说明', note? '完整展示，不截断' : '为空，整行不展示', false)+
     row('是否发送', off? '不发送（坐席通知开关关闭）':'发送', off);
 
@@ -496,12 +519,13 @@ function renderFs(){
     lines += line('转人工类型', type, miss, true);
     lines += line('原因分类', cat, miss, true);
     lines += line('具体原因', rsn, miss, true);
+    lines += line('用户手机号', mobile, noMobile, true);
     if(note) lines += line('补充说明', note, false, true);
   }
   lines += line('切换时间', '2026-09-01 14:32:08', false, false);
 
   var tip = tplOld && fsMode==='after'
-    ? '<div class="warnbox" style="margin:10px 0 0">卡片模板尚未扩展：新增四行不展示，卡片按现有样式正常发送，不报错、不阻断转人工主流程。</div>'
+    ? '<div class="warnbox" style="margin:10px 0 0">卡片模板尚未扩展：新增五行不展示，卡片按现有样式正常发送，不报错、不阻断转人工主流程。</div>'
     : '';
 
   $('fsBody').innerHTML =
