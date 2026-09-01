@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>企微机器人分流组会话属性</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;color:#303133;background:#f5f7fa}
+    button,input{font:inherit}.app{display:flex;min-height:100vh}.nav{width:208px;background:#18222f;color:#c7d1df;padding:18px 12px}.brand{height:42px;padding:6px 12px;color:#fff;font-size:17px;font-weight:700}.nav-title{padding:18px 12px 6px;color:#708096;font-size:12px}.nav-item{padding:11px 14px;margin:3px 0;border-radius:6px;cursor:pointer}.nav-item.active,.nav-item:hover{color:#fff;background:#306de6}.main{flex:1;min-width:0}.top{height:58px;background:#fff;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:space-between;padding:0 24px}.crumb{color:#909399}.user{display:flex;gap:10px;align-items:center}.avatar{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#409eff;color:#fff}.content{padding:20px}.card{background:#fff;border:1px solid #ebeef5;border-radius:7px;box-shadow:0 1px 2px rgba(0,0,0,.03)}.card-head{padding:16px 20px;border-bottom:1px solid #ebeef5;display:flex;align-items:center;justify-content:space-between}.title{font-size:17px;font-weight:700}.btn{height:34px;padding:0 15px;border:1px solid #dcdfe6;border-radius:5px;background:#fff;color:#606266;cursor:pointer}.btn:hover{border-color:#409eff;color:#409eff}.btn.primary{background:#409eff;border-color:#409eff;color:#fff}.btn.link{border:0;color:#409eff;padding:0 7px;background:transparent}.btn:disabled{cursor:not-allowed;color:#c0c4cc;background:#f5f7fa;border-color:#e4e7ed}.layout{display:flex;min-height:590px}.aside{width:206px;border-right:1px solid #ebeef5;padding:14px 12px}.section-label{font-size:12px;color:#a3a6ad;padding:9px 10px 5px}.cat{display:flex;justify-content:space-between;padding:9px 10px;border-radius:5px;cursor:pointer}.cat.active{color:#409eff;background:#ecf5ff}.count{color:#909399}.panel{flex:1;padding:18px;min-width:0}.toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}.search{width:310px;height:34px;border:1px solid #dcdfe6;border-radius:5px;padding:0 11px}.tip{font-size:12px;color:#909399}.group{border:1px solid #ebeef5;border-radius:6px;overflow:hidden}.group-head{padding:12px 14px;background:#fafafa;display:flex;align-items:center;gap:9px}.tag{display:inline-block;padding:1px 7px;border-radius:4px;font-size:12px;border:1px solid #d9ecff;color:#409eff;background:#ecf5ff}.tag.gray{border-color:#e4e7ed;color:#909399;background:#f4f4f5}.tag.green{border-color:#e1f3d8;color:#67c23a;background:#f0f9eb}.tag.orange{border-color:#faecd8;color:#e6a23c;background:#fdf6ec}.desc{color:#909399;font-size:12px}.table{width:100%;border-collapse:collapse}.table th,.table td{padding:13px 11px;border-top:1px solid #ebeef5;text-align:left;vertical-align:middle}.table th{background:#fafafa;color:#606266;font-weight:600}.focus-row{background:#f6fbff}.mono{color:#606266}.fixed{color:#909399}.page-tabs{display:flex;gap:4px;margin-bottom:14px}.page-tab{padding:9px 16px;background:#fff;border:1px solid #dcdfe6;cursor:pointer}.page-tab.active{color:#409eff;border-color:#409eff;background:#ecf5ff}.rule-card{padding:18px}.switch-line{display:flex;align-items:center;gap:10px;padding:12px 14px;background:#f8fafc;border:1px solid #ebeef5;border-radius:6px;margin-bottom:18px}.switch{width:40px;height:22px;border-radius:12px;background:#c0c4cc;padding:2px;cursor:pointer;transition:.2s}.switch.on{background:#409eff}.knob{width:18px;height:18px;background:#fff;border-radius:50%;transition:.2s}.switch.on .knob{transform:translateX(18px)}.condition{border:1px solid #ebeef5;border-radius:6px;padding:16px}.form-row{display:grid;grid-template-columns:110px 220px 170px 240px;gap:12px;align-items:center;margin-bottom:12px}.select{height:34px;padding:7px 10px;border:1px solid #dcdfe6;border-radius:5px;background:#fff;position:relative;cursor:pointer}.menu{position:absolute;left:0;right:0;top:37px;background:#fff;border:1px solid #dcdfe6;border-radius:5px;box-shadow:0 7px 18px rgba(0,0,0,.12);z-index:10;display:none}.menu.show{display:block}.option{padding:9px 11px}.option:hover,.option.selected{background:#ecf5ff;color:#409eff}.preview{margin-top:18px;padding:14px;border-left:4px solid #409eff;background:#f4f8ff}.modal-mask{position:fixed;inset:0;background:rgba(0,0,0,.42);display:none;align-items:center;justify-content:center;z-index:20}.modal-mask.show{display:flex}.modal{width:520px;background:#fff;border-radius:8px;box-shadow:0 15px 40px rgba(0,0,0,.25)}.modal-head{padding:17px 20px;border-bottom:1px solid #ebeef5;font-size:17px;font-weight:700;display:flex;justify-content:space-between}.close{cursor:pointer;color:#909399}.modal-body{padding:20px}.field{display:grid;grid-template-columns:130px 1fr;align-items:center;margin-bottom:17px}.field input{height:34px;border:1px solid #dcdfe6;border-radius:5px;padding:0 10px}.help{grid-column:2;color:#909399;font-size:12px;margin-top:5px}.modal-foot{padding:14px 20px;border-top:1px solid #ebeef5;text-align:right;display:flex;justify-content:flex-end;gap:10px}.toast{position:fixed;top:78px;left:50%;transform:translateX(-50%);padding:10px 18px;background:#f0f9eb;border:1px solid #e1f3d8;color:#67c23a;border-radius:5px;display:none;z-index:30}.toast.show{display:block}.state-box{display:flex;gap:12px;margin:14px 0}.stat{flex:1;padding:13px;border:1px solid #ebeef5;border-radius:6px;background:#fff}.stat b{font-size:18px}.warn{padding:10px 13px;margin:12px 0;background:#fdf6ec;color:#e6a23c;border:1px solid #faecd8;border-radius:5px;display:none}.warn.show{display:block}
+    @media(max-width:1000px){.nav{width:170px}.aside{width:170px}.form-row{grid-template-columns:100px 1fr}.tip{display:none}}
+  </style>
+</head>
+<body>
+<div class="app">
+  <aside class="nav">
+    <div class="brand">企微机器人后台</div>
+    <div class="nav-title">机器人管理</div>
+    <div class="nav-item">AI 员工</div><div class="nav-item">全局配置</div>
+    <div class="nav-title">自动化运营</div>
+    <div class="nav-item active" data-page="attr">会话属性</div>
+    <div class="nav-item" data-page="rule">规则配置</div>
+    <div class="nav-item">话术模版</div><div class="nav-item">Prompt 管理</div>
+  </aside>
+  <main class="main">
+    <header class="top"><div class="crumb">企业微信机器人 / <span id="crumb">会话属性</span></div><div class="user"><div class="avatar">管</div>管理员</div></header>
+    <section class="content">
+      <div id="attrPage" class="card">
+        <div class="card-head"><span class="title">会话属性</span><button class="btn primary">＋ 新增属性</button></div>
+        <div class="layout">
+          <aside class="aside">
+            <div class="section-label">分类</div><div class="cat"><span>全部属性</span><span class="count">86</span></div><div class="cat"><span>自定义字段</span><span class="count">8</span></div>
+            <div class="section-label">系统默认字段</div><div class="cat active"><span>基础信息</span><span class="count">18</span></div><div class="cat"><span>会话状态</span><span class="count">5</span></div><div class="cat"><span>地区相关</span><span class="count">3</span></div><div class="cat"><span>活跃数据</span><span class="count">12</span></div><div class="cat"><span>学情数据-累积</span><span class="count">33</span></div><div class="cat"><span>付费意向</span><span class="count">7</span></div>
+          </aside>
+          <div class="panel">
+            <div class="toolbar"><input class="search" value="所属分流组" aria-label="搜索属性"><span class="tip">自定义字段在最上 · 系统默认按分组聚合 · 同分组内按创建时间倒序</span></div>
+            <div class="group">
+              <div class="group-head"><b>⌄</b><strong>基础信息</strong><span class="tag gray">系统默认</span><span class="desc">18 个字段</span><span class="desc">用户身份与基础画像信息</span></div>
+              <table class="table">
+                <thead><tr><th>属性名称</th><th>字段类型</th><th>字段标识</th><th>描述</th><th>是否对接扣子</th><th>扣子是否更新</th><th>操作</th></tr></thead>
+                <tbody><tr class="focus-row"><td><b>所属分流组</b> <span class="tag gray">系统默认</span></td><td><span class="tag">枚举</span></td><td class="mono">系统预设字段</td><td>用户固定归属的分流组；分流关闭时实际规则按对照组执行</td><td><span id="syncTag" class="tag green">是</span></td><td><span class="tag gray">否</span></td><td><button id="editBtn" class="btn link">编辑</button><button class="btn link">调整分类</button></td></tr></tbody>
+              </table>
+            </div>
+            <div class="state-box">
+              <div class="stat"><span class="desc">示例用户固定归属</span><br><b id="attrValue">实验组 A</b></div>
+              <div class="stat"><span class="desc">当前规则执行组</span><br><b id="execValue">实验组 A</b></div>
+              <div class="stat"><span class="desc">话术变量预览</span><br><b id="promptValue">实验组 A</b></div>
+            </div>
+            <div id="closeWarn" class="warn">分流已关闭：用户固定归属仍为「实验组 A」，本次规则执行临时采用「对照组」。</div>
+            <button id="toggleRouting" class="btn">模拟关闭分流</button>
+            <button id="renameBtn" class="btn">模拟分流组改名</button>
+          </div>
+        </div>
+      </div>
+      <div id="rulePage" class="card" style="display:none">
+        <div class="card-head"><span class="title">规则配置</span><button class="btn primary">保存规则</button></div>
+        <div class="rule-card">
+          <div class="switch-line"><b>用户分流</b><div class="switch on"><div class="knob"></div></div><span class="tag green">分流生效中</span><span class="desc">用户按固定归属参与规则判断</span></div>
+          <div class="page-tabs"><button class="page-tab active">全部</button><button class="page-tab">对照组 50%</button><button class="page-tab" id="groupTab">实验组 A 50%</button></div>
+          <div class="condition">
+            <b>命中条件</b>
+            <div style="height:12px"></div>
+            <div class="form-row"><span>当用户的</span><div class="select">所属分流组</div><div class="select">等于</div><div id="groupSelect" class="select"><span id="selectedGroup">实验组 A</span><span style="float:right">⌄</span><div id="groupMenu" class="menu"><div class="option">对照组</div><div class="option selected" id="groupOption">实验组 A</div></div></div></div>
+            <div class="desc">条件值展示当前分流组名称，分流组改名后自动更新，不需要重新保存规则。</div>
+          </div>
+          <div class="preview"><b>话术变量预览</b><p>您好，当前服务方案来自「<span id="rulePrompt">实验组 A</span>」。</p><span class="desc">关闭“是否同步扣子”后，该变量从可插入清单移除，但规则条件仍可使用。</span></div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+<div id="modal" class="modal-mask">
+  <div class="modal">
+    <div class="modal-head"><span>编辑会话属性</span><span id="closeModal" class="close">×</span></div>
+    <div class="modal-body">
+      <div class="field"><label>属性名称</label><input value="所属分流组"></div>
+      <div class="field"><label>字段类型</label><input value="枚举" disabled></div>
+      <div class="field"><label>是否同步扣子</label><div id="syncSwitch" class="switch on"><div class="knob"></div></div><div class="help">关闭后从扣子可用变量中移除，不影响规则条件。</div></div>
+      <div class="field"><label>扣子是否更新</label><div><button class="btn" disabled>固定为否</button></div><div class="help">所属分流组由系统分流结果确定，不允许外部修改。</div></div>
+    </div>
+    <div class="modal-foot"><button id="cancelBtn" class="btn">取消</button><button id="saveBtn" class="btn primary">确定</button></div>
+  </div>
+</div>
+<div id="toast" class="toast">保存成功</div>
+<script>
+  const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
+  let sync=true,routing=true,renamed=false;
+  function showPage(page){$("#attrPage").style.display=page==="attr"?"block":"none";$("#rulePage").style.display=page==="rule"?"block":"none";$("#crumb").textContent=page==="attr"?"会话属性":"规则配置";$$(".nav-item[data-page]").forEach(x=>x.classList.toggle("active",x.dataset.page===page))}
+  $$(".nav-item[data-page]").forEach(x=>x.onclick=()=>showPage(x.dataset.page));
+  $("#editBtn").onclick=()=>$("#modal").classList.add("show");
+  $("#closeModal").onclick=$("#cancelBtn").onclick=()=>$("#modal").classList.remove("show");
+  $("#syncSwitch").onclick=()=>{sync=!sync;$("#syncSwitch").classList.toggle("on",sync)};
+  $("#saveBtn").onclick=()=>{const b=$("#saveBtn");b.disabled=true;b.textContent="保存中…";setTimeout(()=>{b.disabled=false;b.textContent="确定";$("#modal").classList.remove("show");$("#syncTag").textContent=sync?"是":"否";$("#syncTag").className=sync?"tag green":"tag gray";$("#promptValue").textContent=sync?(renamed?"新客实验组":"实验组 A"):"未同步";$("#rulePrompt").textContent=sync?(renamed?"新客实验组":"实验组 A"):"变量不可用";$("#toast").classList.add("show");setTimeout(()=>$("#toast").classList.remove("show"),1500)},500)};
+  $("#toggleRouting").onclick=()=>{routing=!routing;$("#toggleRouting").textContent=routing?"模拟关闭分流":"模拟开启分流";$("#execValue").textContent=routing?(renamed?"新客实验组":"实验组 A"):"对照组";$("#closeWarn").classList.toggle("show",!routing)};
+  $("#renameBtn").onclick=()=>{renamed=!renamed;const n=renamed?"新客实验组":"实验组 A";$("#attrValue").textContent=n;$("#groupTab").textContent=n+" 50%";$("#selectedGroup").textContent=n;$("#groupOption").textContent=n;if(sync){$("#promptValue").textContent=n;$("#rulePrompt").textContent=n}if(routing)$("#execValue").textContent=n;$("#renameBtn").textContent=renamed?"恢复原分流组名称":"模拟分流组改名"};
+  $("#groupSelect").onclick=e=>{e.stopPropagation();$("#groupMenu").classList.toggle("show")};
+  document.onclick=()=>$("#groupMenu").classList.remove("show");
+  $$(".option").forEach(o=>o.onclick=()=>{$$(".option").forEach(x=>x.classList.remove("selected"));o.classList.add("selected");$("#selectedGroup").textContent=o.textContent});
+</script>
+</body>
+</html>
