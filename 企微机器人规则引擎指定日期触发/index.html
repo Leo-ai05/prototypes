@@ -55,7 +55,9 @@ table.el-table th { background: #f5f7fa; color: #909399; font-weight: 600; text-
 table.el-table td { padding: 11px 12px; border-bottom: 1px solid #ebeef5; color: #606266; vertical-align: middle; }
 table.el-table tbody tr:hover td { background: #fafafa; }
 .trigger-cell .name { color: #303133; }
-.trigger-cell .time { font-size: 12px; color: #909399; margin-top: 3px; display: flex; align-items: center; gap: 6px; }
+.trigger-cell .time { font-size: 12px; color: #909399; margin-top: 3px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.trigger-cell .time > span:first-child { white-space: nowrap; }
+table.el-table td.nowrap { white-space: nowrap; }
 .tag { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 3px; font-size: 12px; border: 1px solid transparent; white-space: nowrap; }
 .tag-info { background: #f4f4f5; border-color: #e9e9eb; color: #909399; }
 .tag-success { background: #f0f9eb; border-color: #e1f3d8; color: #67c23a; }
@@ -71,7 +73,7 @@ table.el-table tbody tr:hover td { background: #fafafa; }
 /* ---------- 表单 ---------- */
 .section-title { font-size: 16px; font-weight: 500; margin-bottom: 16px; padding-left: 10px; border-left: 4px solid #1890ff; line-height: 1.4; }
 .form-item { display: flex; margin-bottom: 18px; }
-.form-label { width: 100px; flex-shrink: 0; text-align: right; padding-right: 12px; color: #606266; line-height: 32px; font-size: 14px; }
+.form-label { width: 112px; flex-shrink: 0; text-align: right; padding-right: 12px; color: #606266; line-height: 32px; font-size: 14px; }
 .form-label.req::before { content: "*"; color: #f56c6c; margin-right: 4px; }
 .form-body { flex: 1; min-width: 0; }
 .err-tip { color: #f56c6c; font-size: 12px; line-height: 1.4; padding-top: 4px; }
@@ -229,7 +231,7 @@ textarea.inp { height: 76px; padding: 6px 11px; resize: vertical; line-height: 1
                 <th style="width:80px">规则ID</th>
                 <th style="min-width:170px">规则名称</th>
                 <th style="min-width:190px">规则描述</th>
-                <th style="min-width:170px">触发类型</th>
+                <th style="min-width:215px">触发类型</th>
                 <th style="min-width:150px">动作类型</th>
                 <th style="width:150px">更新时间</th>
                 <th style="width:110px">最后更新人</th>
@@ -290,9 +292,6 @@ textarea.inp { height: 76px; padding: 6px 11px; resize: vertical; line-height: 1
               <div class="sel-drop">
                 <div class="sel-opt" data-v="user_change" onclick="pickTrigger('user_change')">用户信息变更</div>
                 <div class="sel-opt" data-v="scheduled" onclick="pickTrigger('scheduled')">定时任务</div>
-                <div class="sel-opt" data-v="specific_date" onclick="pickTrigger('specific_date')">
-                  指定日期触发 <span class="tag tag-primary tag-sm badge-new">本次新增</span>
-                </div>
               </div>
             </div>
             <div class="tip-text" id="triggerEditTip" style="display:none;padding-top:4px">编辑规则时不可修改触发器类型</div>
@@ -301,34 +300,34 @@ textarea.inp { height: 76px; padding: 6px 11px; resize: vertical; line-height: 1
 
         <!-- 补充触发时间（定时任务） -->
         <div class="form-item" id="itemSchedule" style="display:none">
-          <div class="form-label">补充触发时间</div>
+          <div class="form-label" id="scheduleLabel">补充触发时间</div>
           <div class="form-body">
             <div class="row-flex">
-              <div class="sel" id="selSchedule" style="width:120px">
-                <div class="sel-inner" onclick="toggleSel('selSchedule')">每日</div>
-                <div class="sel-drop">
-                  <div class="sel-opt" onclick="pickSchedule('daily','每日')">每日</div>
-                  <div class="sel-opt" onclick="pickSchedule('nextDay','次日')">次日</div>
-                  <div class="sel-opt" onclick="pickSchedule('weekly','每周')">每周</div>
-                  <div class="sel-opt" onclick="pickSchedule('monthly','每月')">每月</div>
-                  <div class="sel-opt" onclick="pickSchedule('interval','间隔')">间隔</div>
-                  <div class="sel-opt" onclick="pickSchedule('today','当日')">当日</div>
+              <div class="tt">
+                <div class="sel" id="selSchedule" style="width:130px">
+                  <div class="sel-inner" onclick="toggleSel('selSchedule')">每日</div>
+                  <div class="sel-drop">
+                    <div class="sel-opt" data-s="daily" onclick="pickSchedule('daily')">每日</div>
+                    <div class="sel-opt" data-s="nextDay" onclick="pickSchedule('nextDay')">次日</div>
+                    <div class="sel-opt" data-s="weekly" onclick="pickSchedule('weekly')">每周</div>
+                    <div class="sel-opt" data-s="monthly" onclick="pickSchedule('monthly')">每月</div>
+                    <div class="sel-opt" data-s="interval" onclick="pickSchedule('interval')">间隔</div>
+                    <div class="sel-opt" data-s="today" onclick="pickSchedule('today')">当日</div>
+                    <div class="sel-opt" data-s="specific_date" onclick="pickSchedule('specific_date')">
+                      指定日期 <span class="tag tag-primary tag-sm badge-new">本次新增</span>
+                    </div>
+                  </div>
                 </div>
+                <span class="tt-pop" id="schedLockTip" style="display:none">该规则的触发时间已过，如需重新发送请新建规则</span>
               </div>
-              <div class="sel" style="width:120px">
+
+              <!-- 其他调度类型的时刻选择，沿用现有配置 -->
+              <div class="sel" id="selClock" style="width:120px">
                 <div class="sel-inner">09:00</div>
               </div>
-              <span class="tip-text" id="scheduleTip">到达指定时间后，当日命中条件即可激活，避免漏触达</span>
-            </div>
-          </div>
-        </div>
 
-        <!-- 触发时间（指定日期触发，本次新增） -->
-        <div class="form-item" id="itemDateTime" style="display:none">
-          <div class="form-label req">触发时间</div>
-          <div class="form-body">
-            <div class="row-flex">
-              <div class="dtp" id="dtp">
+              <!-- 指定日期的日期时间选择器，本次新增 -->
+              <div class="dtp" id="dtp" style="display:none">
                 <div class="tt" style="width:100%">
                   <div class="dtp-input placeholder" id="dtpInput" onclick="toggleDtp()">请选择触发日期与时间</div>
                   <span class="tt-pop" id="dtpLockTip" style="display:none">该规则的触发时间已过，如需重新发送请新建规则</span>
@@ -350,7 +349,8 @@ textarea.inp { height: 76px; padding: 6px 11px; resize: vertical; line-height: 1
                   </div>
                 </div>
               </div>
-              <span class="tip-text">到达该时刻后触发一次，触发后不再重复执行</span>
+
+              <span class="tip-text" id="scheduleTip">到达指定时间后，当日命中条件即可激活，避免漏触达</span>
             </div>
             <div class="err-tip" id="errDateTime" style="display:none"></div>
           </div>
@@ -476,25 +476,28 @@ var futureDT = fmtDate(shiftDays(NOW, 30))+' 09:00';
 var pastDT   = fmtDate(shiftDays(NOW, -12))+' 10:00';
 
 var rules = [
-  { id: 1041, name: '学情报告日报推送', desc: '每天早上给已生成学情报告的家长推送日报', triggerType: 'scheduled',
+  { id: 1041, name: '学情报告日报推送', desc: '每天早上给已生成学情报告的家长推送日报', triggerType: 'scheduled', scheduleType: 'daily',
     actions: ['学情报告'], msg: '日维度', updatedAt: fmtDateTime(shiftDays(NOW,-40)), updater: '朱胜武', enabled: true, broadcast: true },
   { id: 1042, name: '身份识别后首触达', desc: '识别为家长身份后立即发送一次开场话术', triggerType: 'user_change',
     actions: ['发送企业微信消息'], msg: '您好，我是孩子的学习规划老师，方便聊两句吗', updatedAt: fmtDateTime(shiftDays(NOW,-22)), updater: '朱胜武', enabled: true, broadcast: false },
-  { id: 1067, name: '国庆班课名额开放通知', desc: '国庆当天上午统一通知未成单家长班课名额开放', triggerType: 'specific_date',
+  { id: 1067, name: '国庆班课名额开放通知', desc: '国庆当天上午统一通知未成单家长班课名额开放', triggerType: 'scheduled', scheduleType: 'specific_date',
     triggerAt: futureDT, actions: ['发送企业微信消息'], msg: '国庆班课名额今天开放，回复1即可锁定名额', updatedAt: fmtDateTime(shiftDays(NOW,-1)), updater: '朱胜武', enabled: false, broadcast: false },
-  { id: 1055, name: '暑期结课日专属课包发放', desc: '暑期结课当天向在读家长发放专属链接课包', triggerType: 'specific_date',
+  { id: 1055, name: '暑期结课日专属课包发放', desc: '暑期结课当天向在读家长发放专属链接课包', triggerType: 'scheduled', scheduleType: 'specific_date',
     triggerAt: pastDT, actions: ['发送专属链接课包'], msg: '专属链接海报', updatedAt: fmtDateTime(shiftDays(NOW,-13)), updater: '朱胜武', enabled: true, broadcast: false }
 ];
 
-var TRIGGER_LABEL = { user_change: '用户信息变更', scheduled: '定时任务', specific_date: '指定日期触发' };
+var TRIGGER_LABEL = { user_change: '用户信息变更', scheduled: '定时任务' };
+var SCHEDULE_LABEL = { daily:'每日', nextDay:'次日', weekly:'每周', monthly:'每月', interval:'间隔', today:'当日', specific_date:'指定日期' };
 var ACTION_TAG = { '学情报告':'tag-success', '发送企业微信消息':'tag-primary', '发送专属链接课包':'tag-warning' };
+
+function isOneShot(r){ return r.triggerType === 'scheduled' && r.scheduleType === 'specific_date'; }
 
 function renderTable(){
   var html = '';
   rules.forEach(function(r){
     var trigCell = '<div class="trigger-cell"><div class="name">'+TRIGGER_LABEL[r.triggerType]+'</div>';
-    if (r.triggerType === 'specific_date') {
-      trigCell += '<div class="time"><span>'+r.triggerAt+'</span>';
+    if (isOneShot(r)) {
+      trigCell += '<div class="time"><span>指定日期 '+r.triggerAt+'</span>';
       if (isExpired(r.triggerAt)) trigCell += '<span class="tag tag-info tag-sm">已过期</span>';
       trigCell += '</div>';
     }
@@ -512,7 +515,7 @@ function renderTable(){
       + '<td>'+r.desc+'</td>'
       + '<td>'+trigCell+'</td>'
       + '<td><div style="display:flex;flex-wrap:wrap;gap:4px">'+acts+'</div></td>'
-      + '<td>'+r.updatedAt+'</td>'
+      + '<td class="nowrap">'+r.updatedAt+'</td>'
       + '<td>'+r.updater+'</td>'
       + '<td><button class="switch'+(r.enabled?' on':'')+'" onclick="toggleRule('+r.id+')"></button></td>'
       + '<td><button class="btn btn-link" onclick="openRuleDialog('+r.id+')">编辑</button>'
@@ -525,7 +528,7 @@ function renderTable(){
 function toggleRule(id){
   var r = rules.find(function(x){ return x.id === id; });
   r.enabled = !r.enabled;
-  if (r.enabled && r.triggerType === 'specific_date' && isExpired(r.triggerAt)) {
+  if (r.enabled && isOneShot(r) && isExpired(r.triggerAt)) {
     toast('warning','该规则触发时间已过，启用后不会触发');
   } else {
     toast('success', r.enabled ? '已启用' : '已禁用');
@@ -546,14 +549,14 @@ function doConfirm(){
 }
 
 /* ================= 表单状态 ================= */
-var form = { id: null, triggerType: 'user_change', triggerAt: '', broadcast: false, scheduleType: 'daily', lockDateTime: false };
+var form = { id: null, triggerType: 'user_change', triggerAt: '', broadcast: false, scheduleType: 'daily', lockSchedule: false };
 var nextId = 1101;
 
 function openRuleDialog(id){
   var r = id ? rules.find(function(x){ return x.id === id; }) : null;
   form = { id: id, triggerType: r ? r.triggerType : 'user_change', triggerAt: r && r.triggerAt ? r.triggerAt : '',
-           broadcast: r ? !!r.broadcast : false, scheduleType: 'daily', lockDateTime: false };
-  if (r && r.triggerType === 'specific_date' && isExpired(r.triggerAt)) form.lockDateTime = true;
+           broadcast: r ? !!r.broadcast : false, scheduleType: r && r.scheduleType ? r.scheduleType : 'daily', lockSchedule: false };
+  if (r && isOneShot(r) && isExpired(r.triggerAt)) form.lockSchedule = true;
 
   document.getElementById('dlgTitle').textContent = r ? '编辑规则' : '新建规则';
   document.getElementById('fName').value = r ? r.name : '';
@@ -602,23 +605,57 @@ function pickTrigger(v){
   var prevBroadcast = form.broadcast;
   form.triggerType = v;
   document.getElementById('selTrigger').classList.remove('open');
-  // 切换触发器类型时清空指定触发时间
-  if (v !== 'specific_date') { form.triggerAt = ''; form.lockDateTime = false; }
-  // 指定日期触发不支持官方群发：原本已勾选则自动取消
-  if (v === 'specific_date' && prevBroadcast) {
-    form.broadcast = false;
-    toast('warning','已自动取消官方群发，指定日期触发不支持');
+  // 切换到非定时任务时重置调度配置
+  if (v !== 'scheduled') {
+    form.scheduleType = 'daily'; form.triggerAt = ''; form.lockSchedule = false;
+    if (prevBroadcast) { form.broadcast = false; toast('warning','已自动取消官方群发，仅定时任务触发器支持'); }
   }
   applyTriggerType();
 }
+
+// 官方群发是否可用：仅定时任务，且调度类型不是间隔与指定日期
+function canBroadcast(){
+  return form.triggerType === 'scheduled' && form.scheduleType !== 'interval' && form.scheduleType !== 'specific_date';
+}
+function broadcastReason(){
+  if (form.triggerType !== 'scheduled') return '仅定时任务触发器支持官方群发';
+  if (form.scheduleType === 'specific_date') return '指定日期类型不支持官方群发';
+  if (form.scheduleType === 'interval') return '间隔类型不支持官方群发';
+  return '';
+}
+
 function applyTriggerType(){
   var v = form.triggerType;
   document.getElementById('selTriggerInner').textContent = TRIGGER_LABEL[v];
   document.querySelectorAll('#selTrigger .sel-opt').forEach(function(o){
     o.classList.toggle('selected', o.dataset.v === v);
   });
-  document.getElementById('itemSchedule').style.display = (v === 'scheduled') ? 'flex' : 'none';
-  document.getElementById('itemDateTime').style.display = (v === 'specific_date') ? 'flex' : 'none';
+
+  var isSched = (v === 'scheduled');
+  var isDate = isSched && form.scheduleType === 'specific_date';
+  document.getElementById('itemSchedule').style.display = isSched ? 'flex' : 'none';
+
+  // 调度类型下拉：回填、选中态、已过期锁定
+  var selS = document.getElementById('selSchedule');
+  selS.querySelector('.sel-inner').textContent = SCHEDULE_LABEL[form.scheduleType];
+  document.querySelectorAll('#selSchedule .sel-opt').forEach(function(o){
+    o.classList.toggle('selected', o.dataset.s === form.scheduleType);
+  });
+  selS.classList.toggle('disabled', form.lockSchedule);
+  if (form.lockSchedule) selS.classList.remove('open');
+  document.getElementById('schedLockTip').style.display = form.lockSchedule ? 'block' : 'none';
+
+  // 指定日期用日期时间选择器，其他调度类型沿用现有时刻下拉
+  document.getElementById('selClock').style.display = isDate ? 'none' : '';
+  document.getElementById('dtp').style.display = isDate ? 'block' : 'none';
+  document.getElementById('scheduleLabel').classList.toggle('req', isDate);
+
+  var tips = {
+    daily: '到达指定时间后，当日命中条件即可激活，避免漏触达',
+    today: '规则命中后在当日该时间触发',
+    specific_date: '到达该时刻后触发一次，触发后不再重复执行'
+  };
+  document.getElementById('scheduleTip').textContent = tips[form.scheduleType] || '';
 
   // 触发时间回填与锁定
   var dtp = document.getElementById('dtp');
@@ -627,45 +664,41 @@ function applyTriggerType(){
   else { dtpInput.textContent = '请选择触发日期与时间'; dtpInput.classList.add('placeholder'); }
   dtpInput.classList.remove('is-error');
   document.getElementById('errDateTime').style.display = 'none';
-  dtp.classList.toggle('readonly', form.lockDateTime);
-  document.getElementById('dtpLockTip').style.display = form.lockDateTime ? 'block' : 'none';
-  if (form.lockDateTime) dtp.classList.remove('open');
+  dtp.classList.toggle('readonly', form.lockSchedule);
+  document.getElementById('dtpLockTip').style.display = form.lockSchedule ? 'block' : 'none';
+  if (form.lockSchedule) dtp.classList.remove('open');
 
   // 官方群发可用性
-  var canBc = (v === 'scheduled' && form.scheduleType !== 'interval');
+  var canBc = canBroadcast();
   var cbx = document.getElementById('bcCbx');
   cbx.classList.toggle('disabled', !canBc);
   cbx.classList.toggle('checked', form.broadcast);
   var tip = document.getElementById('bcTip');
-  if (v === 'specific_date') tip.textContent = '指定日期触发暂不支持官方群发';
-  else if (v !== 'scheduled') tip.textContent = '仅定时任务触发器支持官方群发';
-  else if (form.scheduleType === 'interval') tip.textContent = '间隔类型不支持官方群发';
-  else tip.textContent = '';
-  document.getElementById('bcTt').classList.toggle('force', false);
+  tip.textContent = broadcastReason();
   tip.style.display = canBc ? 'none' : 'block';
 
   buildCalendar();
 }
 function toggleBroadcast(){
-  var canBc = (form.triggerType === 'scheduled' && form.scheduleType !== 'interval');
-  if (!canBc) {
-    toast('warning', form.triggerType === 'specific_date' ? '指定日期触发暂不支持官方群发' : '仅定时任务触发器支持官方群发');
-    return;
-  }
+  if (!canBroadcast()) { toast('warning', broadcastReason()); return; }
   form.broadcast = !form.broadcast;
   applyTriggerType();
 }
-function toggleSel(id){ document.getElementById(id).classList.toggle('open'); }
-function pickSchedule(v, label){
+function toggleSel(id){
+  var el = document.getElementById(id);
+  if (el.classList.contains('disabled')) { toast('warning','该规则的触发时间已过，如需重新发送请新建规则'); return; }
+  el.classList.toggle('open');
+}
+function pickSchedule(v){
+  document.getElementById('selSchedule').classList.remove('open');
+  if (v === form.scheduleType) return;
+  var prevBroadcast = form.broadcast;
   form.scheduleType = v;
-  var el = document.getElementById('selSchedule');
-  el.querySelector('.sel-inner').textContent = label;
-  el.classList.remove('open');
-  var tips = { daily:'到达指定时间后，当日命中条件即可激活，避免漏触达', today:'规则命中后在当日该时间触发', nextDay:'', weekly:'', monthly:'', interval:'' };
-  document.getElementById('scheduleTip').textContent = tips[v] || '';
-  if (v === 'interval' && form.broadcast) {
+  // 切换出指定日期时清空已选时刻
+  if (v !== 'specific_date') form.triggerAt = '';
+  if (prevBroadcast && !canBroadcast()) {
     form.broadcast = false;
-    toast('warning','已自动取消官方群发，当前调度类型不支持');
+    toast('warning','已自动取消官方群发，'+(v === 'specific_date' ? '指定日期' : '间隔')+'类型不支持');
   }
   applyTriggerType();
 }
@@ -675,7 +708,7 @@ var calYear = NOW.getFullYear(), calMonth = NOW.getMonth();
 var draftDate = '', draftTime = '09:00';
 
 function toggleDtp(){
-  if (form.lockDateTime) { toast('warning','该规则的触发时间已过，如需重新发送请新建规则'); return; }
+  if (form.lockSchedule) { toast('warning','该规则的触发时间已过，如需重新发送请新建规则'); return; }
   var el = document.getElementById('dtp');
   var willOpen = !el.classList.contains('open');
   el.classList.toggle('open');
@@ -754,7 +787,7 @@ function submitRule(){
 
   if (!ok) return;
 
-  if (form.triggerType === 'specific_date' && !form.lockDateTime) {
+  if (form.triggerType === 'scheduled' && form.scheduleType === 'specific_date' && !form.lockSchedule) {
     var errDT = document.getElementById('errDateTime'), dtpInput = document.getElementById('dtpInput');
     if (!form.triggerAt) {
       errDT.textContent = '请选择触发日期与时间';
@@ -778,12 +811,17 @@ function submitRule(){
     if (form.id) {
       var r = rules.find(function(x){ return x.id === form.id; });
       r.name = name; r.desc = desc; r.broadcast = form.broadcast;
-      if (r.triggerType === 'specific_date' && !form.lockDateTime) r.triggerAt = form.triggerAt;
+      if (!form.lockSchedule) {
+        r.scheduleType = form.triggerType === 'scheduled' ? form.scheduleType : undefined;
+        r.triggerAt = form.scheduleType === 'specific_date' ? form.triggerAt : undefined;
+      }
       r.updatedAt = fmtDateTime(new Date()); r.updater = '朱胜武';
       toast('success','更新成功');
     } else {
+      var isDate = form.triggerType === 'scheduled' && form.scheduleType === 'specific_date';
       rules.push({ id: nextId++, name: name, desc: desc, triggerType: form.triggerType,
-        triggerAt: form.triggerType === 'specific_date' ? form.triggerAt : undefined,
+        scheduleType: form.triggerType === 'scheduled' ? form.scheduleType : undefined,
+        triggerAt: isDate ? form.triggerAt : undefined,
         actions: ['发送企业微信消息'], msg: document.getElementById('actParamText').value,
         updatedAt: fmtDateTime(new Date()), updater: '朱胜武',
         enabled: false, broadcast: form.broadcast });
