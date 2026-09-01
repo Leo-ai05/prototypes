@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>可人工跟进标签条件自定义配置 - 三方案选型原型</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --primary: #1677ff; --green: #07c160; --orange: #ff8f1f; --red: #ee0a24;
+    --text: #303133; --text-2: #606266; --text-3: #909399; --border: #ebeef0; --bg: #f0f2f5;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg); color: var(--text); font-size: 14px;
+  }
+  .app { display: flex; min-height: 100vh; }
+  .aside { width: 200px; background: #001529; color: #c0c4cc; flex: none; }
+  .logo { height: 56px; display: flex; align-items: center; padding: 0 18px; color: #fff; font-weight: 600; font-size: 15px; border-bottom: 1px solid rgba(255,255,255,.08); }
+  .menu-group-title { padding: 14px 18px 6px; font-size: 12px; color: #5a6b7d; }
+  .menu-item { padding: 10px 18px; display: flex; align-items: center; gap: 8px; font-size: 14px; }
+  .menu-item.active { background: #1677ff; color: #fff; }
+  .menu-item .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: .5; }
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .navbar { height: 56px; background: #fff; border-bottom: 1px solid #ebeef5; display: flex; align-items: center; padding: 0 20px; gap: 12px; }
+  .crumb { color: #909399; font-size: 13px; }
+  .crumb b { color: #303133; font-weight: 600; }
+  .spacer { flex: 1; }
+  .role-switch { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #606266; }
+  .role-switch select { padding: 5px 8px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 13px; }
+
+  .plan-bar { background: #fff; border-bottom: 1px solid #ebeef5; padding: 12px 20px 0; }
+  .plan-title { font-size: 13px; color: #909399; margin-bottom: 8px; }
+  .plan-tabs { display: flex; gap: 8px; }
+  .plan-tab {
+    padding: 10px 16px; border: 1px solid #dcdfe6; border-bottom: none; border-radius: 8px 8px 0 0;
+    cursor: pointer; background: #fafafa; color: #606266; min-width: 240px;
+  }
+  .plan-tab .pt-name { font-size: 14px; font-weight: 600; }
+  .plan-tab .pt-desc { font-size: 12px; color: #909399; margin-top: 3px; }
+  .plan-tab.active { background: #fff; border-color: var(--primary); color: var(--primary); }
+  .plan-tab.active .pt-desc { color: #6ba7ff; }
+
+  .body-wrap { display: flex; gap: 16px; padding: 16px 20px 40px; align-items: flex-start; flex-wrap: wrap; }
+  .col-left { flex: 1; min-width: 520px; }
+  .col-right { width: 400px; flex: none; }
+
+  .config-section { background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.05); }
+  .section-header { display: flex; align-items: center; margin-bottom: 16px; }
+  .section-indicator { width: 4px; height: 16px; background: var(--primary); border-radius: 2px; margin-right: 8px; }
+  .section-title { font-size: 16px; font-weight: 600; }
+  .section-content { padding-left: 12px; }
+  .desc-text { font-size: 13px; color: var(--text-2); line-height: 1.7; }
+  .new-badge { margin-left: 8px; background: #e6f4ff; color: var(--primary); border: 1px solid #91caff; font-size: 12px; padding: 1px 6px; border-radius: 10px; }
+  .muted { color: #c0c4cc; }
+
+  .switch { position: relative; width: 40px; height: 20px; background: #dcdfe6; border-radius: 10px; cursor: pointer; transition: .2s; flex: none; }
+  .switch.on { background: var(--primary); }
+  .switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: #fff; border-radius: 50%; transition: .2s; }
+  .switch.on::after { left: 22px; }
+  .switch.disabled { opacity: .5; cursor: not-allowed; }
+  .switch.sm { width: 34px; height: 18px; }
+  .switch.sm::after { width: 14px; height: 14px; }
+  .switch.sm.on::after { left: 18px; }
+  .ml12 { margin-left: 12px; }
+
+  .num-input { width: 84px; padding: 6px 8px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; text-align: center; }
+  .num-input:focus { outline: none; border-color: var(--primary); }
+  .num-input.error { border-color: #f56c6c; }
+  .num-input:disabled, select:disabled { background: #f5f7fa; color: #c0c4cc; cursor: not-allowed; }
+  select.sel { padding: 6px 8px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; background: #fff; }
+  .err-tip { color: #f56c6c; font-size: 12px; width: 100%; margin-top: 4px; }
+  .btn { padding: 9px 18px; border-radius: 6px; border: none; cursor: pointer; font-size: 14px; }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:disabled { background: #a0cfff; cursor: not-allowed; }
+  .btn-text { background: none; color: var(--primary); padding: 4px 8px; font-size: 13px; }
+  .btn-text.danger { color: #f56c6c; }
+  .btn-text:disabled { color: #c0c4cc; cursor: not-allowed; }
+  .btn-dashed { border: 1px dashed #c0c4cc; background: #fff; color: var(--text-2); padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+  .btn-dashed:disabled { color: #c0c4cc; cursor: not-allowed; }
+  .hide { display: none !important; }
+
+  /* 方案 A 条件卡 */
+  .cond-card { border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; margin-bottom: 12px; background: #fcfcfd; }
+  .cond-card.off { background: #fafafa; }
+  .cc-head { display: flex; align-items: center; gap: 10px; }
+  .cc-name { font-size: 14px; font-weight: 600; }
+  .cc-body { margin-top: 10px; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 14px; color: var(--text-2); }
+  .cc-tip { margin-top: 6px; font-size: 12px; color: var(--text-3); line-height: 1.6; }
+  .cc-hit { margin-left: auto; font-size: 12px; padding: 1px 8px; border-radius: 10px; }
+  .hit-yes { color: #389e0d; background: #f6ffed; border: 1px solid #b7eb8f; }
+  .hit-no { color: #909399; background: #f4f4f5; border: 1px solid #e9e9eb; }
+  .hit-off { color: #c0c4cc; background: #fafafa; border: 1px solid #ebeef5; }
+
+  /* 方案 B 列表 */
+  .cond-table { width: 100%; border-collapse: collapse; }
+  .cond-table th { text-align: left; font-size: 13px; color: var(--text-3); font-weight: 500; padding: 8px 10px; background: #fafafa; border: 1px solid var(--border); }
+  .cond-table td { padding: 10px; border: 1px solid var(--border); font-size: 14px; vertical-align: middle; }
+  .relation-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-size: 14px; color: var(--text-2); }
+
+  /* 方案 C 分组 */
+  .group-box { border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; background: #fcfcfd; }
+  .group-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .group-name { font-size: 13px; font-weight: 600; color: var(--primary); }
+  .group-and { font-size: 12px; color: var(--text-3); }
+  .cond-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 8px 0; border-bottom: 1px dashed #f0f0f0; }
+  .cond-row:last-child { border-bottom: none; }
+  .or-sep { display: flex; align-items: center; gap: 10px; margin: 10px 0; }
+  .or-sep .line { flex: 1; height: 1px; background: var(--border); }
+  .or-sep .txt { font-size: 12px; color: var(--orange); border: 1px solid #ffd591; background: #fff7e6; padding: 1px 10px; border-radius: 10px; }
+
+  /* 手机预览 */
+  .phone { width: 375px; background: #fff; border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,.12); overflow: hidden; display: flex; flex-direction: column; margin-bottom: 16px; }
+  .level-card { padding: 12px; border-bottom: 1px solid #f0f0f0; }
+  .name-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  .name { font-size: 15px; font-weight: 600; }
+  .level-badge { display: inline-flex; padding: 1px 8px; font-size: 12px; color: #fff; border-radius: 10px; background: var(--green); }
+  .takeover { padding: 1px 6px; font-size: 11px; color: #fff; border-radius: 8px; background: var(--orange); }
+  .updated { margin-top: 4px; font-size: 11px; color: #999; }
+  .tabs-nav { display: flex; border-bottom: 1px solid var(--border); }
+  .tab-item { flex: 1; text-align: center; padding: 11px 0; font-size: 14px; color: var(--text-2); position: relative; cursor: pointer; }
+  .tab-item.active { color: var(--text); font-weight: 600; }
+  .tab-item.active::after { content: ""; position: absolute; left: 50%; transform: translateX(-50%); bottom: 0; width: 24px; height: 3px; background: var(--primary); border-radius: 2px; }
+  .pane { display: none; padding: 12px; }
+  .pane.active { display: block; }
+  .blk { margin-bottom: 14px; }
+  .blk .bt { margin-bottom: 8px; font-size: 13px; font-weight: 600; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+  .follow-badge { display: inline-block; font-size: 11px; color: #389e0d; background: #f6ffed; border: 1px solid #b7eb8f; border-radius: 10px; padding: 1px 8px; line-height: 16px; font-weight: 600; }
+  .base-info { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .bi-row { display: flex; padding: 8px 10px; border-bottom: 1px solid #f2f3f5; }
+  .bi-row:last-child { border-bottom: none; }
+  .bi-row .k { width: 45%; font-size: 12px; color: var(--text-2); }
+  .bi-row .v { flex: 1; font-size: 12px; text-align: right; word-break: break-all; }
+  .bi-row .v.red { color: var(--red); font-weight: 700; }
+  .ai-summary { border: 1px solid var(--border); border-radius: 8px; padding: 10px; font-size: 12px; color: var(--text-2); line-height: 1.7; background: #fafcff; }
+
+  /* 模拟面板 */
+  .sim { background: #fff; border-radius: 8px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.05); }
+  .sim h3 { font-size: 14px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+  .sim label { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 13px; color: var(--text-2); cursor: pointer; }
+  .sim .field { margin-bottom: 10px; }
+  .sim .field > span { display: block; font-size: 12px; color: var(--text-3); margin-bottom: 4px; }
+  .sim input[type="date"], .sim input[type="number"] { width: 100%; padding: 6px 8px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 13px; }
+  .judge { margin-top: 12px; border-top: 1px dashed var(--border); padding-top: 12px; }
+  .judge-title { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+  .judge-line { font-size: 12px; color: var(--text-2); line-height: 1.9; }
+  .judge-res { margin-top: 8px; font-size: 13px; font-weight: 600; padding: 8px 10px; border-radius: 6px; }
+  .judge-res.show { color: #389e0d; background: #f6ffed; border: 1px solid #b7eb8f; }
+  .judge-res.hidden { color: #909399; background: #f4f4f5; border: 1px solid #e9e9eb; }
+
+  .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #fff; padding: 10px 20px; border-radius: 6px; box-shadow: 0 4px 16px rgba(0,0,0,.12); font-size: 14px; z-index: 2000; opacity: 0; transition: .3s; border-left: 4px solid var(--green); }
+  .toast.show { opacity: 1; top: 30px; }
+  .toast.err { border-left-color: #f56c6c; }
+  .note { background: #fffbe6; border: 1px solid #ffe58f; color: #874d00; font-size: 12px; padding: 8px 12px; border-radius: 6px; line-height: 1.7; margin-bottom: 12px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="aside">
+    <div class="logo">电销 CRM 管理后台</div>
+    <div class="menu-group-title">企微机器人</div>
+    <div class="menu-item"><span class="dot"></span>AI员工明细</div>
+    <div class="menu-item"><span class="dot"></span>规则配置</div>
+    <div class="menu-item"><span class="dot"></span>会话属性</div>
+    <div class="menu-item active"><span class="dot"></span>全局配置</div>
+  </aside>
+
+  <div class="main">
+    <div class="navbar">
+      <span class="crumb">企微机器人 / <b>全局配置</b> / 可人工跟进标签</span>
+      <span class="spacer"></span>
+      <div class="role-switch">
+        <span>当前身份</span>
+        <select id="roleSel" onchange="onRoleChange()">
+          <option value="edit">管理员（有编辑权限）</option>
+          <option value="view">普通用户（仅查看）</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="plan-bar">
+      <div class="plan-title">请点选一种配置形态（三个方案的判定结果都会实时反映到右侧侧边栏预览）</div>
+      <div class="plan-tabs">
+        <div class="plan-tab active" id="ptA" onclick="switchPlan('A')">
+          <div class="pt-name">方案 A · 固定三项</div>
+          <div class="pt-desc">三个条件各带开关，满足任一即打标</div>
+        </div>
+        <div class="plan-tab" id="ptB" onclick="switchPlan('B')">
+          <div class="pt-name">方案 B · 可增删条件列表</div>
+          <div class="pt-desc">自由加减条件，可选任一 / 全部满足</div>
+        </div>
+        <div class="plan-tab" id="ptC" onclick="switchPlan('C')">
+          <div class="pt-name">方案 C · 条件分组</div>
+          <div class="pt-desc">组内且、组间或，对齐规则引擎分组能力</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="body-wrap">
+      <div class="col-left">
+        <!-- ============ 方案 A ============ -->
+        <div class="plan-pane" id="planA">
+          <div class="config-section">
+            <div class="section-header">
+              <div class="section-indicator"></div>
+              <span class="section-title">可人工跟进标签</span>
+              <span class="new-badge">本次新增</span>
+              <div class="switch ml12 on" id="A_master" onclick="toggleMaster('A')"></div>
+            </div>
+            <div class="section-content">
+              <div class="desc-text" style="margin-bottom:14px;">
+                开启后，企业微信侧边栏「AI 私域画像 · 画像 Tab」的关键信息标题旁展示「可人工跟进」。
+                下方三项条件可分别启用，<b>满足任一项即打标</b>；三项全部关闭时不展示标签。
+              </div>
+
+              <div id="A_body">
+                <div class="cond-card" id="A_card_rule">
+                  <div class="cc-head">
+                    <div class="switch sm on" id="A_sw_rule" onclick="toggleItem('A','rule')"></div>
+                    <span class="cc-name">规则引擎转人工</span>
+                    <span class="cc-hit hit-no" id="A_hit_rule">未命中</span>
+                  </div>
+                  <div class="cc-tip">客户曾被规则引擎自动转为人工接待时命中，无需填写参数。</div>
+                </div>
+
+                <div class="cond-card" id="A_card_study">
+                  <div class="cc-head">
+                    <div class="switch sm on" id="A_sw_study" onclick="toggleItem('A','study')"></div>
+                    <span class="cc-name">累计学习时长达标</span>
+                    <span class="cc-hit hit-no" id="A_hit_study">未命中</span>
+                  </div>
+                  <div class="cc-body">
+                    <span>累计学习时长达到</span>
+                    <input type="number" class="num-input" id="A_in_study" value="120" min="1" max="100000" oninput="onInput('A','study')" />
+                    <span>分钟</span>
+                    <div class="err-tip hide" id="A_err_study"></div>
+                  </div>
+                  <div class="cc-tip">取客户在洋葱学园的累计学习时长，范围 1～100000 分钟。</div>
+                </div>
+
+                <div class="cond-card" id="A_card_days">
+                  <div class="cc-head">
+                    <div class="switch sm on" id="A_sw_days" onclick="toggleItem('A','days')"></div>
+                    <span class="cc-name">加微天数达标</span>
+                    <span class="cc-hit hit-no" id="A_hit_days">未命中</span>
+                  </div>
+                  <div class="cc-body">
+                    <span>添加企业微信满</span>
+                    <input type="number" class="num-input" id="A_in_days" value="3" min="1" max="365" oninput="onInput('A','days')" />
+                    <span>天</span>
+                    <div class="err-tip hide" id="A_err_days"></div>
+                  </div>
+                  <div class="cc-tip">以企业微信添加时间为起点，加微当日为第 0 天，按自然日计算，范围 1～365 天。</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-primary save-btn" onclick="onSave('A')">保存配置</button>
+        </div>
+
+        <!-- ============ 方案 B ============ -->
+        <div class="plan-pane hide" id="planB">
+          <div class="config-section">
+            <div class="section-header">
+              <div class="section-indicator"></div>
+              <span class="section-title">可人工跟进标签</span>
+              <span class="new-badge">本次新增</span>
+              <div class="switch ml12 on" id="B_master" onclick="toggleMaster('B')"></div>
+            </div>
+            <div class="section-content">
+              <div class="desc-text" style="margin-bottom:14px;">
+                自定义可人工跟进的判定条件，同一条件类型只能添加一条，最多 3 条。
+              </div>
+              <div id="B_body">
+                <div class="relation-bar">
+                  <span>条件关系</span>
+                  <select class="sel" id="B_rel" onchange="onRelChange()">
+                    <option value="any">满足任一条件即打标</option>
+                    <option value="all">全部条件均满足才打标</option>
+                  </select>
+                </div>
+                <table class="cond-table">
+                  <thead>
+                    <tr>
+                      <th style="width:34%">条件类型</th>
+                      <th style="width:42%">条件参数</th>
+                      <th style="width:14%">当前命中</th>
+                      <th style="width:10%">操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="B_rows"></tbody>
+                </table>
+                <div style="margin-top:12px;">
+                  <button class="btn-dashed" id="B_add" onclick="addRowB()">+ 添加条件</button>
+                  <span class="desc-text" style="margin-left:10px;" id="B_addTip"></span>
+                </div>
+                <div class="err-tip hide" id="B_err"></div>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-primary save-btn" onclick="onSave('B')">保存配置</button>
+        </div>
+
+        <!-- ============ 方案 C ============ -->
+        <div class="plan-pane hide" id="planC">
+          <div class="config-section">
+            <div class="section-header">
+              <div class="section-indicator"></div>
+              <span class="section-title">可人工跟进标签</span>
+              <span class="new-badge">本次新增</span>
+              <div class="switch ml12 on" id="C_master" onclick="toggleMaster('C')"></div>
+            </div>
+            <div class="section-content">
+              <div class="desc-text" style="margin-bottom:14px;">
+                条件按组配置：<b>同一组内的条件需全部满足</b>，<b>组与组之间满足任一即可</b>。
+                最多 3 组，每组最多 3 条条件，同组内条件类型不可重复。
+              </div>
+              <div id="C_body">
+                <div id="C_groups"></div>
+                <div style="margin-top:12px;">
+                  <button class="btn-dashed" id="C_addGroup" onclick="addGroupC()">+ 添加条件组</button>
+                  <span class="desc-text" style="margin-left:10px;" id="C_addTip"></span>
+                </div>
+                <div class="err-tip hide" id="C_err"></div>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-primary save-btn" onclick="onSave('C')">保存配置</button>
+        </div>
+      </div>
+
+      <!-- ============ 右侧预览 ============ -->
+      <div class="col-right">
+        <div class="phone">
+          <div class="level-card">
+            <div class="name-row">
+              <span class="name">洋葱同学</span>
+              <span class="level-badge">B 付费用户</span>
+              <span class="takeover">人工接待中</span>
+            </div>
+            <div class="updated">最近更新：09-01 14:20</div>
+          </div>
+          <div class="tabs-nav">
+            <div class="tab-item active" onclick="setPane('profile', this)">画像</div>
+            <div class="tab-item" onclick="setPane('info', this)">信息</div>
+            <div class="tab-item" onclick="setPane('study', this)">学情</div>
+            <div class="tab-item" onclick="setPane('call', this)">外呼</div>
+            <div class="tab-item" onclick="setPane('dialog', this)">对话</div>
+          </div>
+          <div class="pane active" data-pane="profile">
+            <div class="blk">
+              <div class="bt">AI 用户摘要</div>
+              <div class="ai-summary">近 7 天有 3 次主动咨询，关注中考提分，对价格敏感度中等，建议尽快人工介入沟通课程方案。</div>
+            </div>
+            <div class="blk">
+              <div class="bt">
+                <span>关键信息</span>
+                <span class="follow-badge hide" id="followBadge">可人工跟进</span>
+              </div>
+              <div class="base-info">
+                <div class="bi-row"><div class="k">手机号</div><div class="v red">131****1031</div></div>
+                <div class="bi-row"><div class="k">洋葱ID</div><div class="v red">708481595</div></div>
+                <div class="bi-row"><div class="k">学段</div><div class="v red">初中</div></div>
+                <div class="bi-row"><div class="k">年级</div><div class="v red">七年级</div></div>
+                <div class="bi-row"><div class="k">客户类型</div><div class="v red">新增</div></div>
+                <div class="bi-row"><div class="k">所在地</div><div class="v red">湖北省武汉市</div></div>
+              </div>
+            </div>
+            <div class="blk">
+              <div class="bt">跟进策略</div>
+              <div class="ai-summary">优先介绍暑期集训营，配合限时优惠促单。</div>
+            </div>
+          </div>
+          <div class="pane" data-pane="info"><div class="desc-text">信息 Tab 本次不改。</div></div>
+          <div class="pane" data-pane="study"><div class="desc-text">学情 Tab 本次不改。</div></div>
+          <div class="pane" data-pane="call"><div class="desc-text">外呼 Tab 本次不改。</div></div>
+          <div class="pane" data-pane="dialog"><div class="desc-text">对话 Tab 本次不改。</div></div>
+        </div>
+
+        <div class="sim">
+          <h3>模拟客户数据</h3>
+          <label><input type="checkbox" id="simFriend" checked onchange="refresh()" /> 当前仍为企业微信好友</label>
+          <label><input type="checkbox" id="simRule" onchange="refresh()" /> 曾被规则引擎转人工</label>
+          <div class="field">
+            <span>累计学习时长（分钟）</span>
+            <input type="number" id="simStudy" value="60" min="0" onchange="refresh()" oninput="refresh()" />
+          </div>
+          <div class="field">
+            <span>企业微信添加时间</span>
+            <input type="date" id="simAdd" value="2026-08-30" onchange="refresh()" />
+          </div>
+          <div class="field">
+            <span>模拟「今天」</span>
+            <input type="date" id="simToday" value="2026-09-01" onchange="refresh()" />
+          </div>
+
+          <div class="judge">
+            <div class="judge-title">判定过程（按已保存配置）</div>
+            <div class="judge-line" id="judgeDetail"></div>
+            <div class="judge-res hidden" id="judgeResult"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var TYPES = {
+  rule:  { name: '规则引擎转人工', unit: '',     needParam: false },
+  study: { name: '累计学习时长',   unit: '分钟', needParam: true, min: 1, max: 100000, def: 120, prefix: '累计学习时长达到' },
+  days:  { name: '加微天数',       unit: '天',   needParam: true, min: 1, max: 365,    def: 3,   prefix: '添加企业微信满' }
+};
+
+var plan = 'A';
+var role = 'edit';
+var uid = 0;
+
+var cfg = {
+  A: { master: true, items: { rule: {on:true}, study: {on:true, val:120}, days: {on:true, val:3} } },
+  B: { master: true, rel: 'any', rows: [ {id:++uid, type:'rule', val:null}, {id:++uid, type:'days', val:3} ] },
+  C: { master: true, groups: [
+        { id:++uid, conds:[ {id:++uid, type:'rule', val:null} ] },
+        { id:++uid, conds:[ {id:++uid, type:'study', val:120}, {id:++uid, type:'days', val:7} ] }
+      ] }
+};
+var saved = JSON.parse(JSON.stringify(cfg));
+
+function showToast(msg, isErr) {
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (isErr ? ' err' : '');
+  setTimeout(function () { t.className = 'toast' + (isErr ? ' err' : ''); }, 1800);
+}
+function canEdit() { return role === 'edit'; }
+
+function switchPlan(p) {
+  plan = p;
+  ['A','B','C'].forEach(function (k) {
+    document.getElementById('pt' + k).classList.toggle('active', k === p);
+    document.getElementById('plan' + k).classList.toggle('hide', k !== p);
+  });
+  refresh();
+}
+function onRoleChange() { role = document.getElementById('roleSel').value; refresh(); }
+function setPane(name, el) {
+  document.querySelectorAll('.tab-item').forEach(function (t) { t.classList.remove('active'); });
+  el.classList.add('active');
+  document.querySelectorAll('.pane').forEach(function (p) {
+    p.classList.toggle('active', p.getAttribute('data-pane') === name);
+  });
+}
+
+function toggleMaster(p) {
+  if (!canEdit()) return;
+  cfg[p].master = !cfg[p].master;
+  refresh();
+}
+function toggleItem(p, key) {
+  if (!canEdit()) return;
+  cfg[p].items[key].on = !cfg[p].items[key].on;
+  refresh();
+}
+function onInput(p, key) {
+  var el = document.getElementById(p + '_in_' + key);
+  cfg[p].items[key].val = el.value === '' ? '' : Number(el.value);
+  refresh();
+}
+function onRelChange() { cfg.B.rel = document.getElementById('B_rel').value; refresh(); }
+
+/* ---------- 方案 B ---------- */
+function usedTypesB() { return cfg.B.rows.map(function (r) { return r.type; }); }
+function addRowB() {
+  if (!canEdit()) return;
+  var rest = Object.keys(TYPES).filter(function (t) { return usedTypesB().indexOf(t) < 0; });
+  if (!rest.length) { showToast('三种条件类型已全部添加', true); return; }
+  var t = rest[0];
+  cfg.B.rows.push({ id: ++uid, type: t, val: TYPES[t].needParam ? TYPES[t].def : null });
+  refresh();
+}
+function delRowB(id) {
+  if (!canEdit()) return;
+  if (cfg.B.rows.length <= 1) { showToast('至少保留一条条件', true); return; }
+  cfg.B.rows = cfg.B.rows.filter(function (r) { return r.id !== id; });
+  refresh();
+}
+function changeTypeB(id, t) {
+  var row = cfg.B.rows.filter(function (r) { return r.id === id; })[0];
+  if (!row) return;
+  if (usedTypesB().indexOf(t) >= 0 && row.type !== t) { showToast('该条件类型已存在，不可重复添加', true); refresh(); return; }
+  row.type = t;
+  row.val = TYPES[t].needParam ? TYPES[t].def : null;
+  refresh();
+}
+function changeValB(id, v) {
+  var row = cfg.B.rows.filter(function (r) { return r.id === id; })[0];
+  if (row) row.val = v === '' ? '' : Number(v);
+  refresh();
+}
+function renderB(sim) {
+  var tb = document.getElementById('B_rows');
+  tb.innerHTML = '';
+  cfg.B.rows.forEach(function (r) {
+    var tr = document.createElement('tr');
+    var opts = Object.keys(TYPES).map(function (t) {
+      var dis = (usedTypesB().indexOf(t) >= 0 && t !== r.type) ? ' disabled' : '';
+      return '<option value="' + t + '"' + (t === r.type ? ' selected' : '') + dis + '>' + TYPES[t].name + '</option>';
+    }).join('');
+    var paramHtml = TYPES[r.type].needParam
+      ? '<span style="color:#606266">' + TYPES[r.type].prefix + '</span> '
+        + '<input type="number" class="num-input" value="' + (r.val === '' ? '' : r.val) + '" '
+        + (canEdit() ? '' : 'disabled ') + 'oninput="changeValB(' + r.id + ', this.value)" /> '
+        + '<span style="color:#606266">' + TYPES[r.type].unit + '</span>'
+      : '<span class="muted">无需参数（客户曾被规则引擎转人工即命中）</span>';
+    var hit = evalCond(r, sim);
+    tr.innerHTML =
+      '<td><select class="sel" ' + (canEdit() ? '' : 'disabled ') + 'onchange="changeTypeB(' + r.id + ', this.value)">' + opts + '</select></td>' +
+      '<td>' + paramHtml + '</td>' +
+      '<td><span class="cc-hit ' + (hit ? 'hit-yes' : 'hit-no') + '">' + (hit ? '命中' : '未命中') + '</span></td>' +
+      '<td><button class="btn-text danger" ' + (canEdit() ? '' : 'disabled ') + 'onclick="delRowB(' + r.id + ')">删除</button></td>';
+    tb.appendChild(tr);
+  });
+  var full = cfg.B.rows.length >= 3;
+  document.getElementById('B_add').disabled = !canEdit() || full;
+  document.getElementById('B_addTip').textContent = full ? '三种条件类型已全部添加' : '已添加 ' + cfg.B.rows.length + ' / 3 条';
+  document.getElementById('B_rel').disabled = !canEdit();
+}
+
+/* ---------- 方案 C ---------- */
+function addGroupC() {
+  if (!canEdit()) return;
+  if (cfg.C.groups.length >= 3) { showToast('最多添加 3 个条件组', true); return; }
+  cfg.C.groups.push({ id: ++uid, conds: [ { id: ++uid, type: 'rule', val: null } ] });
+  refresh();
+}
+function delGroupC(gid) {
+  if (!canEdit()) return;
+  if (cfg.C.groups.length <= 1) { showToast('至少保留一个条件组', true); return; }
+  cfg.C.groups = cfg.C.groups.filter(function (g) { return g.id !== gid; });
+  refresh();
+}
+function addCondC(gid) {
+  if (!canEdit()) return;
+  var g = cfg.C.groups.filter(function (x) { return x.id === gid; })[0];
+  if (!g) return;
+  if (g.conds.length >= 3) { showToast('每组最多 3 条条件', true); return; }
+  var used = g.conds.map(function (c) { return c.type; });
+  var rest = Object.keys(TYPES).filter(function (t) { return used.indexOf(t) < 0; });
+  if (!rest.length) { showToast('该组已包含全部条件类型', true); return; }
+  g.conds.push({ id: ++uid, type: rest[0], val: TYPES[rest[0]].needParam ? TYPES[rest[0]].def : null });
+  refresh();
+}
+function delCondC(gid, cid) {
+  if (!canEdit()) return;
+  var g = cfg.C.groups.filter(function (x) { return x.id === gid; })[0];
+  if (!g) return;
+  if (g.conds.length <= 1) { showToast('每组至少保留一条条件', true); return; }
+  g.conds = g.conds.filter(function (c) { return c.id !== cid; });
+  refresh();
+}
+function changeTypeC(gid, cid, t) {
+  var g = cfg.C.groups.filter(function (x) { return x.id === gid; })[0];
+  if (!g) return;
+  var c = g.conds.filter(function (x) { return x.id === cid; })[0];
+  var used = g.conds.map(function (x) { return x.type; });
+  if (used.indexOf(t) >= 0 && c.type !== t) { showToast('同组内条件类型不可重复', true); refresh(); return; }
+  c.type = t;
+  c.val = TYPES[t].needParam ? TYPES[t].def : null;
+  refresh();
+}
+function changeValC(gid, cid, v) {
+  var g = cfg.C.groups.filter(function (x) { return x.id === gid; })[0];
+  if (!g) return;
+  var c = g.conds.filter(function (x) { return x.id === cid; })[0];
+  if (c) c.val = v === '' ? '' : Number(v);
+  refresh();
+}
+function renderC(sim) {
+  var box = document.getElementById('C_groups');
+  box.innerHTML = '';
+  cfg.C.groups.forEach(function (g, gi) {
+    if (gi > 0) {
+      var sep = document.createElement('div');
+      sep.className = 'or-sep';
+      sep.innerHTML = '<div class="line"></div><div class="txt">或</div><div class="line"></div>';
+      box.appendChild(sep);
+    }
+    var gHit = g.conds.every(function (c) { return evalCond(c, sim); });
+    var d = document.createElement('div');
+    d.className = 'group-box';
+    var rows = g.conds.map(function (c) {
+      var opts = Object.keys(TYPES).map(function (t) {
+        var used = g.conds.map(function (x) { return x.type; });
+        var dis = (used.indexOf(t) >= 0 && t !== c.type) ? ' disabled' : '';
+        return '<option value="' + t + '"' + (t === c.type ? ' selected' : '') + dis + '>' + TYPES[t].name + '</option>';
+      }).join('');
+      var param = TYPES[c.type].needParam
+        ? '<span style="color:#606266">' + TYPES[c.type].prefix + '</span>'
+          + '<input type="number" class="num-input" value="' + (c.val === '' ? '' : c.val) + '" '
+          + (canEdit() ? '' : 'disabled ') + 'oninput="changeValC(' + g.id + ',' + c.id + ', this.value)" />'
+          + '<span style="color:#606266">' + TYPES[c.type].unit + '</span>'
+        : '<span class="muted">曾被规则引擎转人工</span>';
+      var hit = evalCond(c, sim);
+      return '<div class="cond-row">'
+        + '<select class="sel" ' + (canEdit() ? '' : 'disabled ') + 'onchange="changeTypeC(' + g.id + ',' + c.id + ', this.value)">' + opts + '</select>'
+        + param
+        + '<span class="cc-hit ' + (hit ? 'hit-yes' : 'hit-no') + '">' + (hit ? '命中' : '未命中') + '</span>'
+        + '<button class="btn-text danger" ' + (canEdit() ? '' : 'disabled ') + 'onclick="delCondC(' + g.id + ',' + c.id + ')">删除</button>'
+        + '</div>';
+    }).join('');
+    d.innerHTML =
+      '<div class="group-head">'
+      + '<span class="group-name">条件组 ' + (gi + 1) + '</span>'
+      + '<span class="group-and">组内条件需全部满足</span>'
+      + '<span class="cc-hit ' + (gHit ? 'hit-yes' : 'hit-no') + '">' + (gHit ? '本组命中' : '本组未命中') + '</span>'
+      + '<span style="flex:1"></span>'
+      + '<button class="btn-text" ' + (canEdit() ? '' : 'disabled ') + 'onclick="addCondC(' + g.id + ')">+ 条件</button>'
+      + '<button class="btn-text danger" ' + (canEdit() ? '' : 'disabled ') + 'onclick="delGroupC(' + g.id + ')">删除组</button>'
+      + '</div>' + rows;
+    box.appendChild(d);
+  });
+  var full = cfg.C.groups.length >= 3;
+  document.getElementById('C_addGroup').disabled = !canEdit() || full;
+  document.getElementById('C_addTip').textContent = '已添加 ' + cfg.C.groups.length + ' / 3 组';
+}
+
+/* ---------- 判定 ---------- */
+function getSim() {
+  return {
+    friend: document.getElementById('simFriend').checked,
+    ruled: document.getElementById('simRule').checked,
+    study: Number(document.getElementById('simStudy').value || 0),
+    add: document.getElementById('simAdd').value,
+    today: document.getElementById('simToday').value
+  };
+}
+function dayDiff(a, b) {
+  if (!a || !b) return 0;
+  return Math.floor((new Date(b + 'T00:00:00') - new Date(a + 'T00:00:00')) / 86400000);
+}
+function evalCond(c, sim) {
+  if (c.type === 'rule') return sim.ruled;
+  if (c.type === 'study') return c.val !== '' && c.val != null && sim.study >= Number(c.val);
+  if (c.type === 'days') return c.val !== '' && c.val != null && dayDiff(sim.add, sim.today) >= Number(c.val);
+  return false;
+}
+function condText(c, sim) {
+  if (c.type === 'rule') return '规则引擎转人工：' + (sim.ruled ? '已转过 → 命中' : '未转过 → 未命中');
+  if (c.type === 'study') return '累计学习时长 ≥ ' + c.val + ' 分钟：实际 ' + sim.study + ' 分钟 → ' + (evalCond(c, sim) ? '命中' : '未命中');
+  if (c.type === 'days') return '加微满 ' + c.val + ' 天：实际已过 ' + dayDiff(sim.add, sim.today) + ' 天 → ' + (evalCond(c, sim) ? '命中' : '未命中');
+  return '';
+}
+
+function judge(sim) {
+  var s = saved[plan];
+  var lines = [];
+  if (!s.master) return { show: false, lines: ['可人工跟进标签总开关：关闭 → 不展示'] };
+  if (!sim.friend) return { show: false, lines: ['前置条件：当前不是企业微信好友 → 不展示'] };
+  lines.push('前置条件：仍为企业微信好友 → 通过');
+
+  var ok = false;
+  if (plan === 'A') {
+    var enabled = Object.keys(s.items).filter(function (k) { return s.items[k].on; });
+    if (!enabled.length) return { show: false, lines: lines.concat(['三项条件均已关闭 → 不展示']) };
+    enabled.forEach(function (k) {
+      lines.push(condText({ type: k, val: s.items[k].val }, sim));
+    });
+    ok = enabled.some(function (k) { return evalCond({ type: k, val: s.items[k].val }, sim); });
+    lines.push('条件关系：满足任一 → ' + (ok ? '判定通过' : '判定不通过'));
+  } else if (plan === 'B') {
+    s.rows.forEach(function (r) { lines.push(condText(r, sim)); });
+    ok = s.rel === 'any'
+      ? s.rows.some(function (r) { return evalCond(r, sim); })
+      : s.rows.every(function (r) { return evalCond(r, sim); });
+    lines.push('条件关系：' + (s.rel === 'any' ? '满足任一' : '全部满足') + ' → ' + (ok ? '判定通过' : '判定不通过'));
+  } else {
+    s.groups.forEach(function (g, gi) {
+      var gh = g.conds.every(function (c) { return evalCond(c, sim); });
+      lines.push('条件组 ' + (gi + 1) + '（组内全部满足）→ ' + (gh ? '命中' : '未命中'));
+      g.conds.forEach(function (c) { lines.push('　· ' + condText(c, sim)); });
+    });
+    ok = s.groups.some(function (g) { return g.conds.every(function (c) { return evalCond(c, sim); }); });
+    lines.push('组间关系：满足任一组 → ' + (ok ? '判定通过' : '判定不通过'));
+  }
+  return { show: ok, lines: lines };
+}
+
+/* ---------- 校验与保存 ---------- */
+function validate(p) {
+  var c = cfg[p], bad = [];
+  if (!c.master) return { ok: true };
+  function chk(type, val) {
+    if (!TYPES[type].needParam) return null;
+    if (val === '' || val == null) return '请输入' + TYPES[type].name + '数值';
+    if (!Number.isInteger(Number(val)) || val < TYPES[type].min || val > TYPES[type].max) {
+      return TYPES[type].name + '取值为 ' + TYPES[type].min + '-' + TYPES[type].max + ' 的整数';
+    }
+    return null;
+  }
+  if (p === 'A') {
+    var anyOn = false;
+    Object.keys(c.items).forEach(function (k) {
+      var it = c.items[k];
+      var errEl = document.getElementById('A_err_' + k);
+      var inEl = document.getElementById('A_in_' + k);
+      if (errEl) { errEl.classList.add('hide'); }
+      if (inEl) inEl.classList.remove('error');
+      if (!it.on) return;
+      anyOn = true;
+      var e = chk(k, it.val);
+      if (e) {
+        bad.push(e);
+        if (errEl) { errEl.textContent = e; errEl.classList.remove('hide'); }
+        if (inEl) inEl.classList.add('error');
+      }
+    });
+    if (!anyOn) bad.push('总开关开启时，至少需要启用一项条件');
+  } else if (p === 'B') {
+    if (!c.rows.length) bad.push('至少添加一条条件');
+    c.rows.forEach(function (r) { var e = chk(r.type, r.val); if (e) bad.push(e); });
+    var el = document.getElementById('B_err');
+    el.classList.toggle('hide', !bad.length);
+    el.textContent = bad[0] || '';
+  } else {
+    if (!c.groups.length) bad.push('至少添加一个条件组');
+    c.groups.forEach(function (g) {
+      if (!g.conds.length) bad.push('每个条件组至少需要一条条件');
+      g.conds.forEach(function (cc) { var e = chk(cc.type, cc.val); if (e) bad.push(e); });
+    });
+    var el2 = document.getElementById('C_err');
+    el2.classList.toggle('hide', !bad.length);
+    el2.textContent = bad[0] || '';
+  }
+  return { ok: !bad.length, msg: bad[0] };
+}
+function onSave(p) {
+  if (!canEdit()) return;
+  var v = validate(p);
+  if (!v.ok) { showToast(v.msg, true); return; }
+  saved[p] = JSON.parse(JSON.stringify(cfg[p]));
+  showToast('保存成功');
+  refresh();
+}
+
+/* ---------- 渲染 ---------- */
+function refresh() {
+  var sim = getSim();
+
+  // 方案 A
+  document.getElementById('A_master').classList.toggle('on', cfg.A.master);
+  document.getElementById('A_master').classList.toggle('disabled', !canEdit());
+  document.getElementById('A_body').classList.toggle('hide', !cfg.A.master);
+  Object.keys(cfg.A.items).forEach(function (k) {
+    var it = cfg.A.items[k];
+    document.getElementById('A_sw_' + k).classList.toggle('on', it.on);
+    document.getElementById('A_sw_' + k).classList.toggle('disabled', !canEdit());
+    document.getElementById('A_card_' + k).classList.toggle('off', !it.on);
+    var inEl = document.getElementById('A_in_' + k);
+    if (inEl) inEl.disabled = !canEdit() || !it.on;
+    var hitEl = document.getElementById('A_hit_' + k);
+    if (!it.on) { hitEl.className = 'cc-hit hit-off'; hitEl.textContent = '已关闭'; }
+    else {
+      var h = evalCond({ type: k, val: it.val }, sim);
+      hitEl.className = 'cc-hit ' + (h ? 'hit-yes' : 'hit-no');
+      hitEl.textContent = h ? '命中' : '未命中';
+    }
+  });
+
+  // 方案 B / C
+  document.getElementById('B_master').classList.toggle('on', cfg.B.master);
+  document.getElementById('B_master').classList.toggle('disabled', !canEdit());
+  document.getElementById('B_body').classList.toggle('hide', !cfg.B.master);
+  document.getElementById('B_rel').value = cfg.B.rel;
+  renderB(sim);
+
+  document.getElementById('C_master').classList.toggle('on', cfg.C.master);
+  document.getElementById('C_master').classList.toggle('disabled', !canEdit());
+  document.getElementById('C_body').classList.toggle('hide', !cfg.C.master);
+  renderC(sim);
+
+  document.querySelectorAll('.save-btn').forEach(function (b) { b.classList.toggle('hide', !canEdit()); });
+
+  // 侧边栏判定
+  var r = judge(sim);
+  document.getElementById('followBadge').classList.toggle('hide', !r.show);
+  document.getElementById('judgeDetail').innerHTML = r.lines.join('<br/>');
+  var res = document.getElementById('judgeResult');
+  res.className = 'judge-res ' + (r.show ? 'show' : 'hidden');
+  res.textContent = r.show ? '判定结果：展示「可人工跟进」标签' : '判定结果：不展示标签';
+}
+
+refresh();
+</script>
+</body>
+</html>
