@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>规则配置 - 指定日期触发</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+  font-size: 14px; color: #303133; background: #f0f2f5; -webkit-font-smoothing: antialiased;
+}
+/* ---------- 布局 ---------- */
+.layout { display: flex; min-height: 100vh; }
+.aside { width: 210px; background: #001529; flex-shrink: 0; }
+.aside-logo { height: 48px; display: flex; align-items: center; padding: 0 18px; color: #fff; font-size: 15px; font-weight: 600; border-bottom: 1px solid rgba(255,255,255,.08); }
+.menu-group { padding: 8px 0; }
+.menu-item { height: 42px; display: flex; align-items: center; padding: 0 18px; color: rgba(255,255,255,.65); font-size: 14px; cursor: pointer; }
+.menu-item:hover { color: #fff; }
+.menu-item.parent { color: rgba(255,255,255,.85); }
+.menu-sub { height: 40px; display: flex; align-items: center; padding: 0 18px 0 38px; color: rgba(255,255,255,.65); font-size: 14px; cursor: pointer; }
+.menu-sub:hover { color: #fff; background: rgba(255,255,255,.04); }
+.menu-sub.active { color: #fff; background: #409eff; }
+.main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.navbar { height: 48px; background: #fff; display: flex; align-items: center; padding: 0 20px; box-shadow: 0 1px 4px rgba(0,21,41,.08); justify-content: space-between; }
+.crumb { font-size: 14px; color: #97a8be; }
+.crumb b { color: #303133; font-weight: 400; }
+.now-hint { font-size: 12px; color: #a8abb2; }
+.content { padding: 16px; flex: 1; }
+/* ---------- 卡片 ---------- */
+.card { background: #fff; border-radius: 4px; border: 1px solid #ebeef5; box-shadow: 0 0 12px rgba(0,0,0,.04); padding: 20px; margin-bottom: 16px; }
+.page-head { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+.group-title { font-size: 18px; font-weight: 600; }
+.group-desc { color: #909399; font-size: 13px; margin-top: 6px; }
+.cond-display { background: #fffbe6; border: 1px solid #ffe58f; border-radius: 8px; padding: 16px; margin-top: 16px; }
+.cond-display .t { font-size: 14px; font-weight: 500; margin-bottom: 8px; }
+.cond-group-block { background: #fff; border: 1px solid #f0e6c0; border-radius: 6px; padding: 10px 12px; }
+.cond-group-block .idx { font-size: 12px; color: #999; margin-bottom: 4px; }
+.cond-line { font-size: 13px; }
+.cond-line .op { color: #999; margin: 0 4px; }
+/* ---------- 按钮 ---------- */
+.btn { height: 32px; padding: 0 15px; border-radius: 4px; border: 1px solid #dcdfe6; background: #fff; color: #606266; font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; line-height: 1; font-family: inherit; }
+.btn:hover { color: #409eff; border-color: #c6e2ff; background: #ecf5ff; }
+.btn-primary { background: #409eff; border-color: #409eff; color: #fff; }
+.btn-primary:hover { background: #66b1ff; border-color: #66b1ff; color: #fff; }
+.btn-link { border: none; background: none; padding: 0 4px; color: #409eff; height: auto; }
+.btn-link:hover { background: none; color: #79bbff; }
+.btn-link.danger { color: #f56c6c; }
+.btn-link.danger:hover { color: #f89898; }
+.btn[disabled] { cursor: not-allowed; color: #a8abb2; background: #fff; border-color: #e4e7ed; }
+.btn-primary[disabled] { background: #a0cfff; border-color: #a0cfff; color: #fff; }
+/* ---------- 表格 ---------- */
+table.el-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.el-table th { background: #f5f7fa; color: #909399; font-weight: 600; text-align: left; padding: 11px 12px; border-bottom: 1px solid #ebeef5; white-space: nowrap; }
+table.el-table td { padding: 11px 12px; border-bottom: 1px solid #ebeef5; color: #606266; vertical-align: middle; }
+table.el-table tbody tr:hover td { background: #fafafa; }
+.trigger-cell .name { color: #303133; }
+.trigger-cell .time { font-size: 12px; color: #909399; margin-top: 3px; display: flex; align-items: center; gap: 6px; }
+.tag { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 3px; font-size: 12px; border: 1px solid transparent; white-space: nowrap; }
+.tag-info { background: #f4f4f5; border-color: #e9e9eb; color: #909399; }
+.tag-success { background: #f0f9eb; border-color: #e1f3d8; color: #67c23a; }
+.tag-warning { background: #fdf6ec; border-color: #faecd8; color: #e6a23c; }
+.tag-primary { background: #ecf5ff; border-color: #d9ecff; color: #409eff; }
+.tag-danger { background: #fef0f0; border-color: #fde2e2; color: #f56c6c; }
+.tag-sm { height: 20px; padding: 0 6px; font-size: 12px; }
+/* ---------- 开关 ---------- */
+.switch { position: relative; display: inline-block; width: 40px; height: 20px; border-radius: 10px; background: #dcdfe6; cursor: pointer; transition: background .3s; vertical-align: middle; border: none; padding: 0; }
+.switch.on { background: #409eff; }
+.switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: left .3s; }
+.switch.on::after { left: 22px; }
+/* ---------- 表单 ---------- */
+.section-title { font-size: 16px; font-weight: 500; margin-bottom: 16px; padding-left: 10px; border-left: 4px solid #1890ff; line-height: 1.4; }
+.form-item { display: flex; margin-bottom: 18px; }
+.form-label { width: 100px; flex-shrink: 0; text-align: right; padding-right: 12px; color: #606266; line-height: 32px; font-size: 14px; }
+.form-label.req::before { content: "*"; color: #f56c6c; margin-right: 4px; }
+.form-body { flex: 1; min-width: 0; }
+.err-tip { color: #f56c6c; font-size: 12px; line-height: 1.4; padding-top: 4px; }
+.inp { width: 100%; height: 32px; border: 1px solid #dcdfe6; border-radius: 4px; padding: 0 11px; font-size: 14px; color: #606266; outline: none; font-family: inherit; background: #fff; }
+.inp:focus { border-color: #409eff; }
+.inp.is-error { border-color: #f56c6c; }
+textarea.inp { height: 76px; padding: 6px 11px; resize: vertical; line-height: 1.5; }
+.inp-wrap { position: relative; }
+.word-limit { position: absolute; right: 10px; bottom: 6px; font-size: 12px; color: #a8abb2; background: #fff; padding-left: 4px; }
+.inp-count { position: absolute; right: 10px; top: 0; line-height: 32px; font-size: 12px; color: #a8abb2; background: #fff; padding-left: 4px; }
+/* select */
+.sel { position: relative; }
+.sel-inner { height: 32px; border: 1px solid #dcdfe6; border-radius: 4px; padding: 0 30px 0 11px; display: flex; align-items: center; cursor: pointer; background: #fff; color: #606266; font-size: 14px; }
+.sel-inner.placeholder { color: #a8abb2; }
+.sel-inner:hover { border-color: #c0c4cc; }
+.sel.open .sel-inner { border-color: #409eff; }
+.sel-inner::after { content: ""; position: absolute; right: 11px; top: 50%; width: 7px; height: 7px; border-right: 1px solid #a8abb2; border-bottom: 1px solid #a8abb2; transform: translateY(-70%) rotate(45deg); transition: transform .2s; }
+.sel.open .sel-inner::after { transform: translateY(-20%) rotate(-135deg); }
+.sel.disabled .sel-inner { background: #f5f7fa; border-color: #e4e7ed; color: #a8abb2; cursor: not-allowed; }
+.sel-drop { display: none; position: absolute; z-index: 30; top: 36px; left: 0; min-width: 100%; background: #fff; border: 1px solid #e4e7ed; border-radius: 4px; box-shadow: 0 2px 12px rgba(0,0,0,.1); padding: 6px 0; max-height: 260px; overflow: auto; }
+.sel.open .sel-drop { display: block; }
+.sel-opt { height: 34px; padding: 0 20px; display: flex; align-items: center; cursor: pointer; color: #606266; font-size: 14px; white-space: nowrap; }
+.sel-opt:hover { background: #f5f7fa; }
+.sel-opt.selected { color: #409eff; font-weight: 700; }
+.sel-opt .badge-new { margin-left: 8px; }
+.tip-text { font-size: 12px; color: #909399; }
+.row-flex { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+/* checkbox */
+.cbx { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; color: #606266; font-size: 14px; height: 32px; }
+.cbx-box { width: 14px; height: 14px; border: 1px solid #dcdfe6; border-radius: 2px; background: #fff; position: relative; flex-shrink: 0; }
+.cbx.checked .cbx-box { background: #409eff; border-color: #409eff; }
+.cbx.checked .cbx-box::after { content: ""; position: absolute; left: 4px; top: 1px; width: 4px; height: 7px; border-right: 1px solid #fff; border-bottom: 1px solid #fff; transform: rotate(45deg); }
+.cbx.checked .cbx-label { color: #409eff; }
+.cbx.disabled { cursor: not-allowed; color: #a8abb2; }
+.cbx.disabled .cbx-box { background: #f5f7fa; border-color: #e4e7ed; }
+/* 条件区 */
+.cond-wrap { background: #fafbfc; border-radius: 8px; padding: 16px; border: 1px solid #ebeef5; }
+.cond-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.cond-row:last-child { margin-bottom: 0; }
+.guide { font-size: 13px; color: #606266; white-space: nowrap; }
+.logic-chip { width: 30px; height: 24px; border-radius: 4px; background: #ecf5ff; color: #409eff; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.action-block { border: 1px solid #ebeef5; border-radius: 6px; padding: 14px; margin-bottom: 12px; background: #fafbfc; }
+.action-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.action-head .t { font-size: 14px; font-weight: 500; }
+/* ---------- 弹窗 ---------- */
+.mask { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 100; display: none; overflow: auto; }
+.mask.show { display: block; }
+.dialog { width: 800px; max-width: calc(100vw - 32px); margin: 6vh auto 40px; background: #fff; border-radius: 4px; box-shadow: 0 12px 32px rgba(0,0,0,.12); }
+.dialog-head { padding: 20px 20px 10px; display: flex; align-items: center; justify-content: space-between; }
+.dialog-title { font-size: 16px; color: #303133; font-weight: 500; }
+.dialog-close { border: none; background: none; font-size: 18px; color: #909399; cursor: pointer; line-height: 1; }
+.dialog-body { padding: 10px 20px 20px; max-height: 62vh; overflow: auto; }
+.dialog-foot { padding: 10px 20px 20px; text-align: right; display: flex; justify-content: flex-end; gap: 10px; }
+.confirm-dialog { width: 420px; }
+/* ---------- 日期时间选择器 ---------- */
+.dtp { position: relative; width: 260px; }
+.dtp-input { height: 32px; border: 1px solid #dcdfe6; border-radius: 4px; padding: 0 30px 0 32px; display: flex; align-items: center; cursor: pointer; background: #fff; color: #606266; font-size: 14px; position: relative; }
+.dtp-input.placeholder { color: #a8abb2; }
+.dtp-input:hover { border-color: #c0c4cc; }
+.dtp.open .dtp-input { border-color: #409eff; }
+.dtp-input.is-error { border-color: #f56c6c; }
+.dtp-input::before { content: ""; position: absolute; left: 10px; top: 8px; width: 14px; height: 14px; border: 1px solid #a8abb2; border-radius: 2px; }
+.dtp-input::after { content: ""; position: absolute; left: 10px; top: 11px; width: 14px; height: 1px; background: #a8abb2; }
+.dtp.readonly .dtp-input { background: #f5f7fa; border-color: #e4e7ed; color: #a8abb2; cursor: not-allowed; }
+.dtp-panel { display: none; position: absolute; z-index: 40; top: 38px; left: 0; width: 322px; background: #fff; border: 1px solid #e4e7ed; border-radius: 4px; box-shadow: 0 2px 12px rgba(0,0,0,.1); }
+.dtp.open .dtp-panel { display: block; }
+.dtp-editors { display: flex; gap: 8px; padding: 10px; border-bottom: 1px solid #e4e7ed; }
+.dtp-editors input { flex: 1; height: 30px; border: 1px solid #dcdfe6; border-radius: 4px; padding: 0 8px; font-size: 13px; color: #606266; outline: none; font-family: inherit; }
+.dtp-editors input:focus { border-color: #409eff; }
+.dtp-head { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; }
+.dtp-head .ym { font-size: 14px; font-weight: 500; color: #303133; }
+.dtp-nav { border: none; background: none; cursor: pointer; color: #303133; font-size: 14px; padding: 2px 6px; }
+.dtp-nav:hover { color: #409eff; }
+.dtp-grid { display: grid; grid-template-columns: repeat(7, 1fr); padding: 0 8px 8px; }
+.dtp-grid .wd { height: 30px; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #606266; font-weight: 500; }
+.dtp-cell { height: 32px; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #606266; cursor: pointer; border-radius: 50%; margin: 1px auto; width: 32px; }
+.dtp-cell:hover { color: #409eff; }
+.dtp-cell.other { color: #c0c4cc; }
+.dtp-cell.today { color: #409eff; font-weight: 700; }
+.dtp-cell.picked { background: #409eff; color: #fff; }
+.dtp-cell.disabled { color: #dcdfe6; cursor: not-allowed; background: none; }
+.dtp-foot { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-top: 1px solid #e4e7ed; }
+/* ---------- tooltip ---------- */
+.tt { position: relative; display: inline-flex; }
+.tt-pop { visibility: hidden; opacity: 0; position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: #303133; color: #fff; font-size: 12px; padding: 8px 10px; border-radius: 4px; white-space: nowrap; z-index: 60; transition: opacity .2s; pointer-events: none; }
+.tt-pop::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px; border: 5px solid transparent; border-top-color: #303133; }
+.tt:hover .tt-pop, .tt.force .tt-pop { visibility: visible; opacity: 1; }
+/* ---------- toast ---------- */
+.toast-wrap { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 300; display: flex; flex-direction: column; gap: 10px; align-items: center; }
+.toast { min-width: 300px; padding: 12px 16px; border-radius: 4px; font-size: 14px; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 12px rgba(0,0,0,.1); animation: tin .25s ease; }
+@keyframes tin { from { opacity: 0; transform: translateY(-16px); } to { opacity: 1; transform: none; } }
+.toast.success { background: #f0f9eb; border: 1px solid #e1f3d8; color: #67c23a; }
+.toast.warning { background: #fdf6ec; border: 1px solid #faecd8; color: #e6a23c; }
+.toast.error { background: #fef0f0; border: 1px solid #fde2e2; color: #f56c6c; }
+.toast .ic { width: 16px; height: 16px; border-radius: 50%; background: currentColor; color: #fff; font-size: 11px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+@media (max-width: 900px) {
+  .aside { display: none; }
+  .dialog { width: calc(100vw - 24px); margin: 3vh auto 30px; }
+  .form-item { flex-direction: column; }
+  .form-label { width: auto; text-align: left; padding: 0 0 4px; line-height: 1.5; }
+  .dtp { width: 100%; }
+  .table-scroll { overflow-x: auto; }
+}
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="aside">
+    <div class="aside-logo">武汉电销运营后台</div>
+    <div class="menu-group">
+      <div class="menu-item parent">数据看板</div>
+      <div class="menu-item parent">线索管理</div>
+      <div class="menu-item parent">企微机器人</div>
+      <div class="menu-sub">会话属性</div>
+      <div class="menu-sub active">规则配置</div>
+      <div class="menu-sub">话术模版</div>
+      <div class="menu-sub">用户分流配置</div>
+      <div class="menu-item parent">系统设置</div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="navbar">
+      <div class="crumb">企微机器人 / <b>规则配置</b></div>
+      <div class="now-hint" id="nowHint"></div>
+    </div>
+
+    <div class="content">
+      <div class="card">
+        <div class="page-head">
+          <button class="btn" onclick="toast('warning','原型仅演示分组详情，返回分组列表不可用')">← 返回分组列表</button>
+          <div>
+            <div class="group-title">暑期续报承接分组</div>
+            <div class="group-desc">承接暑期续报活码进入的家长，统一由续报话术承接</div>
+          </div>
+        </div>
+
+        <div class="cond-display">
+          <div class="t">命中条件</div>
+          <div class="cond-group-block">
+            <div class="idx">条件组 1</div>
+            <div class="cond-line">渠道活码名称 <span class="op">等于</span> <b>暑期续报活码</b></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="margin-bottom:16px">
+          <button class="btn btn-primary" onclick="openRuleDialog(null)">＋ 新建规则</button>
+        </div>
+        <div class="table-scroll">
+          <table class="el-table">
+            <thead>
+              <tr>
+                <th style="width:80px">规则ID</th>
+                <th style="min-width:170px">规则名称</th>
+                <th style="min-width:190px">规则描述</th>
+                <th style="min-width:170px">触发类型</th>
+                <th style="min-width:150px">动作类型</th>
+                <th style="width:150px">更新时间</th>
+                <th style="width:110px">最后更新人</th>
+                <th style="width:90px">启用状态</th>
+                <th style="width:120px">操作</th>
+              </tr>
+            </thead>
+            <tbody id="ruleTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 规则新建/编辑弹窗 -->
+<div class="mask" id="ruleMask">
+  <div class="dialog" onclick="event.stopPropagation()">
+    <div class="dialog-head">
+      <span class="dialog-title" id="dlgTitle">新建规则</span>
+      <button class="dialog-close" onclick="closeRuleDialog()">✕</button>
+    </div>
+    <div class="dialog-body">
+      <!-- 基本信息 -->
+      <div style="margin-bottom:20px">
+        <div class="section-title">基本信息</div>
+        <div class="form-item">
+          <div class="form-label req">规则名称</div>
+          <div class="form-body">
+            <div class="inp-wrap">
+              <input class="inp" id="fName" maxlength="50" placeholder="请输入规则名称" oninput="syncCount()">
+              <span class="inp-count" id="nameCount">0/50</span>
+            </div>
+            <div class="err-tip" id="errName" style="display:none">请输入规则名称</div>
+          </div>
+        </div>
+        <div class="form-item">
+          <div class="form-label req">规则描述</div>
+          <div class="form-body">
+            <div class="inp-wrap">
+              <textarea class="inp" id="fDesc" maxlength="200" placeholder="请输入规则描述" oninput="syncCount()"></textarea>
+              <span class="word-limit" id="descCount">0/200</span>
+            </div>
+            <div class="err-tip" id="errDesc" style="display:none">请输入规则描述</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 触发器配置 -->
+      <div style="margin-bottom:20px">
+        <div class="section-title">触发器配置</div>
+
+        <div class="form-item">
+          <div class="form-label req">触发器类型</div>
+          <div class="form-body">
+            <div class="sel" id="selTrigger" style="width:260px">
+              <div class="sel-inner" id="selTriggerInner" onclick="toggleTriggerSel()">用户信息变更</div>
+              <div class="sel-drop">
+                <div class="sel-opt" data-v="user_change" onclick="pickTrigger('user_change')">用户信息变更</div>
+                <div class="sel-opt" data-v="scheduled" onclick="pickTrigger('scheduled')">定时任务</div>
+                <div class="sel-opt" data-v="specific_date" onclick="pickTrigger('specific_date')">
+                  指定日期触发 <span class="tag tag-primary tag-sm badge-new">本次新增</span>
+                </div>
+              </div>
+            </div>
+            <div class="tip-text" id="triggerEditTip" style="display:none;padding-top:4px">编辑规则时不可修改触发器类型</div>
+          </div>
+        </div>
+
+        <!-- 补充触发时间（定时任务） -->
+        <div class="form-item" id="itemSchedule" style="display:none">
+          <div class="form-label">补充触发时间</div>
+          <div class="form-body">
+            <div class="row-flex">
+              <div class="sel" id="selSchedule" style="width:120px">
+                <div class="sel-inner" onclick="toggleSel('selSchedule')">每日</div>
+                <div class="sel-drop">
+                  <div class="sel-opt" onclick="pickSchedule('daily','每日')">每日</div>
+                  <div class="sel-opt" onclick="pickSchedule('nextDay','次日')">次日</div>
+                  <div class="sel-opt" onclick="pickSchedule('weekly','每周')">每周</div>
+                  <div class="sel-opt" onclick="pickSchedule('monthly','每月')">每月</div>
+                  <div class="sel-opt" onclick="pickSchedule('interval','间隔')">间隔</div>
+                  <div class="sel-opt" onclick="pickSchedule('today','当日')">当日</div>
+                </div>
+              </div>
+              <div class="sel" style="width:120px">
+                <div class="sel-inner">09:00</div>
+              </div>
+              <span class="tip-text" id="scheduleTip">到达指定时间后，当日命中条件即可激活，避免漏触达</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 触发时间（指定日期触发，本次新增） -->
+        <div class="form-item" id="itemDateTime" style="display:none">
+          <div class="form-label req">触发时间</div>
+          <div class="form-body">
+            <div class="row-flex">
+              <div class="dtp" id="dtp">
+                <div class="tt" style="width:100%">
+                  <div class="dtp-input placeholder" id="dtpInput" onclick="toggleDtp()">请选择触发日期与时间</div>
+                  <span class="tt-pop" id="dtpLockTip" style="display:none">该规则的触发时间已过，如需重新发送请新建规则</span>
+                </div>
+                <div class="dtp-panel" onclick="event.stopPropagation()">
+                  <div class="dtp-editors">
+                    <input id="dtpDateEditor" placeholder="选择日期" readonly>
+                    <input id="dtpTimeEditor" type="time" step="60" value="09:00">
+                  </div>
+                  <div class="dtp-head">
+                    <button class="dtp-nav" onclick="shiftMonth(-1)">‹</button>
+                    <span class="ym" id="dtpYm"></span>
+                    <button class="dtp-nav" onclick="shiftMonth(1)">›</button>
+                  </div>
+                  <div class="dtp-grid" id="dtpGrid"></div>
+                  <div class="dtp-foot">
+                    <span class="tip-text">当天之前的日期不可选</span>
+                    <button class="btn btn-primary" style="height:28px;padding:0 12px" onclick="confirmDtp()">确定</button>
+                  </div>
+                </div>
+              </div>
+              <span class="tip-text">到达该时刻后触发一次，触发后不再重复执行</span>
+            </div>
+            <div class="err-tip" id="errDateTime" style="display:none"></div>
+          </div>
+        </div>
+
+        <div class="form-item">
+          <div class="form-label">触发条件</div>
+          <div class="form-body">
+            <div class="cond-wrap">
+              <div class="cond-row">
+                <span class="guide">当满足</span>
+                <div class="sel" style="width:110px"><div class="sel-inner">等于</div></div>
+                <div class="sel" style="flex:1"><div class="sel-inner">学情报告已生成</div></div>
+                <input class="inp" style="width:150px" value="是" readonly>
+              </div>
+              <div class="cond-row">
+                <span class="logic-chip">且</span>
+                <div class="sel" style="width:110px"><div class="sel-inner">不等于</div></div>
+                <div class="sel" style="flex:1"><div class="sel-inner">家长身份类型</div></div>
+                <input class="inp" style="width:150px" value="已成单" readonly>
+              </div>
+              <div style="padding-top:6px">
+                <button class="btn btn-link" onclick="toast('warning','原型固定演示两条触发条件，条件配置沿用现有能力')">＋ 添加条件</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-item">
+          <div class="form-label">官方群发</div>
+          <div class="form-body">
+            <div class="row-flex">
+              <div class="tt" id="bcTt">
+                <div class="cbx" id="bcCbx" onclick="toggleBroadcast()">
+                  <span class="cbx-box"></span>
+                  <span class="cbx-label">启用企业微信官方群发</span>
+                </div>
+                <span class="tt-pop" id="bcTip">仅定时任务触发器支持官方群发</span>
+              </div>
+              <span class="tip-text">每外部联系人每自然日 1 次，仅支持静态文案，不支持学情类动作</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 动作配置 -->
+      <div>
+        <div class="section-title">动作配置</div>
+        <div class="action-block">
+          <div class="action-head">
+            <span class="t">动作 1</span>
+            <button class="btn btn-link danger" onclick="toast('warning','原型固定演示一个动作，动作配置沿用现有能力')">删除</button>
+          </div>
+          <div class="form-item" style="margin-bottom:12px">
+            <div class="form-label req" style="width:80px">动作类型</div>
+            <div class="form-body">
+              <div class="sel" style="width:260px"><div class="sel-inner" id="actTypeText">发送企业微信消息</div></div>
+            </div>
+          </div>
+          <div class="form-item" style="margin-bottom:0">
+            <div class="form-label req" style="width:80px" id="actParamLabel">消息内容</div>
+            <div class="form-body">
+              <textarea class="inp" style="height:60px" id="actParamText" readonly></textarea>
+            </div>
+          </div>
+        </div>
+        <button class="btn" onclick="toast('warning','原型固定演示一个动作，动作配置沿用现有能力')">＋ 添加动作</button>
+      </div>
+    </div>
+    <div class="dialog-foot">
+      <button class="btn" onclick="closeRuleDialog()">取消</button>
+      <button class="btn btn-primary" id="btnSubmit" onclick="submitRule()">确认</button>
+    </div>
+  </div>
+</div>
+
+<!-- 删除确认弹窗 -->
+<div class="mask" id="confirmMask">
+  <div class="dialog confirm-dialog">
+    <div class="dialog-head">
+      <span class="dialog-title">提示</span>
+      <button class="dialog-close" onclick="closeConfirm()">✕</button>
+    </div>
+    <div class="dialog-body" style="padding-bottom:10px">
+      <div id="confirmText" style="color:#606266"></div>
+    </div>
+    <div class="dialog-foot">
+      <button class="btn" onclick="closeConfirm()">取消</button>
+      <button class="btn btn-primary" onclick="doConfirm()">确定</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+/* ================= 工具 ================= */
+var NOW = new Date();
+function pad(n){ return String(n).padStart(2,'0'); }
+function fmtDate(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function fmtDateTime(d){ return fmtDate(d)+' '+pad(d.getHours())+':'+pad(d.getMinutes()); }
+function shiftDays(base, n){ var d = new Date(base.getTime()); d.setDate(d.getDate()+n); return d; }
+function sameDay(a,b){ return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate(); }
+function isExpired(str){ if(!str) return false; return parseDT(str).getTime() < NOW.getTime(); }
+function parseDT(str){
+  var p = str.split(' '), d = p[0].split('-'), t = (p[1]||'00:00').split(':');
+  return new Date(+d[0], +d[1]-1, +d[2], +t[0], +t[1], 0, 0);
+}
+document.getElementById('nowHint').textContent = '当前时间 '+fmtDateTime(NOW)+'（用于演示过期判定）';
+
+function toast(type, msg){
+  var wrap = document.getElementById('toastWrap');
+  var el = document.createElement('div');
+  el.className = 'toast '+type;
+  var mark = type==='success' ? '✓' : (type==='error' ? '✕' : '!');
+  el.innerHTML = '<span class="ic">'+mark+'</span><span>'+msg+'</span>';
+  wrap.appendChild(el);
+  setTimeout(function(){ el.remove(); }, 3200);
+}
+
+/* ================= 列表数据 ================= */
+var futureDT = fmtDate(shiftDays(NOW, 30))+' 09:00';
+var pastDT   = fmtDate(shiftDays(NOW, -12))+' 10:00';
+
+var rules = [
+  { id: 1041, name: '学情报告日报推送', desc: '每天早上给已生成学情报告的家长推送日报', triggerType: 'scheduled',
+    actions: ['学情报告'], msg: '日维度', updatedAt: fmtDateTime(shiftDays(NOW,-40)), updater: '朱胜武', enabled: true, broadcast: true },
+  { id: 1042, name: '身份识别后首触达', desc: '识别为家长身份后立即发送一次开场话术', triggerType: 'user_change',
+    actions: ['发送企业微信消息'], msg: '您好，我是孩子的学习规划老师，方便聊两句吗', updatedAt: fmtDateTime(shiftDays(NOW,-22)), updater: '朱胜武', enabled: true, broadcast: false },
+  { id: 1067, name: '国庆班课名额开放通知', desc: '国庆当天上午统一通知未成单家长班课名额开放', triggerType: 'specific_date',
+    triggerAt: futureDT, actions: ['发送企业微信消息'], msg: '国庆班课名额今天开放，回复1即可锁定名额', updatedAt: fmtDateTime(shiftDays(NOW,-1)), updater: '朱胜武', enabled: false, broadcast: false },
+  { id: 1055, name: '暑期结课日专属课包发放', desc: '暑期结课当天向在读家长发放专属链接课包', triggerType: 'specific_date',
+    triggerAt: pastDT, actions: ['发送专属链接课包'], msg: '专属链接海报', updatedAt: fmtDateTime(shiftDays(NOW,-13)), updater: '朱胜武', enabled: true, broadcast: false }
+];
+
+var TRIGGER_LABEL = { user_change: '用户信息变更', scheduled: '定时任务', specific_date: '指定日期触发' };
+var ACTION_TAG = { '学情报告':'tag-success', '发送企业微信消息':'tag-primary', '发送专属链接课包':'tag-warning' };
+
+function renderTable(){
+  var html = '';
+  rules.forEach(function(r){
+    var trigCell = '<div class="trigger-cell"><div class="name">'+TRIGGER_LABEL[r.triggerType]+'</div>';
+    if (r.triggerType === 'specific_date') {
+      trigCell += '<div class="time"><span>'+r.triggerAt+'</span>';
+      if (isExpired(r.triggerAt)) trigCell += '<span class="tag tag-info tag-sm">已过期</span>';
+      trigCell += '</div>';
+    }
+    trigCell += '</div>';
+
+    var acts = r.actions.map(function(a){
+      return '<span class="tag '+(ACTION_TAG[a]||'tag-info')+' tag-sm">'+a+'</span>';
+    }).join(' ');
+
+    var nameCell = r.name + (r.broadcast ? ' <span class="tag tag-warning tag-sm">官方群发</span>' : '');
+
+    html += '<tr>'
+      + '<td>'+r.id+'</td>'
+      + '<td>'+nameCell+'</td>'
+      + '<td>'+r.desc+'</td>'
+      + '<td>'+trigCell+'</td>'
+      + '<td><div style="display:flex;flex-wrap:wrap;gap:4px">'+acts+'</div></td>'
+      + '<td>'+r.updatedAt+'</td>'
+      + '<td>'+r.updater+'</td>'
+      + '<td><button class="switch'+(r.enabled?' on':'')+'" onclick="toggleRule('+r.id+')"></button></td>'
+      + '<td><button class="btn btn-link" onclick="openRuleDialog('+r.id+')">编辑</button>'
+      + '<button class="btn btn-link danger" onclick="askDelete('+r.id+')">删除</button></td>'
+      + '</tr>';
+  });
+  document.getElementById('ruleTbody').innerHTML = html;
+}
+
+function toggleRule(id){
+  var r = rules.find(function(x){ return x.id === id; });
+  r.enabled = !r.enabled;
+  if (r.enabled && r.triggerType === 'specific_date' && isExpired(r.triggerAt)) {
+    toast('warning','该规则触发时间已过，启用后不会触发');
+  } else {
+    toast('success', r.enabled ? '已启用' : '已禁用');
+  }
+  renderTable();
+}
+
+var pendingDelete = null;
+function askDelete(id){
+  pendingDelete = id;
+  document.getElementById('confirmText').textContent = '确认删除该规则？删除后不可恢复。';
+  document.getElementById('confirmMask').classList.add('show');
+}
+function closeConfirm(){ document.getElementById('confirmMask').classList.remove('show'); pendingDelete = null; }
+function doConfirm(){
+  rules = rules.filter(function(r){ return r.id !== pendingDelete; });
+  closeConfirm(); renderTable(); toast('success','删除成功');
+}
+
+/* ================= 表单状态 ================= */
+var form = { id: null, triggerType: 'user_change', triggerAt: '', broadcast: false, scheduleType: 'daily', lockDateTime: false };
+var nextId = 1101;
+
+function openRuleDialog(id){
+  var r = id ? rules.find(function(x){ return x.id === id; }) : null;
+  form = { id: id, triggerType: r ? r.triggerType : 'user_change', triggerAt: r && r.triggerAt ? r.triggerAt : '',
+           broadcast: r ? !!r.broadcast : false, scheduleType: 'daily', lockDateTime: false };
+  if (r && r.triggerType === 'specific_date' && isExpired(r.triggerAt)) form.lockDateTime = true;
+
+  document.getElementById('dlgTitle').textContent = r ? '编辑规则' : '新建规则';
+  document.getElementById('fName').value = r ? r.name : '';
+  document.getElementById('fDesc').value = r ? r.desc : '';
+  document.getElementById('errName').style.display = 'none';
+  document.getElementById('errDesc').style.display = 'none';
+  document.getElementById('fName').classList.remove('is-error');
+  document.getElementById('fDesc').classList.remove('is-error');
+
+  // 编辑模式：触发器类型置灰
+  var selT = document.getElementById('selTrigger');
+  selT.classList.remove('open');
+  if (r) { selT.classList.add('disabled'); document.getElementById('triggerEditTip').style.display = 'block'; }
+  else { selT.classList.remove('disabled'); document.getElementById('triggerEditTip').style.display = 'none'; }
+
+  // 动作配置区回填（动作类型与其参数沿用现有配置，原型固定展示一个动作）
+  var ACT_PARAM_LABEL = { '发送企业微信消息': '消息内容', '学情报告': '报告维度', '发送专属链接课包': '发送方式' };
+  var actName = r ? r.actions[0] : '发送企业微信消息';
+  document.getElementById('actTypeText').textContent = actName;
+  document.getElementById('actParamLabel').textContent = ACT_PARAM_LABEL[actName] || '动作参数';
+  document.getElementById('actParamText').value = r ? r.msg : '国庆班课名额今天开放，回复1即可锁定名额';
+
+  syncCount();
+  applyTriggerType();
+  document.getElementById('ruleMask').classList.add('show');
+}
+function closeRuleDialog(){
+  document.getElementById('ruleMask').classList.remove('show');
+  document.getElementById('dtp').classList.remove('open');
+}
+
+function syncCount(){
+  var n = document.getElementById('fName').value.length;
+  var d = document.getElementById('fDesc').value.length;
+  document.getElementById('nameCount').textContent = n+'/50';
+  document.getElementById('descCount').textContent = d+'/200';
+}
+
+/* --------- 触发器类型 --------- */
+function toggleTriggerSel(){
+  var el = document.getElementById('selTrigger');
+  if (el.classList.contains('disabled')) { toast('warning','编辑规则时不可修改触发器类型'); return; }
+  el.classList.toggle('open');
+}
+function pickTrigger(v){
+  var prevBroadcast = form.broadcast;
+  form.triggerType = v;
+  document.getElementById('selTrigger').classList.remove('open');
+  // 切换触发器类型时清空指定触发时间
+  if (v !== 'specific_date') { form.triggerAt = ''; form.lockDateTime = false; }
+  // 指定日期触发不支持官方群发：原本已勾选则自动取消
+  if (v === 'specific_date' && prevBroadcast) {
+    form.broadcast = false;
+    toast('warning','已自动取消官方群发，指定日期触发不支持');
+  }
+  applyTriggerType();
+}
+function applyTriggerType(){
+  var v = form.triggerType;
+  document.getElementById('selTriggerInner').textContent = TRIGGER_LABEL[v];
+  document.querySelectorAll('#selTrigger .sel-opt').forEach(function(o){
+    o.classList.toggle('selected', o.dataset.v === v);
+  });
+  document.getElementById('itemSchedule').style.display = (v === 'scheduled') ? 'flex' : 'none';
+  document.getElementById('itemDateTime').style.display = (v === 'specific_date') ? 'flex' : 'none';
+
+  // 触发时间回填与锁定
+  var dtp = document.getElementById('dtp');
+  var dtpInput = document.getElementById('dtpInput');
+  if (form.triggerAt) { dtpInput.textContent = form.triggerAt; dtpInput.classList.remove('placeholder'); }
+  else { dtpInput.textContent = '请选择触发日期与时间'; dtpInput.classList.add('placeholder'); }
+  dtpInput.classList.remove('is-error');
+  document.getElementById('errDateTime').style.display = 'none';
+  dtp.classList.toggle('readonly', form.lockDateTime);
+  document.getElementById('dtpLockTip').style.display = form.lockDateTime ? 'block' : 'none';
+  if (form.lockDateTime) dtp.classList.remove('open');
+
+  // 官方群发可用性
+  var canBc = (v === 'scheduled' && form.scheduleType !== 'interval');
+  var cbx = document.getElementById('bcCbx');
+  cbx.classList.toggle('disabled', !canBc);
+  cbx.classList.toggle('checked', form.broadcast);
+  var tip = document.getElementById('bcTip');
+  if (v === 'specific_date') tip.textContent = '指定日期触发暂不支持官方群发';
+  else if (v !== 'scheduled') tip.textContent = '仅定时任务触发器支持官方群发';
+  else if (form.scheduleType === 'interval') tip.textContent = '间隔类型不支持官方群发';
+  else tip.textContent = '';
+  document.getElementById('bcTt').classList.toggle('force', false);
+  tip.style.display = canBc ? 'none' : 'block';
+
+  buildCalendar();
+}
+function toggleBroadcast(){
+  var canBc = (form.triggerType === 'scheduled' && form.scheduleType !== 'interval');
+  if (!canBc) {
+    toast('warning', form.triggerType === 'specific_date' ? '指定日期触发暂不支持官方群发' : '仅定时任务触发器支持官方群发');
+    return;
+  }
+  form.broadcast = !form.broadcast;
+  applyTriggerType();
+}
+function toggleSel(id){ document.getElementById(id).classList.toggle('open'); }
+function pickSchedule(v, label){
+  form.scheduleType = v;
+  var el = document.getElementById('selSchedule');
+  el.querySelector('.sel-inner').textContent = label;
+  el.classList.remove('open');
+  var tips = { daily:'到达指定时间后，当日命中条件即可激活，避免漏触达', today:'规则命中后在当日该时间触发', nextDay:'', weekly:'', monthly:'', interval:'' };
+  document.getElementById('scheduleTip').textContent = tips[v] || '';
+  if (v === 'interval' && form.broadcast) {
+    form.broadcast = false;
+    toast('warning','已自动取消官方群发，当前调度类型不支持');
+  }
+  applyTriggerType();
+}
+
+/* --------- 日期时间选择器 --------- */
+var calYear = NOW.getFullYear(), calMonth = NOW.getMonth();
+var draftDate = '', draftTime = '09:00';
+
+function toggleDtp(){
+  if (form.lockDateTime) { toast('warning','该规则的触发时间已过，如需重新发送请新建规则'); return; }
+  var el = document.getElementById('dtp');
+  var willOpen = !el.classList.contains('open');
+  el.classList.toggle('open');
+  if (willOpen) {
+    if (form.triggerAt) {
+      var p = form.triggerAt.split(' ');
+      draftDate = p[0]; draftTime = p[1];
+      var d = parseDT(form.triggerAt);
+      calYear = d.getFullYear(); calMonth = d.getMonth();
+    } else { draftDate = ''; draftTime = '09:00'; calYear = NOW.getFullYear(); calMonth = NOW.getMonth(); }
+    document.getElementById('dtpDateEditor').value = draftDate;
+    document.getElementById('dtpTimeEditor').value = draftTime;
+    buildCalendar();
+  }
+}
+function shiftMonth(n){
+  calMonth += n;
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  buildCalendar();
+}
+function buildCalendar(){
+  var grid = document.getElementById('dtpGrid');
+  if (!grid) return;
+  document.getElementById('dtpYm').textContent = calYear+' 年 '+(calMonth+1)+' 月';
+  var html = '';
+  ['日','一','二','三','四','五','六'].forEach(function(w){ html += '<div class="wd">'+w+'</div>'; });
+  var first = new Date(calYear, calMonth, 1);
+  var startOffset = first.getDay();
+  var start = new Date(calYear, calMonth, 1 - startOffset);
+  var todayStart = new Date(NOW.getFullYear(), NOW.getMonth(), NOW.getDate());
+  for (var i = 0; i < 42; i++) {
+    var d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
+    var cls = 'dtp-cell';
+    if (d.getMonth() !== calMonth) cls += ' other';
+    var disabled = d.getTime() < todayStart.getTime();
+    if (disabled) cls += ' disabled';
+    if (sameDay(d, NOW)) cls += ' today';
+    if (draftDate && fmtDate(d) === draftDate) cls += ' picked';
+    html += '<div class="'+cls+'"'+(disabled ? '' : ' onclick="pickDay(\''+fmtDate(d)+'\')"')+'>'+d.getDate()+'</div>';
+  }
+  grid.innerHTML = html;
+}
+function pickDay(ds){
+  draftDate = ds;
+  document.getElementById('dtpDateEditor').value = ds;
+  buildCalendar();
+}
+function confirmDtp(){
+  var t = document.getElementById('dtpTimeEditor').value || '';
+  if (!draftDate) { toast('warning','请先在日历中选择日期'); return; }
+  if (!t) { toast('warning','请填写触发时刻'); return; }
+  draftTime = t.slice(0,5);
+  form.triggerAt = draftDate + ' ' + draftTime;
+  document.getElementById('dtp').classList.remove('open');
+  var inp = document.getElementById('dtpInput');
+  inp.textContent = form.triggerAt;
+  inp.classList.remove('placeholder');
+  inp.classList.remove('is-error');
+  document.getElementById('errDateTime').style.display = 'none';
+}
+
+/* --------- 提交校验 --------- */
+function submitRule(){
+  var name = document.getElementById('fName').value.trim();
+  var desc = document.getElementById('fDesc').value.trim();
+  var ok = true;
+
+  var errName = document.getElementById('errName'), inpName = document.getElementById('fName');
+  if (!name) { errName.textContent = '请输入规则名称'; errName.style.display = 'block'; inpName.classList.add('is-error'); ok = false; }
+  else { errName.style.display = 'none'; inpName.classList.remove('is-error'); }
+
+  var errDesc = document.getElementById('errDesc'), inpDesc = document.getElementById('fDesc');
+  if (!desc) { errDesc.textContent = '请输入规则描述'; errDesc.style.display = 'block'; inpDesc.classList.add('is-error'); ok = false; }
+  else { errDesc.style.display = 'none'; inpDesc.classList.remove('is-error'); }
+
+  if (!ok) return;
+
+  if (form.triggerType === 'specific_date' && !form.lockDateTime) {
+    var errDT = document.getElementById('errDateTime'), dtpInput = document.getElementById('dtpInput');
+    if (!form.triggerAt) {
+      errDT.textContent = '请选择触发日期与时间';
+      errDT.style.display = 'block'; dtpInput.classList.add('is-error');
+      toast('warning','请选择触发日期与时间');
+      return;
+    }
+    if (parseDT(form.triggerAt).getTime() <= new Date().getTime()) {
+      errDT.textContent = '触发时间必须晚于当前时间，请重新选择';
+      errDT.style.display = 'block'; dtpInput.classList.add('is-error');
+      toast('warning','触发时间必须晚于当前时间，请重新选择');
+      return;
+    }
+    errDT.style.display = 'none'; dtpInput.classList.remove('is-error');
+  }
+
+  var btn = document.getElementById('btnSubmit');
+  btn.disabled = true; btn.textContent = '提交中...';
+  setTimeout(function(){
+    btn.disabled = false; btn.textContent = '确认';
+    if (form.id) {
+      var r = rules.find(function(x){ return x.id === form.id; });
+      r.name = name; r.desc = desc; r.broadcast = form.broadcast;
+      if (r.triggerType === 'specific_date' && !form.lockDateTime) r.triggerAt = form.triggerAt;
+      r.updatedAt = fmtDateTime(new Date()); r.updater = '朱胜武';
+      toast('success','更新成功');
+    } else {
+      rules.push({ id: nextId++, name: name, desc: desc, triggerType: form.triggerType,
+        triggerAt: form.triggerType === 'specific_date' ? form.triggerAt : undefined,
+        actions: ['发送企业微信消息'], msg: document.getElementById('actParamText').value,
+        updatedAt: fmtDateTime(new Date()), updater: '朱胜武',
+        enabled: false, broadcast: form.broadcast });
+      toast('success','创建成功');
+    }
+    closeRuleDialog();
+    renderTable();
+  }, 500);
+}
+
+/* --------- 全局关闭 --------- */
+document.addEventListener('click', function(e){
+  if (!e.target.closest('#selTrigger')) document.getElementById('selTrigger').classList.remove('open');
+  if (!e.target.closest('#selSchedule')) document.getElementById('selSchedule').classList.remove('open');
+  if (!e.target.closest('#dtp')) document.getElementById('dtp').classList.remove('open');
+});
+document.getElementById('ruleMask').addEventListener('click', function(e){ if (e.target === this) closeRuleDialog(); });
+document.getElementById('confirmMask').addEventListener('click', function(e){ if (e.target === this) closeConfirm(); });
+
+renderTable();
+</script>
+</body>
+</html>
