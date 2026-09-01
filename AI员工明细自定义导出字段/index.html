@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI员工明细自定义导出字段</title>
+  <style>
+    :root {
+      --primary: #409eff;
+      --primary-light: #ecf5ff;
+      --success: #67c23a;
+      --danger: #f56c6c;
+      --text: #303133;
+      --regular: #606266;
+      --secondary: #909399;
+      --placeholder: #a8abb2;
+      --border: #dcdfe6;
+      --border-light: #ebeef5;
+      --fill: #f5f7fa;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; }
+    body {
+      overflow: hidden;
+      color: var(--text);
+      background: #f5f7fa;
+      font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+        "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+
+    button, input { font: inherit; }
+    button { outline: none; }
+
+    .review-bar {
+      position: relative;
+      z-index: 20;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      color: var(--regular);
+      background: #fff;
+      border-bottom: 1px solid var(--border-light);
+      box-shadow: 0 1px 4px rgb(0 0 0 / 5%);
+    }
+
+    .review-title { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+    .review-badge {
+      padding: 2px 7px;
+      color: #e6a23c;
+      font-size: 12px;
+      font-weight: 400;
+      background: #fdf6ec;
+      border: 1px solid #faecd8;
+      border-radius: 3px;
+    }
+    .review-actions { display: flex; align-items: center; gap: 8px; }
+    .review-label { margin-right: 2px; color: var(--secondary); font-size: 12px; }
+
+    .app { height: calc(100vh - 48px); display: flex; flex-direction: column; }
+    .topbar {
+      height: 48px;
+      display: flex;
+      align-items: center;
+      padding: 0 18px;
+      color: var(--regular);
+      background: #fff;
+      border-bottom: 1px solid #e5e5e5;
+      flex: 0 0 auto;
+    }
+    .topbar strong { color: var(--text); }
+    .topbar .slash { margin: 0 9px; color: #c0c4cc; }
+    .workspace { min-height: 0; flex: 1; display: flex; background: #fff; }
+    .column {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid #e5e5e5;
+      background: #fff;
+    }
+    .employee-column { width: 310px; flex: 0 0 310px; }
+    .session-column { width: 342px; flex: 0 0 342px; }
+    .detail-column { flex: 1; border-right: 0; }
+    .column-header { padding: 12px; border-bottom: 1px solid #e5e5e5; }
+    .title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 28px;
+      margin-bottom: 12px;
+    }
+    .column-title { font-size: 16px; font-weight: 700; }
+    .input-wrap { position: relative; }
+    .search-icon {
+      position: absolute;
+      top: 50%;
+      left: 11px;
+      width: 14px;
+      height: 14px;
+      border: 2px solid #a8abb2;
+      border-radius: 50%;
+      transform: translateY(-58%);
+    }
+    .search-icon::after {
+      position: absolute;
+      right: -5px;
+      bottom: -3px;
+      width: 6px;
+      height: 2px;
+      content: "";
+      background: #a8abb2;
+      transform: rotate(45deg);
+    }
+    .search-input {
+      width: 100%;
+      height: 32px;
+      padding: 0 11px 0 32px;
+      color: var(--regular);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      outline: none;
+    }
+    .search-input:focus { border-color: var(--primary); }
+    .subtotal { margin-top: 8px; color: var(--secondary); font-size: 12px; }
+    .online { color: #52c41a; }
+    .scroll-list { min-height: 0; flex: 1; overflow-y: auto; }
+    .employee-item {
+      display: flex;
+      align-items: center;
+      padding: 12px;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .employee-item:hover { background: #f5f5f5; }
+    .employee-item.active { background: #e6f7ff; }
+    .avatar {
+      position: relative;
+      width: 48px;
+      height: 48px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 48px;
+      color: #fff;
+      font-weight: 600;
+      background: linear-gradient(145deg, #7aa8ff, #6477e8);
+      border-radius: 50%;
+    }
+    .status-dot {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      width: 12px;
+      height: 12px;
+      background: #52c41a;
+      border: 2px solid #fff;
+      border-radius: 50%;
+    }
+    .status-dot.offline { background: #999; }
+    .employee-info { min-width: 0; flex: 1; margin-left: 12px; }
+    .employee-main { display: flex; align-items: center; justify-content: space-between; }
+    .employee-name, .employee-company, .employee-org {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .employee-name { max-width: 135px; font-weight: 500; }
+    .employee-time, .employee-org { color: #999; font-size: 12px; }
+    .employee-company { margin-top: 4px; color: #666; font-size: 13px; }
+    .employee-org { margin-top: 2px; }
+
+    .session-item {
+      padding: 13px 14px;
+      border-bottom: 1px solid #f0f0f0;
+      cursor: pointer;
+    }
+    .session-item:hover { background: #fafafa; }
+    .session-item.active { background: #e6f7ff; }
+    .session-top { display: flex; justify-content: space-between; }
+    .session-name { font-weight: 500; }
+    .session-time { color: #999; font-size: 12px; }
+    .session-message {
+      margin-top: 5px;
+      overflow: hidden;
+      color: #666;
+      font-size: 12px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .chat-header {
+      height: 57px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      border-bottom: 1px solid #e5e5e5;
+    }
+    .chat-name { font-weight: 600; }
+    .contact-type { color: #999; font-size: 12px; }
+    .chat-body { min-height: 0; flex: 1; overflow: auto; padding: 24px; background: #fafafa; }
+    .message { display: flex; margin-bottom: 20px; }
+    .message.mine { justify-content: flex-end; }
+    .message-inner { max-width: 62%; }
+    .message-author { margin-bottom: 5px; color: #999; font-size: 12px; }
+    .message.mine .message-author { text-align: right; }
+    .bubble {
+      padding: 9px 13px;
+      background: #fff;
+      border: 1px solid var(--border-light);
+      border-radius: 5px;
+      box-shadow: 0 1px 2px rgb(0 0 0 / 3%);
+    }
+    .message.mine .bubble { background: #d9f7be; border-color: #c6e9aa; }
+
+    .button {
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 15px;
+      color: var(--regular);
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: .16s;
+    }
+    .button:hover { color: var(--primary); background: var(--primary-light); border-color: #c6e2ff; }
+    .button.small { height: 28px; padding: 0 11px; font-size: 12px; }
+    .button.primary { color: #fff; background: var(--primary); border-color: var(--primary); }
+    .button.primary:hover { background: #66b1ff; border-color: #66b1ff; }
+    .button:disabled, .button:disabled:hover {
+      color: #c0c4cc;
+      background: #fff;
+      border-color: #ebeef5;
+      cursor: not-allowed;
+    }
+    .button.primary:disabled, .button.primary:disabled:hover {
+      color: #fff;
+      background: #a0cfff;
+      border-color: #a0cfff;
+    }
+    .text-button {
+      padding: 0;
+      color: var(--primary);
+      background: transparent;
+      border: 0;
+      cursor: pointer;
+    }
+    .text-button:hover { color: #66b1ff; }
+
+    .mask {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgb(0 0 0 / 45%);
+    }
+    .mask.show { display: flex; }
+    .dialog {
+      width: 760px;
+      max-width: calc(100vw - 48px);
+      overflow: hidden;
+      background: #fff;
+      border-radius: 6px;
+      box-shadow: 0 12px 32px rgb(0 0 0 / 20%);
+      animation: dialog-in .18s ease-out;
+    }
+    @keyframes dialog-in {
+      from { opacity: 0; transform: translateY(-12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .dialog-header {
+      height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      border-bottom: 1px solid var(--border-light);
+    }
+    .dialog-title { font-size: 16px; font-weight: 600; }
+    .close-button {
+      padding: 4px;
+      color: var(--secondary);
+      font-size: 25px;
+      line-height: 1;
+      background: transparent;
+      border: 0;
+      cursor: pointer;
+    }
+    .close-button:hover { color: var(--primary); }
+    .dialog-body {
+      max-height: calc(100vh - 190px);
+      padding: 20px 22px 18px;
+      overflow-y: auto;
+    }
+    .dialog-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 12px 20px;
+      border-top: 1px solid var(--border-light);
+    }
+    .form-item { display: flex; align-items: flex-start; }
+    .form-item + .form-item { margin-top: 18px; }
+    .form-label {
+      width: 100px;
+      flex: 0 0 100px;
+      padding-right: 12px;
+      color: var(--regular);
+      line-height: 32px;
+      text-align: right;
+    }
+    .required::before { margin-right: 4px; color: var(--danger); content: "*"; }
+    .form-control { min-width: 0; flex: 1; }
+    .date-row { display: flex; align-items: center; gap: 8px; }
+    .date-input {
+      width: 160px;
+      height: 32px;
+      padding: 0 10px;
+      color: var(--regular);
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      outline: none;
+    }
+    .date-input:focus { border-color: var(--primary); }
+    .date-separator { color: var(--secondary); }
+    .presets { display: flex; gap: 8px; margin-top: 8px; }
+    .preset {
+      padding: 2px 9px;
+      color: var(--secondary);
+      font-size: 12px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .preset:hover, .preset.active { color: #fff; background: var(--success); border-color: var(--success); }
+    .helper { margin-top: 7px; color: #999; font-size: 12px; }
+    .error-message { min-height: 18px; margin-top: 3px; color: var(--danger); font-size: 12px; }
+    .field-picker { width: 100%; }
+    .field-summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .field-rule { color: #999; font-size: 12px; }
+    .field-count { color: var(--regular); font-size: 13px; }
+    .field-count.limit { color: var(--danger); font-weight: 600; }
+    .clear-fields { margin-left: 12px; font-size: 12px; }
+    .field-error {
+      display: none;
+      margin: -4px 0 8px;
+      color: var(--danger);
+      font-size: 12px;
+    }
+    .field-error.show { display: block; }
+    .field-section {
+      padding: 12px;
+      border: 1px solid var(--border-light);
+      border-radius: 4px;
+    }
+    .field-section + .field-section { margin-top: 12px; }
+    .session-section { min-height: 118px; max-height: 248px; overflow-y: auto; }
+    .field-section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 9px;
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .checkbox-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 7px 12px;
+    }
+    .checkbox {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--regular);
+      cursor: pointer;
+      user-select: none;
+    }
+    .checkbox input {
+      position: absolute;
+      width: 0;
+      height: 0;
+      opacity: 0;
+    }
+    .checkmark {
+      position: relative;
+      width: 14px;
+      height: 14px;
+      flex: 0 0 14px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+    }
+    .checkbox input:checked + .checkmark { background: var(--primary); border-color: var(--primary); }
+    .checkbox input:checked + .checkmark::after {
+      position: absolute;
+      top: 1px;
+      left: 4px;
+      width: 4px;
+      height: 8px;
+      content: "";
+      border: solid #fff;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+    .checkbox span:last-child {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .checkbox.disabled { color: #c0c4cc; cursor: not-allowed; }
+    .checkbox.disabled .checkmark { background: #f5f7fa; border-color: #e4e7ed; }
+    .session-error {
+      min-height: 76px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      color: var(--secondary);
+      font-size: 13px;
+    }
+    .session-error.show { display: flex; }
+    .error-symbol {
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 6px;
+      color: #c0c4cc;
+      background: var(--fill);
+      border-radius: 50%;
+    }
+    .retry { margin-top: 4px; font-size: 13px; }
+    .loading-state {
+      min-height: 76px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      color: var(--secondary);
+    }
+    .loading-state.show { display: flex; }
+    .spinner {
+      width: 16px;
+      height: 16px;
+      margin-right: 7px;
+      border: 2px solid #d9ecff;
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .progress-dialog { width: 430px; }
+    .progress-body { padding: 24px 22px 28px; color: var(--regular); }
+    .progress-track {
+      height: 8px;
+      margin-top: 16px;
+      overflow: hidden;
+      background: var(--border-light);
+      border-radius: 5px;
+    }
+    .progress-fill {
+      width: 0;
+      height: 100%;
+      background: var(--primary);
+      border-radius: 5px;
+      transition: width .28s ease;
+    }
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+      color: var(--secondary);
+      font-size: 12px;
+    }
+    .toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      z-index: 300;
+      display: flex;
+      align-items: center;
+      padding: 10px 16px;
+      color: var(--success);
+      background: #f0f9eb;
+      border: 1px solid #e1f3d8;
+      border-radius: 4px;
+      box-shadow: 0 4px 14px rgb(0 0 0 / 10%);
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, -12px);
+      transition: .2s;
+    }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+    .toast-icon {
+      width: 17px;
+      height: 17px;
+      display: grid;
+      place-items: center;
+      margin-right: 7px;
+      color: #fff;
+      font-size: 12px;
+      background: var(--success);
+      border-radius: 50%;
+    }
+
+    @media (max-width: 1100px) {
+      .employee-column { width: 280px; flex-basis: 280px; }
+      .session-column { width: 300px; flex-basis: 300px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="review-bar">
+    <div class="review-title">
+      原型演示状态
+      <span class="review-badge">仅用于评审</span>
+    </div>
+    <div class="review-actions">
+      <span class="review-label">快速切换：</span>
+      <button class="button small" data-demo="default">默认态</button>
+      <button class="button small" data-demo="limit">25项上限</button>
+      <button class="button small" data-demo="failed">加载失败</button>
+    </div>
+  </div>
+
+  <main class="app">
+    <header class="topbar">
+      企业微信机器人<span class="slash">/</span><strong>AI员工明细</strong>
+    </header>
+    <section class="workspace">
+      <aside class="column employee-column">
+        <div class="column-header">
+          <div class="title-row">
+            <span class="column-title">AI员工</span>
+            <button class="button primary small" id="openExport">导出客户明细</button>
+          </div>
+          <div class="input-wrap">
+            <span class="search-icon"></span>
+            <input class="search-input" placeholder="按姓名/邮箱搜索">
+          </div>
+          <div class="subtotal">在线 <span class="online">2</span> · 离线 <span>1</span></div>
+        </div>
+        <div class="scroll-list" id="employeeList"></div>
+      </aside>
+
+      <aside class="column session-column">
+        <div class="column-header">
+          <div class="title-row"><span class="column-title">客户会话</span></div>
+          <div class="input-wrap">
+            <span class="search-icon"></span>
+            <input class="search-input" placeholder="搜索客户">
+          </div>
+        </div>
+        <div class="scroll-list" id="sessionList"></div>
+      </aside>
+
+      <section class="column detail-column">
+        <div class="chat-header">
+          <span class="chat-name" id="chatName">林晓雨</span>
+          <span class="contact-type">外部联系人</span>
+        </div>
+        <div class="chat-body" id="chatBody"></div>
+      </section>
+    </section>
+  </main>
+
+  <div class="mask" id="exportMask">
+    <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="exportTitle">
+      <header class="dialog-header">
+        <span class="dialog-title" id="exportTitle">导出客户明细</span>
+        <button class="close-button" id="closeExport" aria-label="关闭">×</button>
+      </header>
+      <div class="dialog-body">
+        <div class="form-item">
+          <label class="form-label required">时间范围</label>
+          <div class="form-control">
+            <div class="date-row">
+              <input type="date" class="date-input" id="startDate" aria-label="开始日期">
+              <span class="date-separator">至</span>
+              <input type="date" class="date-input" id="endDate" aria-label="结束日期">
+            </div>
+            <div class="presets">
+              <button class="preset" data-days="7">近7天</button>
+              <button class="preset" data-days="15">近15天</button>
+              <button class="preset" data-days="30">近30天</button>
+            </div>
+            <div class="helper">按客户「分配时间」过滤；最多可选 30 天，默认为空</div>
+            <div class="error-message" id="dateError">请选择开始日期和结束日期</div>
+          </div>
+        </div>
+
+        <div class="form-item">
+          <label class="form-label required">导出字段</label>
+          <div class="form-control field-picker">
+            <div class="field-summary">
+              <span class="field-rule">至少选择 1 个字段，最多选择 25 个</span>
+              <span>
+                <span class="field-count" id="fieldCount">已选 12/25</span>
+                <button class="text-button clear-fields" id="clearFields">清空</button>
+              </span>
+            </div>
+            <div class="field-error" id="fieldError">请至少选择1个导出字段</div>
+            <section class="field-section">
+              <div class="field-section-title">基础字段</div>
+              <div class="checkbox-grid" id="baseFieldGrid"></div>
+            </section>
+            <section class="field-section session-section">
+              <div class="field-section-title">
+                <span>会话变量</span>
+                <span class="field-rule">仅展示已启用变量</span>
+              </div>
+              <div class="checkbox-grid" id="sessionFieldGrid"></div>
+              <div class="loading-state" id="sessionLoading">
+                <span class="spinner"></span>会话变量加载中...
+              </div>
+              <div class="session-error" id="sessionError">
+                <span class="error-symbol">!</span>
+                <span>会话变量加载失败</span>
+                <button class="text-button retry" id="retrySession">重新加载</button>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+      <footer class="dialog-footer">
+        <button class="button" id="cancelExport">取消</button>
+        <button class="button primary" id="confirmExport" disabled>确认导出</button>
+      </footer>
+    </section>
+  </div>
+
+  <div class="mask" id="progressMask">
+    <section class="dialog progress-dialog" role="dialog" aria-modal="true">
+      <header class="dialog-header">
+        <span class="dialog-title">导出进行中</span>
+      </header>
+      <div class="progress-body">
+        <div>系统正在生成客户明细，请稍候…</div>
+        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="progress-meta">
+          <span id="progressText">正在准备数据…</span>
+          <span id="progressPercent">0%</span>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="toast" id="toast">
+    <span class="toast-icon">✓</span>
+    <span>导出成功，文件已开始下载</span>
+  </div>
+
+  <script>
+    const MAX_FIELD_COUNT = 25
+    const BASE_FIELDS = [
+      '微信昵称', '添加好友状态', '负责人', '客户回复消息数',
+      '员工发送消息数', '好友添加时间', '是否访问活跃（1日）', '学段',
+      '接待状态', '转人工原因分类', '用户年级', '用户身份',
+    ]
+    const SESSION_FIELDS = [
+      '意向课程', '意向科目', '学习基础', '购课意向', '预算区间',
+      '所在省份', '所在城市', '家长称谓', '联系电话', '方便联系时间',
+      '最近考试成绩', '薄弱知识点', '试听状态', '课程顾问备注', '来源渠道',
+      '营销活动', '跟进优先级', '最后咨询问题', '使用教材', '期望提升目标',
+    ]
+
+    const EMPLOYEES = [
+      { name: 'AI班主任-小葱', company: '洋葱学园', org: '武汉电销 / 私域一组', time: '17:42', online: true },
+      { name: 'AI课程顾问-小数', company: '洋葱学园', org: '武汉电销 / 私域二组', time: '16:08', online: true },
+      { name: 'AI学习助手-阿理', company: '洋葱学园', org: '武汉电销 / 体验营', time: '昨天', online: false },
+    ]
+    const SESSIONS = [
+      { name: '林晓雨', message: '孩子现在六年级，数学基础比较薄弱', time: '17:42' },
+      { name: '陈女士', message: '试听课什么时候可以安排？', time: '16:30' },
+      { name: '王同学家长', message: '课程价格和上课方式发我看看', time: '15:16' },
+      { name: '刘爸爸', message: '好的，我今晚和孩子商量一下', time: '14:03' },
+    ]
+    const MESSAGES = [
+      { mine: false, author: '林晓雨', text: '你好，想了解一下六年级数学课程。' },
+      { mine: true, author: 'AI班主任-小葱', text: '您好！想先了解一下孩子目前哪些知识点比较薄弱呢？' },
+      { mine: false, author: '林晓雨', text: '主要是分数应用题，最近考试只有七十多分。' },
+      { mine: true, author: 'AI班主任-小葱', text: '了解了，我可以先为孩子安排一次针对性的学习诊断和试听课。' },
+    ]
+
+    const state = {
+      selectedBase: new Set(BASE_FIELDS),
+      selectedSession: new Set(),
+      sessionStatus: 'ready',
+      activePreset: null,
+      submitting: false,
+    }
+
+    const elements = {
+      exportMask: document.getElementById('exportMask'),
+      progressMask: document.getElementById('progressMask'),
+      baseGrid: document.getElementById('baseFieldGrid'),
+      sessionGrid: document.getElementById('sessionFieldGrid'),
+      sessionLoading: document.getElementById('sessionLoading'),
+      sessionError: document.getElementById('sessionError'),
+      startDate: document.getElementById('startDate'),
+      endDate: document.getElementById('endDate'),
+      dateError: document.getElementById('dateError'),
+      fieldCount: document.getElementById('fieldCount'),
+      fieldError: document.getElementById('fieldError'),
+      confirm: document.getElementById('confirmExport'),
+      toast: document.getElementById('toast'),
+    }
+
+    function renderBackground() {
+      document.getElementById('employeeList').innerHTML = EMPLOYEES.map((employee, index) => `
+        <div class="employee-item ${index === 0 ? 'active' : ''}">
+          <div class="avatar">
+            ${employee.name.slice(-1)}
+            <span class="status-dot ${employee.online ? '' : 'offline'}"></span>
+          </div>
+          <div class="employee-info">
+            <div class="employee-main">
+              <span class="employee-name">${employee.name}</span>
+              <span class="employee-time">${employee.time}</span>
+            </div>
+            <div class="employee-company">${employee.company}</div>
+            <div class="employee-org">${employee.org}</div>
+          </div>
+        </div>
+      `).join('')
+
+      document.getElementById('sessionList').innerHTML = SESSIONS.map((session, index) => `
+        <div class="session-item ${index === 0 ? 'active' : ''}" data-index="${index}">
+          <div class="session-top">
+            <span class="session-name">${session.name}</span>
+            <span class="session-time">${session.time}</span>
+          </div>
+          <div class="session-message">${session.message}</div>
+        </div>
+      `).join('')
+
+      document.getElementById('chatBody').innerHTML = MESSAGES.map(message => `
+        <div class="message ${message.mine ? 'mine' : ''}">
+          <div class="message-inner">
+            <div class="message-author">${message.author}</div>
+            <div class="bubble">${message.text}</div>
+          </div>
+        </div>
+      `).join('')
+    }
+
+    function selectedCount() {
+      return state.selectedBase.size + state.selectedSession.size
+    }
+
+    function renderCheckboxes() {
+      const limitReached = selectedCount() >= MAX_FIELD_COUNT
+      elements.baseGrid.innerHTML = BASE_FIELDS.map(field => checkboxTemplate(
+        field,
+        'base',
+        state.selectedBase.has(field),
+        limitReached && !state.selectedBase.has(field),
+      )).join('')
+
+      elements.sessionGrid.innerHTML = state.sessionStatus === 'ready'
+        ? SESSION_FIELDS.map(field => checkboxTemplate(
+          field,
+          'session',
+          state.selectedSession.has(field),
+          limitReached && !state.selectedSession.has(field),
+        )).join('')
+        : ''
+
+      elements.sessionGrid.style.display = state.sessionStatus === 'ready' ? 'grid' : 'none'
+      elements.sessionLoading.classList.toggle('show', state.sessionStatus === 'loading')
+      elements.sessionError.classList.toggle('show', state.sessionStatus === 'failed')
+      updateFormState()
+    }
+
+    function checkboxTemplate(field, group, checked, disabled) {
+      return `
+        <label class="checkbox ${disabled ? 'disabled' : ''}" title="${field}">
+          <input type="checkbox" data-group="${group}" data-field="${field}"
+            ${checked ? 'checked' : ''} ${disabled ? 'disabled' : ''}>
+          <span class="checkmark"></span>
+          <span>${field}</span>
+        </label>
+      `
+    }
+
+    function validateDate() {
+      const start = elements.startDate.value
+      const end = elements.endDate.value
+      let message = ''
+      if (!start || !end) {
+        message = '请选择开始日期和结束日期'
+      } else if (start > end) {
+        message = '开始日期不能晚于结束日期'
+      } else {
+        const startDay = new Date(`${start}T00:00:00`)
+        const endDay = new Date(`${end}T00:00:00`)
+        const dayCount = Math.round((endDay - startDay) / 86400000) + 1
+        if (dayCount > 30) {
+          message = `所选时间范围不能超过 30 天（当前 ${dayCount} 天）`
+        } else if (end > getLocalDate(new Date())) {
+          message = '结束日期不能晚于今天'
+        }
+      }
+      elements.dateError.textContent = message
+      return message === ''
+    }
+
+    function updateFormState() {
+      const count = selectedCount()
+      elements.fieldCount.textContent = `已选 ${count}/${MAX_FIELD_COUNT}`
+      elements.fieldCount.classList.toggle('limit', count >= MAX_FIELD_COUNT)
+      elements.fieldError.classList.toggle('show', count === 0)
+      const dateValid = validateDate()
+      elements.confirm.disabled = state.submitting || count === 0 || count > MAX_FIELD_COUNT || !dateValid
+    }
+
+    function resetDialog() {
+      state.selectedBase = new Set(BASE_FIELDS)
+      state.selectedSession = new Set()
+      state.sessionStatus = 'ready'
+      state.activePreset = null
+      state.submitting = false
+      elements.startDate.value = ''
+      elements.endDate.value = ''
+      document.querySelectorAll('.preset').forEach(item => item.classList.remove('active'))
+      renderCheckboxes()
+    }
+
+    function openDialog() {
+      resetDialog()
+      elements.exportMask.classList.add('show')
+    }
+
+    function closeDialog() {
+      if (state.submitting) return
+      elements.exportMask.classList.remove('show')
+    }
+
+    function getLocalDate(date) {
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      return `${year}-${month}-${day}`
+    }
+
+    function setPreset(days) {
+      const end = new Date()
+      const start = new Date(end)
+      start.setDate(end.getDate() - days + 1)
+      elements.startDate.value = getLocalDate(start)
+      elements.endDate.value = getLocalDate(end)
+      state.activePreset = days
+      document.querySelectorAll('.preset').forEach(item => {
+        item.classList.toggle('active', Number(item.dataset.days) === days)
+      })
+      updateFormState()
+    }
+
+    function showDemoState(type) {
+      if (!elements.exportMask.classList.contains('show')) {
+        openDialog()
+      }
+      if (type === 'default') {
+        resetDialog()
+        return
+      }
+      resetDialog()
+      if (type === 'limit') {
+        SESSION_FIELDS.slice(0, 13).forEach(field => state.selectedSession.add(field))
+        setPreset(7)
+      }
+      if (type === 'failed') {
+        state.sessionStatus = 'failed'
+      }
+      renderCheckboxes()
+    }
+
+    function retrySessionFields() {
+      state.sessionStatus = 'loading'
+      renderCheckboxes()
+      window.setTimeout(() => {
+        state.sessionStatus = 'ready'
+        renderCheckboxes()
+      }, 700)
+    }
+
+    function startExport() {
+      if (elements.confirm.disabled) return
+      state.submitting = true
+      updateFormState()
+      elements.exportMask.classList.remove('show')
+      elements.progressMask.classList.add('show')
+      const fill = document.getElementById('progressFill')
+      const text = document.getElementById('progressText')
+      const percent = document.getElementById('progressPercent')
+      let progress = 0
+      fill.style.width = '0%'
+      percent.textContent = '0%'
+      text.textContent = '正在准备数据…'
+
+      const timer = window.setInterval(() => {
+        progress = Math.min(100, progress + 12 + Math.floor(Math.random() * 13))
+        fill.style.width = `${progress}%`
+        percent.textContent = `${progress}%`
+        text.textContent = progress < 100 ? '正在生成导出文件…' : '文件生成完成'
+        if (progress >= 100) {
+          window.clearInterval(timer)
+          window.setTimeout(() => {
+            elements.progressMask.classList.remove('show')
+            state.submitting = false
+            elements.toast.classList.add('show')
+            window.setTimeout(() => elements.toast.classList.remove('show'), 2400)
+          }, 450)
+        }
+      }, 260)
+    }
+
+    document.addEventListener('change', event => {
+      const target = event.target
+      if (target.matches('input[type="checkbox"][data-field]')) {
+        const collection = target.dataset.group === 'base'
+          ? state.selectedBase
+          : state.selectedSession
+        if (target.checked) collection.add(target.dataset.field)
+        else collection.delete(target.dataset.field)
+        renderCheckboxes()
+      }
+      if (target === elements.startDate || target === elements.endDate) {
+        state.activePreset = null
+        document.querySelectorAll('.preset').forEach(item => item.classList.remove('active'))
+        updateFormState()
+      }
+    })
+
+    document.getElementById('openExport').addEventListener('click', openDialog)
+    document.getElementById('closeExport').addEventListener('click', closeDialog)
+    document.getElementById('cancelExport').addEventListener('click', closeDialog)
+    document.getElementById('retrySession').addEventListener('click', retrySessionFields)
+    document.getElementById('confirmExport').addEventListener('click', startExport)
+    document.getElementById('clearFields').addEventListener('click', () => {
+      state.selectedBase.clear()
+      state.selectedSession.clear()
+      renderCheckboxes()
+    })
+    document.querySelectorAll('.preset').forEach(item => {
+      item.addEventListener('click', () => setPreset(Number(item.dataset.days)))
+    })
+    document.querySelectorAll('[data-demo]').forEach(item => {
+      item.addEventListener('click', () => showDemoState(item.dataset.demo))
+    })
+    elements.exportMask.addEventListener('click', event => {
+      if (event.target === elements.exportMask) closeDialog()
+    })
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') closeDialog()
+    })
+
+    renderBackground()
+    renderCheckboxes()
+  </script>
+</body>
+</html>
