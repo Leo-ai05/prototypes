@@ -91,6 +91,48 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 .legend{display:flex;gap:16px;font-size:11px;color:#8f959e;margin-top:12px;align-items:center;flex-wrap:wrap}
 .legend i{display:inline-block;width:11px;height:11px;border-radius:2px;background:#fff3c4;margin-right:5px;vertical-align:-1px}
 .warnbox{background:#fff8e6;border:1px solid #ffd591;border-radius:6px;padding:10px 12px;font-size:12px;color:#8a5a00;margin-top:12px;line-height:1.7}
+
+/* ---------- 转人工明细弹窗 ---------- */
+.dlgbg{background:#eceef1;border-radius:10px;padding:22px 18px;border:1px solid #e0e2e6}
+.dlg{background:#fff;border-radius:10px;box-shadow:0 10px 34px rgba(0,0,0,.16);overflow:hidden;max-width:660px;margin:0 auto}
+.dlghd{padding:14px 18px;border-bottom:1px solid #e5e6eb;display:flex;align-items:center;justify-content:space-between}
+.dlghd .tt{font-size:15px;font-weight:600}
+.dlghd .x{color:#8f959e;cursor:default;font-size:16px}
+.dlgbd{padding:16px 18px 18px;max-height:none}
+.sumcard{display:flex;gap:26px;background:#f7f8fa;border-radius:8px;padding:12px 16px;flex-wrap:wrap}
+.sumitem{display:flex;flex-direction:column;gap:3px}
+.sumitem .sl{font-size:11px;color:#8f959e}
+.sumitem .sv{font-size:13px;color:#1f2329;font-weight:500}
+.statcard{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+.statitem{flex:1 1 118px;background:#f7f9ff;border:1px solid #e4ebfa;border-radius:8px;padding:11px 12px;text-align:center}
+.statitem .sn{font-size:19px;font-weight:600;color:#1456f0;line-height:1.3}
+.statitem .sl2{font-size:11px;color:#646a73;margin-top:2px}
+.fbar{display:flex;align-items:center;gap:9px;margin-top:14px;padding-bottom:12px;border-bottom:1px solid #f0f1f3;flex-wrap:wrap}
+.pills{display:inline-flex;gap:5px}
+.pill{border:1px solid #d0d3d6;background:#fff;border-radius:14px;padding:4px 13px;font-size:12px;color:#4e5969;cursor:pointer;font-family:inherit;user-select:none}
+.pill.on{background:#1456f0;border-color:#1456f0;color:#fff}
+.fsel{border:1px solid #d0d3d6;border-radius:6px;padding:5px 8px;font-size:12px;font-family:inherit;background:#fff;color:#1f2329;outline:none;max-width:150px}
+.fsel:focus{border-color:#1456f0}
+.fsel.isnew{border-color:#f5a623;background:#fffbf2}
+.fcount{margin-left:auto;font-size:11px;color:#8f959e}
+.tl{margin-top:14px;position:relative;padding-left:20px}
+.tl::before{content:'';position:absolute;left:5px;top:6px;bottom:6px;width:2px;background:#e5e6eb}
+.tlitem{position:relative;margin-bottom:11px}
+.tlitem:last-child{margin-bottom:0}
+.tlitem::before{content:'';position:absolute;left:-19px;top:12px;width:9px;height:9px;border-radius:50%;background:#fff;border:2px solid #1456f0}
+.tlitem.ai::before{border-color:#8f959e}
+.tcard{border:1px solid #e5e6eb;border-radius:8px;padding:11px 13px;background:#fff}
+.chead{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:7px}
+.swb{font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px}
+.swb.h{background:#fdeeee;color:#d83931}
+.swb.a{background:#eef4ff;color:#1456f0}
+.pty{font-size:11px;padding:2px 8px;border-radius:4px;background:#f2f3f5;color:#4e5969}
+.ctime{margin-left:auto;font-size:11px;color:#8f959e}
+.cmeta{font-size:12px;color:#646a73;display:flex;gap:14px;flex-wrap:wrap;margin-bottom:6px}
+.creason{font-size:12px;color:#1f2329;background:#f7f8fa;border-radius:5px;padding:6px 9px}
+.cfoot{margin-top:7px;font-size:11px}
+.cfoot .dur{background:#f2f3f5;color:#8f959e;border-radius:3px;padding:2px 7px}
+.miss2{color:#d83931}
 @media(max-width:900px){.ctrl{flex:1 1 100%}.wxphone,.fsapp{width:100%}}
 </style>
 </head>
@@ -98,13 +140,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 <div class="wrap">
 
   <div class="topbar">
-    <h1>转人工提醒卡片增加原因细分提示<span class="badge">可交互原型 v1.0</span></h1>
-    <p>在企微机器人板块的企业微信提醒卡片与飞书机器人提醒卡片中，新增转人工类型、原因分类、具体原因三行，并在存在补充说明时追加一行。左侧调整场景，右侧实时查看卡片效果；黄色高亮为本次新增内容。</p>
+    <h1>转人工提醒卡片增加原因细分提示<span class="badge">可交互原型 v1.1</span></h1>
+    <p>在企微机器人板块的企业微信提醒卡片与飞书机器人提醒卡片中，新增转人工类型、原因分类、具体原因三行，并在存在补充说明时追加一行；同时在 AI员工明细的转人工明细弹窗中为每条切换记录补上转人工类型与原因分类，并新增按原因分类筛选。左侧调整场景，右侧实时查看效果；黄色高亮为本次新增内容。</p>
   </div>
 
   <div class="tabs">
     <div class="tab on" data-tab="wx">企业微信提醒卡片（被动转人工）</div>
     <div class="tab" data-tab="fs">飞书机器人提醒卡片（规则引擎转人工）</div>
+    <div class="tab" data-tab="dt">AI员工明细 · 转人工明细弹窗</div>
   </div>
 
   <!-- ============ 企业微信 ============ -->
@@ -239,6 +282,84 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
     </div>
   </div>
 
+  <!-- ============ 转人工明细弹窗 ============ -->
+  <div class="panel" id="p-dt" style="display:none">
+    <div class="cols">
+      <div class="ctrl">
+        <div class="sec">
+          <h3>边界场景</h3>
+          <div class="sw" id="dtMiss"><div class="knob"></div><div class="txt"><strong>模拟历史记录字典未配置</strong><span>最后一条历史记录的转人工类型与原因分类展示「未记录」，转换原因同步退化为「未知原因」，该条记录仍留在时间线上</span></div></div>
+          <div class="sw" id="dtNoName"><div class="knob"></div><div class="txt"><strong>模拟查询结果未返回中文名</strong><span>查询服务尚未完成扩展时，全部记录的转人工类型与原因分类展示「未记录」；转换原因由查询结果直接给出，不受影响</span></div></div>
+          <div class="sw" id="dtEmpty"><div class="knob"></div><div class="txt"><strong>模拟该会话暂无切换记录</strong><span>弹窗展示「暂无切换记录」空态</span></div></div>
+        </div>
+
+        <div class="sec">
+          <h3>本次改动点</h3>
+          <div class="resolved" id="dtResolved"></div>
+        </div>
+
+        <div class="sec">
+          <h3>口径说明</h3>
+          <div class="note" style="margin:0">
+            改造前卡片上的「触发方」标签只有<b>销售手动 / 系统AI / 规则引擎</b>三档，粒度粗于转人工原因字典里的转人工类型；本次由转人工类型替换，同时现有「触发方」筛选一并改为按转人工类型筛选。<br><br>
+            「转AI接待」「系统自动」两个原因分类只出现在转回 AI 方向的记录上；同一触发来源在转人工与转回 AI 两个方向下的中文名可能不同——时间线第 2 条与第 3 条是同一个触发来源，转回 AI 方向叫「用户主动」、转人工方向叫「防御性被动」，按该条记录实际命中的字典对照关系取名，不做统一改写。
+          </div>
+        </div>
+      </div>
+
+      <div class="view">
+        <div class="vhead">
+          <div class="t">AI员工明细 → 会话详情 → 转人工明细</div>
+          <div class="seg" id="dtSeg">
+            <button data-v="after" class="on">改造后</button>
+            <button data-v="before">改造前</button>
+          </div>
+        </div>
+
+        <div class="dlgbg">
+          <div class="dlg">
+            <div class="dlghd"><span class="tt">转人工明细</span><span class="x">✕</span></div>
+            <div class="dlgbd">
+              <div class="sumcard">
+                <div class="sumitem"><span class="sl">用户</span><span class="sv">洋葱家长-小明妈妈</span></div>
+                <div class="sumitem"><span class="sl">承接销售</span><span class="sv">张伟</span></div>
+                <div class="sumitem"><span class="sl">当前状态</span><span class="sv">人工接待</span></div>
+              </div>
+              <div class="statcard">
+                <div class="statitem"><div class="sn">8</div><div class="sl2">总切换次数</div></div>
+                <div class="statitem"><div class="sn">5</div><div class="sl2">转人工次数</div></div>
+                <div class="statitem"><div class="sn">3</div><div class="sl2">转 AI 次数</div></div>
+                <div class="statitem"><div class="sn">1小时27分</div><div class="sl2">累计人工接待时长</div></div>
+              </div>
+
+              <div class="fbar">
+                <div class="pills" id="dtPills">
+                  <button class="pill on" data-v="all">全部</button>
+                  <button class="pill" data-v="to_human">转人工</button>
+                  <button class="pill" data-v="to_ai">转 AI</button>
+                </div>
+                <select class="fsel" id="dtRange">
+                  <option value="0">全部时间</option>
+                  <option value="24">最近 24 小时</option>
+                  <option value="168">最近 7 天</option>
+                  <option value="720">最近 30 天</option>
+                </select>
+                <select class="fsel" id="dtType"></select>
+                <select class="fsel isnew" id="dtCat"></select>
+                <span class="fcount" id="dtCount"></span>
+              </div>
+
+              <div id="dtList"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="legend"><span><i></i>本次新增内容</span><span>摘要区、统计区、切换时间、操作方、转换原因、持续时长均沿用现有配置</span></div>
+        <div class="note">筛选在弹窗内即时生效、不重新拉取数据，四个筛选项取交集；关闭弹窗后重新打开时全部重置为「全部」，均沿用现有筛选方式。本次不为该弹窗新增导出能力。</div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -249,12 +370,12 @@ function $(id){return document.getElementById(id)}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
 
 /* tabs */
+var TABS=['wx','fs','dt'];
 document.querySelectorAll('.tab').forEach(function(t){
   t.onclick=function(){
     document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('on')});
     t.classList.add('on');
-    $('p-wx').style.display = t.dataset.tab==='wx' ? '' : 'none';
-    $('p-fs').style.display = t.dataset.tab==='fs' ? '' : 'none';
+    TABS.forEach(function(k){ $('p-'+k).style.display = (t.dataset.tab===k) ? '' : 'none'; });
   };
 });
 
@@ -399,8 +520,126 @@ function line(k,v,miss,isNew){
          '<span class="v'+(miss?' miss':'')+'">'+esc(v)+'</span></div>';
 }
 
+/* ================= 转人工明细弹窗 ================= */
+var DT_TYPES=['用户被动','销售主动','规则引擎','防御性被动','用户主动','标签回调','无法识别消息','空闲自动转回'];
+var DT_CATS=['用户意向','异常协助','销售主动','规则命中','转AI接待','系统自动'];
+var DT_PARTIES=['销售手动','系统AI','规则引擎'];
+
+var DT=[
+ {sw:'to_human',h:0.5, time:'09-01 14:32', type:'用户被动',    party:'系统AI',  cat:'用户意向', rsn:'确认购买意向',            note:'客户已询问优惠券使用方式', op:'系统 AI 判定',                to:'人工接待', dur:'进行中'},
+ {sw:'to_ai',   h:3,   time:'09-01 11:20', type:'用户主动',    party:'系统AI',  cat:'转AI接待', rsn:'转回AI接待',              note:'',                         op:'系统 AI 判定',                to:'AI 接待',  dur:'2小时18分'},
+ {sw:'to_human',h:6,   time:'09-01 08:15', type:'防御性被动',  party:'系统AI',  cat:'用户意向', rsn:'主动要求转人工',          note:'',                         op:'系统 AI 判定',                to:'人工接待', dur:'46分钟'},
+ {sw:'to_ai',   h:30,  time:'08-31 08:40', type:'销售主动',    party:'销售手动',cat:'转AI接待', rsn:'销售切回AI接待',          note:'',                         op:'销售 张伟',                   to:'AI 接待',  dur:'1天3小时'},
+ {sw:'to_human',h:52,  time:'08-30 10:30', type:'规则引擎',    party:'规则引擎',cat:'规则命中', rsn:'关键词命中',              note:'客户连续 3 次询问价格',     op:'规则「高意向客户即时承接规则」',to:'人工接待', dur:'12分钟'},
+ {sw:'to_ai',   h:200, time:'08-24 06:20', type:'空闲自动转回',party:'系统AI',  cat:'系统自动', rsn:'空闲超时自动转回机器人',  note:'',                         op:'系统自动',                    to:'AI 接待',  dur:'5小时40分'},
+ {sw:'to_human',h:800, time:'07-30 10:00', type:'无法识别消息',party:'系统AI',  cat:'用户意向', rsn:'特殊消息转人工',          note:'',                         op:'系统 AI 判定',                to:'人工接待', dur:'8分钟'},
+ {sw:'to_human',h:900, time:'07-26 05:00', type:'标签回调',    party:'系统AI',  cat:'用户意向', rsn:'主动要求转人工',          note:'',                         op:'系统 AI 判定',                to:'人工接待', dur:'21分钟', old:true}
+];
+
+var dtMode='after', dtSw='all';
+
+function dtFillSelects(){
+  var t=$('dtType'), c=$('dtCat');
+  var typeList = dtMode==='after' ? DT_TYPES : DT_PARTIES;
+  var label    = dtMode==='after' ? '全部转人工类型' : '全部触发方';
+  t.innerHTML='<option value="all">'+label+'</option>'+typeList.map(function(x){return '<option value="'+x+'">'+x+'</option>'}).join('');
+  t.className = dtMode==='after' ? 'fsel isnew' : 'fsel';
+  c.innerHTML='<option value="all">全部原因分类</option>'+DT_CATS.map(function(x){return '<option value="'+x+'">'+x+'</option>'}).join('');
+  c.style.display = dtMode==='after' ? '' : 'none';
+}
+
+bindSeg('dtSeg',function(v){dtMode=v;dtFillSelects();renderDt()});
+bindSw('dtMiss',renderDt);
+bindSw('dtNoName',renderDt);
+bindSw('dtEmpty',renderDt);
+document.querySelectorAll('#dtPills .pill').forEach(function(b){
+  b.onclick=function(){
+    document.querySelectorAll('#dtPills .pill').forEach(function(x){x.classList.remove('on')});
+    b.classList.add('on');dtSw=b.dataset.v;renderDt();
+  };
+});
+['dtRange','dtType','dtCat'].forEach(function(id){ $(id).addEventListener('change',renderDt) });
+
+function renderDt(){
+  var after = dtMode==='after';
+  var miss=isOn('dtMiss'), noName=isOn('dtNoName'), empty=isOn('dtEmpty');
+  var range=parseInt($('dtRange').value,10);
+  var fType=$('dtType').value, fCat=$('dtCat').value;
+
+  $('dtResolved').innerHTML =
+    row('触发方标签', after?'已替换为转人工类型':'销售手动 / 系统AI / 规则引擎', false)+
+    row('原因分类', after?'新增，与切换后状态同行':'不展示', false)+
+    row('转人工类型筛选', after?'已替换原触发方筛选':'触发方筛选（现状）', false)+
+    row('原因分类筛选', after?'新增':'不存在', false)+
+    row('转换原因行', '沿用现有，不拆行', false);
+
+  if(empty){
+    $('dtCount').textContent='共 0 条记录（总 0）';
+    $('dtList').innerHTML='<div class="empty" style="margin-top:14px"><div class="ic">📭</div>暂无切换记录</div>';
+    return;
+  }
+
+  var rows=DT.map(function(d){
+    var o={};for(var k in d)o[k]=d[k];
+    /* 字典未配置对照关系：中文名与转换原因一起退化；查询结果未返回中文名：转换原因不受影响 */
+    var lostDict = miss && d.old;
+    var lost = noName || lostDict;
+    o.showType = lost ? MISS : d.type;
+    o.showCat  = lost ? MISS : d.cat;
+    o.lost = lost;
+    o.reasonText = lostDict ? '未知原因' : (d.rsn + (d.note? '：'+d.note : ''));
+    return o;
+  });
+
+  var list=rows.filter(function(d){
+    if(dtSw!=='all' && d.sw!==dtSw) return false;
+    if(range>0 && d.h>range) return false;
+    if(fType!=='all'){
+      var v = after ? d.showType : d.party;
+      if(v!==fType) return false;
+    }
+    if(after && fCat!=='all' && d.showCat!==fCat) return false;
+    return true;
+  });
+
+  $('dtCount').textContent='共 '+list.length+' 条记录（总 '+rows.length+'）';
+
+  if(!list.length){
+    $('dtList').innerHTML='<div class="empty" style="margin-top:14px"><div class="ic">🔍</div>无匹配记录<br><span style="font-size:11px">已保留当前筛选条件，可调整后重试</span></div>';
+    return;
+  }
+
+  $('dtList').innerHTML='<div class="tl">'+list.map(function(d){
+    var toHuman = d.sw==='to_human';
+    var reasonText = d.reasonText;
+    var badge = after
+      ? '<span class="pty'+(d.lost?' miss2':'')+'">'+esc(d.showType)+'</span>'
+      : '<span class="pty">'+esc(d.party)+'</span>';
+    var catCell = after
+      ? '<span'+(d.lost?' class="miss2"':'')+'>原因分类：'+esc(d.showCat)+'</span>'
+      : '';
+    return '<div class="tlitem'+(toHuman?'':' ai')+'">'+
+      '<div class="tcard">'+
+        '<div class="chead">'+
+          '<span class="swb '+(toHuman?'h':'a')+'">'+(toHuman?'⇨ 转人工':'⇦ 转 AI')+'</span>'+
+          (after?'<span class="newline" style="border-radius:4px">'+badge+'</span>':badge)+
+          '<span class="ctime">'+d.time+'</span>'+
+        '</div>'+
+        '<div class="cmeta">'+
+          '<span>操作方：'+esc(d.op)+'</span>'+
+          '<span>切换后状态：'+d.to+'</span>'+
+          (after?'<span class="newline" style="border-radius:4px;padding:0 3px">'+catCell+'</span>':'')+
+        '</div>'+
+        '<div class="creason">'+esc(reasonText)+'</div>'+
+        '<div class="cfoot"><span class="dur">时长：'+d.dur+'</span></div>'+
+      '</div></div>';
+  }).join('')+'</div>';
+}
+
 renderWx();
 renderFs();
+dtFillSelects();
+renderDt();
 </script>
 </body>
 </html>
