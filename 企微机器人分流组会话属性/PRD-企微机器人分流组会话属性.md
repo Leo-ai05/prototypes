@@ -72,7 +72,7 @@ flowchart TD
 
 ## 六、可交互原型
 
-可交互原型：发布中（正在完成截图自检与双通道发布）
+可交互原型（公网，点击可直接操作）：https://leo-ai05.github.io/prototypes/%E4%BC%81%E5%BE%AE%E6%9C%BA%E5%99%A8%E4%BA%BA%E5%88%86%E6%B5%81%E7%BB%84%E4%BC%9A%E8%AF%9D%E5%B1%9E%E6%80%A7/
 
 原型模式：html-wireframe（单文件可交互原型，无需登录、无需本地启动）
 
@@ -85,6 +85,10 @@ flowchart TD
 3. 切换到规则配置，打开条件值下拉，查看分流组名称选项。
 4. 模拟分流组改名，查看会话属性值、条件选项和话术预览同步更新。
 5. 切换分流总开关，查看已有实验组用户仍保留固定归属，而当前执行组临时变为对照组。
+
+关键态截图：`需求汇总/企微机器人分流组会话属性/proto-shots/`，共 5 张。
+
+GitHub 需求目录（公网）：https://github.com/Leo-ai05/prototypes/tree/main/%E4%BC%81%E5%BE%AE%E6%9C%BA%E5%99%A8%E4%BA%BA%E5%88%86%E6%B5%81%E7%BB%84%E4%BC%9A%E8%AF%9D%E5%B1%9E%E6%80%A7
 
 ## 七、功能需求详细描述
 
