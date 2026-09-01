@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>自定义统计周期学习时长字段 · 可交互原型</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: "Helvetica Neue", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+  font-size: 14px; color: #303133; background: #f0f2f5;
+  -webkit-font-smoothing: antialiased;
+}
+button { font-family: inherit; font-size: inherit; cursor: pointer; }
+input { font-family: inherit; font-size: inherit; }
+
+/* ---------- layout ---------- */
+.app { display: flex; min-height: 100vh; }
+.sidebar { width: 210px; background: #304156; flex: none; }
+.sidebar .logo {
+  height: 50px; display: flex; align-items: center; gap: 8px;
+  padding: 0 16px; background: #2b3648; color: #fff; font-size: 15px; font-weight: 600;
+}
+.sidebar .logo .dot { width: 18px; height: 18px; border-radius: 4px; background: #409eff; flex: none; }
+.menu-group-title { color: #8a94a6; font-size: 12px; padding: 16px 16px 8px; }
+.menu-item {
+  color: #bfcbd9; padding: 11px 16px 11px 30px; font-size: 14px; cursor: pointer;
+  display: flex; align-items: center; gap: 8px;
+}
+.menu-item:hover { background: #263445; color: #fff; }
+.menu-item.active { background: #263445; color: #409eff; }
+.menu-item .mi-ico { width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: .6; flex: none; }
+
+.main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.navbar {
+  height: 50px; background: #fff; border-bottom: 1px solid #e6e6e6;
+  display: flex; align-items: center; justify-content: space-between; padding: 0 20px;
+}
+.crumb { color: #97a8be; font-size: 14px; }
+.crumb b { color: #303133; font-weight: 400; }
+.avatar { display: flex; align-items: center; gap: 8px; color: #606266; font-size: 13px; }
+.avatar .ball { width: 28px; height: 28px; border-radius: 50%; background: #409eff; color: #fff;
+  display: flex; align-items: center; justify-content: center; font-size: 12px; }
+.tags-view { background: #fff; border-bottom: 1px solid #d8dce5; padding: 4px 20px; display: flex; gap: 6px; }
+.tag-chip {
+  border: 1px solid #d8dce5; background: #fff; color: #495060; font-size: 12px;
+  padding: 3px 10px; border-radius: 3px; cursor: pointer;
+}
+.tag-chip.active { background: #42b983; border-color: #42b983; color: #fff; }
+.app-main { padding: 20px; flex: 1; }
+
+/* ---------- card ---------- */
+.card { background: #fff; border-radius: 4px; border: 1px solid #ebeef5; box-shadow: 0 2px 12px 0 rgba(0,0,0,.05); }
+.card-hd { padding: 16px 20px; border-bottom: 1px solid #ebeef5; display: flex; align-items: center; justify-content: space-between; }
+.card-title { font-size: 16px; font-weight: 600; padding-left: 10px; position: relative; }
+.card-title::before { content: ""; position: absolute; left: 0; top: 3px; bottom: 3px; width: 2px; background: #1282e3; }
+.card-bd { padding: 20px; }
+
+/* ---------- buttons ---------- */
+.btn {
+  border: 1px solid #dcdfe6; background: #fff; color: #606266;
+  padding: 9px 16px; border-radius: 4px; line-height: 1;
+}
+.btn:hover { color: #409eff; border-color: #c6e2ff; background: #ecf5ff; }
+.btn.primary { background: #409eff; border-color: #409eff; color: #fff; }
+.btn.primary:hover { background: #66b1ff; border-color: #66b1ff; color: #fff; }
+.btn.danger { background: #f56c6c; border-color: #f56c6c; color: #fff; }
+.btn.danger:hover { background: #f78989; border-color: #f78989; color: #fff; }
+.btn.small { padding: 7px 12px; font-size: 12px; }
+.btn[disabled] { background: #a0cfff; border-color: #a0cfff; color: #fff; cursor: not-allowed; }
+.btn.plain[disabled] { background: #fff; border-color: #ebeef5; color: #c0c4cc; }
+.link-btn { background: none; border: none; color: #409eff; padding: 0 8px; font-size: 13px; }
+.link-btn:hover { color: #66b1ff; text-decoration: underline; }
+.link-btn.danger { color: #f56c6c; }
+.link-btn[disabled] { color: #c0c4cc; cursor: not-allowed; text-decoration: none; }
+
+/* ---------- attr page ---------- */
+.attr-wrap { display: flex; gap: 0; }
+.cat-side { width: 200px; flex: none; border-right: 1px solid #ebeef5; padding-right: 12px; }
+.cat-group { color: #909399; font-size: 12px; padding: 10px 12px 6px; }
+.cat-item { padding: 9px 12px; border-radius: 4px; color: #303133; cursor: pointer; display: flex; justify-content: space-between; }
+.cat-item:hover { background: #f5f7fa; }
+.cat-item.active { background: #ecf5ff; color: #409eff; }
+.cat-item .cnt { color: #c0c4cc; font-size: 12px; }
+.cat-item.active .cnt { color: #409eff; }
+.attr-main { flex: 1; min-width: 0; padding-left: 20px; }
+.attr-toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; gap: 12px; }
+.search-box {
+  border: 1px solid #dcdfe6; border-radius: 4px; padding: 8px 12px; width: 260px; color: #606266; outline: none;
+}
+.search-box:focus { border-color: #409eff; }
+.group-block { margin-bottom: 22px; }
+.group-hd { font-size: 14px; font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+.group-hd .num { color: #909399; font-weight: 400; font-size: 12px; }
+
+/* ---------- table ---------- */
+table.el { width: 100%; border-collapse: collapse; border: 1px solid #ebeef5; font-size: 13px; }
+table.el th {
+  background: #fafafa; color: #909399; font-weight: 400; text-align: left;
+  padding: 11px 10px; border: 1px solid #ebeef5;
+}
+table.el td { padding: 11px 10px; border: 1px solid #ebeef5; color: #606266; vertical-align: middle; }
+table.el tbody tr:nth-child(even) { background: #fafafa; }
+table.el tbody tr:hover { background: #f5f7fa; }
+.name-cell { color: #303133; }
+.mono { font-family: Menlo, Consolas, monospace; font-size: 12px; color: #909399; }
+.empty-row td { text-align: center; color: #909399; padding: 40px 0; }
+
+.tag { display: inline-block; padding: 1px 7px; border-radius: 3px; font-size: 12px; line-height: 20px; margin-left: 6px; }
+.tag.info { background: #f4f4f5; color: #909399; border: 1px solid #e9e9eb; }
+.tag.blue { background: #ecf5ff; color: #409eff; border: 1px solid #d9ecff; }
+.tag.green { background: #f0f9eb; color: #67c23a; border: 1px solid #e1f3d8; }
+.tag.warn { background: #fdf6ec; color: #e6a23c; border: 1px solid #faecd8; }
+.tag.plain { background: #fff; color: #909399; border: 1px solid #e9e9eb; margin-left: 0; }
+
+/* ---------- dialog ---------- */
+.mask { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: none; align-items: flex-start; justify-content: center; z-index: 50; }
+.mask.show { display: flex; }
+.mask.lv2 { z-index: 60; }
+.dialog { background: #fff; border-radius: 4px; width: 560px; margin-top: 12vh; box-shadow: 0 8px 30px rgba(0,0,0,.2); }
+.dialog.narrow { width: 460px; }
+.dlg-hd {
+  background: #f8f8f8; border-bottom: 1px solid #e6e6e6; padding: 14px 20px;
+  display: flex; align-items: center; justify-content: space-between; font-size: 16px; font-weight: 600;
+  border-radius: 4px 4px 0 0;
+}
+.dlg-close { border: none; background: none; color: #909399; font-size: 18px; line-height: 1; }
+.dlg-close:hover { color: #409eff; }
+.dlg-bd { padding: 22px 20px 4px; max-height: 60vh; overflow: auto; }
+.dlg-ft { padding: 16px 20px 20px; text-align: right; display: flex; gap: 10px; justify-content: flex-end; }
+
+/* ---------- form ---------- */
+.form-row { display: flex; margin-bottom: 20px; }
+.form-label { width: 132px; flex: none; text-align: right; padding-right: 12px; padding-top: 9px; color: #606266; font-size: 14px; }
+.form-label .req { color: #f56c6c; margin-right: 4px; }
+.form-ctrl { flex: 1; min-width: 0; }
+.num-input {
+  width: 110px; border: 1px solid #dcdfe6; border-radius: 4px; padding: 9px 12px; color: #606266; outline: none;
+}
+.num-input:focus { border-color: #409eff; }
+.num-input.err { border-color: #f56c6c; }
+.inline { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.hint { color: #909399; font-size: 12px; margin-top: 6px; line-height: 1.6; }
+.err-msg { color: #f56c6c; font-size: 12px; margin-top: 6px; display: none; }
+.err-msg.show { display: block; }
+.readonly-box {
+  background: #f5f7fa; border: 1px solid #ebeef5; border-radius: 4px; padding: 9px 12px; color: #606266; min-height: 38px;
+}
+.preview-name { color: #303133; font-weight: 600; }
+.warn-box {
+  background: #fdf6ec; border: 1px solid #faecd8; color: #e6a23c; border-radius: 4px;
+  padding: 10px 12px; font-size: 13px; line-height: 1.6; display: none; margin-bottom: 20px;
+}
+.warn-box.show { display: block; }
+.confirm-text { color: #606266; line-height: 1.8; font-size: 14px; }
+.confirm-text .strong { color: #f56c6c; }
+
+/* ---------- toast ---------- */
+#toastWrap { position: fixed; top: 20px; left: 0; right: 0; z-index: 100; display: flex; flex-direction: column; align-items: center; gap: 10px; pointer-events: none; }
+.toast {
+  padding: 11px 18px; border-radius: 4px; font-size: 14px; box-shadow: 0 2px 12px rgba(0,0,0,.1);
+  display: flex; align-items: center; gap: 8px;
+}
+.toast.ok { background: #f0f9eb; border: 1px solid #e1f3d8; color: #67c23a; }
+.toast.err { background: #fef0f0; border: 1px solid #fde2e2; color: #f56c6c; }
+.toast.warn { background: #fdf6ec; border: 1px solid #faecd8; color: #e6a23c; }
+
+/* ---------- rule page ---------- */
+.rule-sec { border: 1px solid #ebeef5; border-radius: 8px; padding: 16px; background: #fafbfc; margin-bottom: 18px; }
+.rule-sec-title { font-size: 14px; font-weight: 600; margin-bottom: 14px; padding-left: 8px; position: relative; }
+.rule-sec-title::before { content: ""; position: absolute; left: 0; top: 2px; bottom: 2px; width: 2px; background: #1890ff; }
+.cond-group { background: #fff; border: 1px solid #ebeef5; border-radius: 8px; padding: 14px; }
+.cond-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.cond-row:last-child { margin-bottom: 0; }
+.conj-sel, .op-sel {
+  border: 1px solid #dcdfe6; border-radius: 4px; padding: 8px 10px; color: #606266; background: #fff; outline: none;
+}
+.conj-sel { width: 70px; }
+.op-sel { width: 110px; }
+.var-picker {
+  flex: 1; min-width: 0; border: 1px solid #dcdfe6; border-radius: 4px; padding: 8px 12px; background: #fff;
+  color: #606266; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+}
+.var-picker:hover { border-color: #3370ff; }
+.var-picker.placeholder { color: #c0c4cc; }
+.val-input { width: 150px; border: 1px solid #dcdfe6; border-radius: 4px; padding: 8px 12px; color: #606266; outline: none; }
+.val-input:focus { border-color: #409eff; }
+.val-input.err { border-color: #f56c6c; }
+.var-panel {
+  position: absolute; z-index: 70; background: #fff; border: 1px solid #ebeef5; border-radius: 6px;
+  box-shadow: 0 4px 18px rgba(0,0,0,.14); width: 460px; display: none;
+}
+.var-panel.show { display: block; }
+.var-panel .vp-search { padding: 10px; border-bottom: 1px solid #ebeef5; }
+.var-panel .vp-search input { width: 100%; border: 1px solid #dcdfe6; border-radius: 4px; padding: 7px 10px; outline: none; }
+.var-panel .vp-body { display: flex; height: 280px; }
+.vp-cats { width: 140px; border-right: 1px solid #ebeef5; overflow: auto; padding: 6px; }
+.vp-cat { padding: 8px 10px; border-radius: 4px; cursor: pointer; font-size: 13px; color: #606266; }
+.vp-cat:hover { background: #f5f7fa; }
+.vp-cat.active { background: #ecf5ff; color: #409eff; }
+.vp-list { flex: 1; overflow: auto; padding: 6px; }
+.vp-item { padding: 8px 10px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+.vp-item:hover { background: #f5f7fa; }
+.vp-item.sel { background: #ecf5ff; color: #409eff; }
+.vp-item .vp-desc { color: #909399; font-size: 12px; margin-top: 2px; }
+.vp-item.sel .vp-desc { color: #7fb8f5; }
+.vp-empty { color: #909399; text-align: center; padding: 40px 0; font-size: 13px; }
+.action-row { background: #fff; border: 1px solid #ebeef5; border-radius: 8px; padding: 14px; display: flex; align-items: center; gap: 10px; }
+.hidden { display: none !important; }
+.note-bar {
+  background: #ecf5ff; border: 1px solid #d9ecff; color: #409eff; border-radius: 4px;
+  padding: 10px 14px; font-size: 13px; margin-bottom: 16px; line-height: 1.6;
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="logo"><span class="dot"></span>企微机器人后台</div>
+    <div class="menu-group-title">企微机器人</div>
+    <div class="menu-item active" id="menuAttr" onclick="gotoPage('attr')"><span class="mi-ico"></span>会话属性</div>
+    <div class="menu-item" id="menuRule" onclick="gotoPage('rule')"><span class="mi-ico"></span>规则配置</div>
+    <div class="menu-item"><span class="mi-ico"></span>素材管理</div>
+    <div class="menu-item"><span class="mi-ico"></span>AI 员工</div>
+    <div class="menu-group-title">全局设置</div>
+    <div class="menu-item"><span class="mi-ico"></span>坐席管理</div>
+  </aside>
+
+  <div class="main">
+    <header class="navbar">
+      <div class="crumb">企微机器人 / <b id="crumbPage">会话属性</b></div>
+      <div class="avatar"><span>朱胜武</span><span class="ball">朱</span></div>
+    </header>
+    <div class="tags-view">
+      <span class="tag-chip active" id="chipAttr" onclick="gotoPage('attr')">会话属性</span>
+      <span class="tag-chip" id="chipRule" onclick="gotoPage('rule')">规则配置</span>
+    </div>
+
+    <div class="app-main">
+
+      <!-- ============ 会话属性页 ============ -->
+      <section id="pageAttr">
+        <div class="card">
+          <div class="card-hd">
+            <div class="card-title">会话属性</div>
+            <div style="display:flex;gap:10px">
+              <button class="btn" onclick="toast('warn','原型未实现：新增属性沿用现有交互')">新增属性</button>
+              <button class="btn primary" onclick="openCreate()">新建统计字段</button>
+            </div>
+          </div>
+          <div class="card-bd">
+            <div class="attr-wrap">
+              <div class="cat-side">
+                <div class="cat-group">分类</div>
+                <div class="cat-item active" data-cat="all" onclick="selectCat('all')">全部属性 <span class="cnt" id="cntAll">0</span></div>
+                <div class="cat-item" data-cat="custom" onclick="selectCat('custom')">自定义字段 <span class="cnt" id="cntCustom">0</span></div>
+                <div class="cat-group">系统默认字段</div>
+                <div class="cat-item" data-cat="base" onclick="selectCat('base')">基础信息 <span class="cnt">6</span></div>
+                <div class="cat-item" data-cat="session" onclick="selectCat('session')">会话状态 <span class="cnt">2</span></div>
+                <div class="cat-item" data-cat="region" onclick="selectCat('region')">地区相关 <span class="cnt">1</span></div>
+                <div class="cat-item" data-cat="activity" onclick="selectCat('activity')">活跃数据 <span class="cnt">2</span></div>
+                <div class="cat-item" data-cat="study" onclick="selectCat('study')">学情数据-累积 <span class="cnt">3</span></div>
+                <div class="cat-item" data-cat="pay" onclick="selectCat('pay')">付费意向 <span class="cnt">1</span></div>
+              </div>
+              <div class="attr-main">
+                <div class="attr-toolbar">
+                  <input class="search-box" id="attrSearch" placeholder="请输入属性名称搜索" oninput="renderAttr()" />
+                  <div style="color:#909399;font-size:12px">统计字段数量不限</div>
+                </div>
+                <div id="attrGroups"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ 规则配置页 ============ -->
+      <section id="pageRule" class="hidden">
+        <div class="card">
+          <div class="card-hd">
+            <div class="card-title">规则配置 / 新人首周激活 / 编辑规则</div>
+            <button class="btn" onclick="gotoPage('attr')">返回会话属性</button>
+          </div>
+          <div class="card-bd">
+            <div class="note-bar">统计字段建好后会出现在下方「触发条件」的变量选择面板中，位于「自定义字段」分类下。需要判定区间时在同一条件组内配置两条条件。</div>
+
+            <div class="rule-sec">
+              <div class="rule-sec-title">基本信息</div>
+              <div class="form-row" style="margin-bottom:0">
+                <div class="form-label"><span class="req">*</span>规则名称</div>
+                <div class="form-ctrl"><input class="num-input" style="width:320px" value="首周学习不足转人工" readonly /></div>
+              </div>
+            </div>
+
+            <div class="rule-sec">
+              <div class="rule-sec-title">触发条件</div>
+              <div class="cond-group">
+                <div style="color:#909399;font-size:12px;margin-bottom:10px">当满足以下条件时触发</div>
+                <div class="cond-row">
+                  <select class="conj-sel"><option>且</option><option>或</option></select>
+                  <div class="var-picker placeholder" id="varPicker" onclick="toggleVarPanel(event)">
+                    <span id="varPickerText">请选择变量</span><span style="color:#c0c4cc">▾</span>
+                  </div>
+                  <select class="op-sel" id="opSel" onchange="validateVal()">
+                    <option value="lt">小于</option>
+                    <option value="lte">小于等于</option>
+                    <option value="gt">大于</option>
+                    <option value="gte">大于等于</option>
+                    <option value="eq">等于</option>
+                    <option value="neq">不等于</option>
+                    <option value="empty">为空</option>
+                    <option value="notEmpty">不为空</option>
+                  </select>
+                  <input class="val-input" id="valInput" placeholder="请输入数值" oninput="validateVal()" />
+                </div>
+                <div class="err-msg" id="valErr" style="margin-left:80px">请输入整数分钟数</div>
+                <div class="hint" id="condHint" style="margin-left:80px">选中统计字段后，比较值单位为分钟。</div>
+              </div>
+            </div>
+
+            <div class="rule-sec">
+              <div class="rule-sec-title">动作配置</div>
+              <div class="action-row">
+                <select class="op-sel" style="width:160px"><option>转人工</option><option>发送企微消息</option><option>更新变量</option></select>
+                <span style="color:#909399;font-size:12px">沿用现有配置，无需额外填写</span>
+              </div>
+            </div>
+
+            <div style="text-align:right">
+              <button class="btn">取消</button>
+              <button class="btn primary" onclick="toast('ok','原型演示：规则已保存')">保存规则</button>
+            </div>
+          </div>
+        </div>
+        <div class="var-panel" id="varPanel">
+          <div class="vp-search"><input id="vpSearch" placeholder="搜索变量名称" oninput="renderVarList()" /></div>
+          <div class="vp-body">
+            <div class="vp-cats" id="vpCats"></div>
+            <div class="vp-list" id="vpList"></div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<!-- ====== 新建 / 编辑 统计字段弹窗 ====== -->
+<div class="mask" id="dlgField">
+  <div class="dialog">
+    <div class="dlg-hd"><span id="dlgFieldTitle">新建统计字段</span><button class="dlg-close" onclick="tryCloseField()">✕</button></div>
+    <div class="dlg-bd">
+      <div class="warn-box" id="editWarn">修改统计窗口会清空该字段已统计出的全部取值</div>
+
+      <div class="form-row" id="rowContent">
+        <div class="form-label">统计内容</div>
+        <div class="form-ctrl">
+          <div class="readonly-box">加微后指定区间内的累计学习时长（分钟）</div>
+          <div class="hint">本期仅提供这一种统计内容。</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-label"><span class="req">*</span>统计窗口</div>
+        <div class="form-ctrl">
+          <div class="inline">
+            <span style="color:#606266">加微后第</span>
+            <input class="num-input" id="inStart" value="0" oninput="onWindowChange()" />
+            <span style="color:#606266">天 至 第</span>
+            <input class="num-input" id="inEnd" value="7" oninput="onWindowChange()" />
+            <span style="color:#606266">天</span>
+          </div>
+          <div class="err-msg" id="errStart">起始天需为 0 到 30 之间的整数</div>
+          <div class="err-msg" id="errEnd">结束天需为 0 到 30 之间的整数</div>
+          <div class="err-msg" id="errOrder">结束天不能早于起始天</div>
+          <div class="err-msg" id="errDup">该统计窗口已存在字段，请勿重复创建</div>
+          <div class="hint">加微当天记为第 0 天，按自然日划分，起始天与结束天两端都计入。结束天最大为第 30 天。</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-label">字段名称</div>
+        <div class="form-ctrl">
+          <div class="readonly-box preview-name" id="previewName">加微后0-7天累计学习时长</div>
+          <div class="hint">名称由统计窗口自动生成，不可手工修改。</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-label">字段说明</div>
+        <div class="form-ctrl">
+          <div class="readonly-box" id="previewDesc">统计客户加微当天起第 0 天至第 7 天（含两端）的累计学习时长，单位分钟</div>
+        </div>
+      </div>
+    </div>
+    <div class="dlg-ft">
+      <button class="btn" onclick="tryCloseField()">取消</button>
+      <button class="btn primary" id="btnFieldOk" onclick="submitField()" title="">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- ====== 二次确认：修改统计窗口 ====== -->
+<div class="mask lv2" id="dlgConfirmEdit">
+  <div class="dialog narrow">
+    <div class="dlg-hd"><span>确认修改统计窗口？</span><button class="dlg-close" onclick="hide('dlgConfirmEdit')">✕</button></div>
+    <div class="dlg-bd">
+      <p class="confirm-text">该字段已统计出的<span class="strong">全部取值将被清空</span>，并按新窗口重新统计。此操作不可撤销。</p>
+    </div>
+    <div class="dlg-ft">
+      <button class="btn" onclick="hide('dlgConfirmEdit')">取消</button>
+      <button class="btn primary" onclick="doConfirmEdit()">确认修改</button>
+    </div>
+  </div>
+</div>
+
+<!-- ====== 二次确认：放弃未保存内容 ====== -->
+<div class="mask lv2" id="dlgDiscard">
+  <div class="dialog narrow">
+    <div class="dlg-hd"><span>提示</span><button class="dlg-close" onclick="hide('dlgDiscard')">✕</button></div>
+    <div class="dlg-bd"><p class="confirm-text">填写内容尚未保存，确认关闭？</p></div>
+    <div class="dlg-ft">
+      <button class="btn" onclick="hide('dlgDiscard')">取消</button>
+      <button class="btn primary" onclick="hide('dlgDiscard');hide('dlgField')">确认关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- ====== 二次确认：删除 ====== -->
+<div class="mask" id="dlgDelete">
+  <div class="dialog narrow">
+    <div class="dlg-hd"><span>提示</span><button class="dlg-close" onclick="hide('dlgDelete')">✕</button></div>
+    <div class="dlg-bd">
+      <p class="confirm-text">删除后该字段的全部取值将一并清除，且引用该字段的规则条件会失效，确认删除？</p>
+      <p class="confirm-text" id="delRuleNote" style="margin-top:8px;color:#e6a23c"></p>
+    </div>
+    <div class="dlg-ft">
+      <button class="btn" onclick="hide('dlgDelete')">取消</button>
+      <button class="btn danger" onclick="doDelete()">确认删除</button>
+    </div>
+  </div>
+</div>
+
+<div id="toastWrap"></div>
+
+<script>
+/* ========================= 数据 ========================= */
+var seq = 12;
+var fields = [
+  { id: 1, cat: 'custom', stat: true,  start: 0, end: 7,  key: '00000000000000000011', rules: 2 },
+  { id: 2, cat: 'custom', stat: true,  start: 1, end: 3,  key: '00000000000000000012', rules: 0 },
+  { id: 3, cat: 'custom', stat: false, name: '意向等级备注', type: '字符串', key: '00000000000000000009', desc: '坐席人工标注的意向等级说明', coze: '是', cozeUpd: '是' }
+];
+var presets = {
+  base:     [ ['客户昵称','字符串','客户在企微中的展示昵称'], ['年级','字符串','客户所处年级'], ['学段','字符串','客户所处学段'], ['注册时间','日期','客户注册洋葱账号的时间'], ['加微时间','日期','客户与坐席建立好友关系的时间'], ['加微天数','数字','加微当天起算至今的自然日天数'] ],
+  session:  [ ['转人工','布尔','当前会话是否已转人工'], ['最近客户消息时间','数字','距离客户最近一条消息的分钟数'] ],
+  region:   [ ['城市分线','字符串','客户所在城市的分线层级'] ],
+  activity: [ ['近7日是否活跃','布尔','近 7 个自然日内是否有访问'], ['累计活跃天数','数字','历史累计活跃自然日天数'] ],
+  study:    [ ['昨日学习时长','数字','昨日学习总时长，单位分钟'], ['当周学习时长','数字','本自然周至昨日的学习总时长，单位分钟'], ['加微后连续学习天数','数字','加微后连续学习的自然日天数'] ],
+  pay:      [ ['产介页打开次数','数字','近 1 日打开产品介绍页的次数'] ]
+};
+var catNames = { all:'全部属性', custom:'自定义字段', base:'基础信息', session:'会话状态', region:'地区相关', activity:'活跃数据', study:'学情数据-累积', pay:'付费意向' };
+var curCat = 'all';
+var mode = 'create';      // create | edit
+var editingId = null;
+var origWin = null;
+var dirty = false;
+var pendingSave = null;
+
+/* ========================= 工具 ========================= */
+function statName(f){ return '加微后' + f.start + '-' + f.end + '天累计学习时长'; }
+function statDesc(f){ return '统计客户加微当天起第 ' + f.start + ' 天至第 ' + f.end + ' 天（含两端）的累计学习时长，单位分钟'; }
+function fName(f){ return f.stat ? statName(f) : f.name; }
+function fDesc(f){ return f.stat ? statDesc(f) : f.desc; }
+function fType(f){ return f.stat ? '数字' : f.type; }
+function show(id){ document.getElementById(id).classList.add('show'); }
+function hide(id){ document.getElementById(id).classList.remove('show'); }
+function toast(kind, msg){
+  var w = document.getElementById('toastWrap');
+  var d = document.createElement('div');
+  d.className = 'toast ' + kind;
+  d.textContent = (kind === 'ok' ? '✓ ' : kind === 'err' ? '✕ ' : '! ') + msg;
+  w.appendChild(d);
+  setTimeout(function(){ if (d.parentNode) d.parentNode.removeChild(d); }, 2600);
+}
+
+/* ========================= 页面切换 ========================= */
+function gotoPage(p){
+  var isAttr = p === 'attr';
+  document.getElementById('pageAttr').classList.toggle('hidden', !isAttr);
+  document.getElementById('pageRule').classList.toggle('hidden', isAttr);
+  document.getElementById('menuAttr').classList.toggle('active', isAttr);
+  document.getElementById('menuRule').classList.toggle('active', !isAttr);
+  document.getElementById('chipAttr').classList.toggle('active', isAttr);
+  document.getElementById('chipRule').classList.toggle('active', !isAttr);
+  document.getElementById('crumbPage').textContent = isAttr ? '会话属性' : '规则配置';
+  hideVarPanel();
+}
+
+/* ========================= 属性列表 ========================= */
+function selectCat(c){
+  curCat = c;
+  var items = document.querySelectorAll('.cat-item');
+  for (var i = 0; i < items.length; i++) items[i].classList.toggle('active', items[i].getAttribute('data-cat') === c);
+  renderAttr();
+}
+
+function customRows(kw){
+  return fields.filter(function(f){ return fName(f).indexOf(kw) >= 0; }).map(function(f){
+    var nameHtml = '<span class="name-cell">' + fName(f) + '</span>' + (f.stat ? '<span class="tag blue">统计字段</span>' : '');
+    var ops = '<button class="link-btn" onclick="openEdit(' + f.id + ')">编辑</button>'
+            + (f.stat ? '' : '<button class="link-btn" onclick="toast(\'warn\',\'原型未实现：修改分类沿用现有交互\')">修改分类</button>')
+            + '<button class="link-btn danger" onclick="askDelete(' + f.id + ')">删除</button>';
+    return [ nameHtml, fType(f), f.key, fDesc(f), f.stat ? '否' : f.coze, f.stat ? '否' : f.cozeUpd, ops ];
+  });
+}
+function presetRows(cat, kw){
+  return (presets[cat] || []).filter(function(r){ return r[0].indexOf(kw) >= 0; }).map(function(r){
+    return [ '<span class="name-cell">' + r[0] + '</span><span class="tag info">系统默认</span>', r[1], '—', r[2], '是', '否',
+             '<button class="link-btn" disabled>编辑</button><button class="link-btn" disabled>删除</button>' ];
+  });
+}
+function tableHtml(rows){
+  var h = '<table class="el"><thead><tr>'
+        + '<th style="width:26%">属性名称</th><th style="width:8%">字段类型</th><th style="width:15%">字段标识</th>'
+        + '<th>描述</th><th style="width:9%">是否对接扣子</th><th style="width:9%">扣子是否更新</th><th style="width:15%">操作</th>'
+        + '</tr></thead><tbody>';
+  if (!rows.length) h += '<tr class="empty-row"><td colspan="7">暂无数据</td></tr>';
+  rows.forEach(function(r){
+    h += '<tr>';
+    r.forEach(function(c, i){ h += '<td' + (i === 2 ? ' class="mono"' : '') + '>' + c + '</td>'; });
+    h += '</tr>';
+  });
+  return h + '</tbody></table>';
+}
+function block(title, rows){
+  return '<div class="group-block"><div class="group-hd">' + title + '<span class="num">共 ' + rows.length + ' 个</span></div>' + tableHtml(rows) + '</div>';
+}
+function renderAttr(){
+  var kw = document.getElementById('attrSearch').value.trim();
+  var html = '';
+  if (curCat === 'all') {
+    html += block('自定义字段', customRows(kw));
+    ['base','session','region','activity','study','pay'].forEach(function(c){ html += block(catNames[c], presetRows(c, kw)); });
+  } else if (curCat === 'custom') {
+    html += block('自定义字段', customRows(kw));
+  } else {
+    html += block(catNames[curCat], presetRows(curCat, kw));
+  }
+  document.getElementById('attrGroups').innerHTML = html;
+  var total = fields.length; for (var k in presets) total += presets[k].length;
+  document.getElementById('cntAll').textContent = total;
+  document.getElementById('cntCustom').textContent = fields.length;
+}
+
+/* ========================= 新建 / 编辑弹窗 ========================= */
+function openCreate(){
+  mode = 'create'; editingId = null; origWin = null; dirty = false;
+  document.getElementById('dlgFieldTitle').textContent = '新建统计字段';
+  document.getElementById('rowContent').classList.remove('hidden');
+  document.getElementById('inStart').value = '0';
+  document.getElementById('inEnd').value = '7';
+  document.getElementById('editWarn').classList.remove('show');
+  onWindowChange();
+  show('dlgField');
+}
+function openEdit(id){
+  var f = fields.filter(function(x){ return x.id === id; })[0];
+  if (!f) return;
+  if (!f.stat) { toast('warn', '原型未实现：普通自定义字段编辑沿用现有弹窗'); return; }
+  mode = 'edit'; editingId = id; origWin = f.start + '-' + f.end; dirty = false;
+  document.getElementById('dlgFieldTitle').textContent = '编辑统计字段';
+  document.getElementById('rowContent').classList.add('hidden');
+  document.getElementById('inStart').value = String(f.start);
+  document.getElementById('inEnd').value = String(f.end);
+  onWindowChange();
+  show('dlgField');
+}
+function tryCloseField(){ if (dirty) show('dlgDiscard'); else hide('dlgField'); }
+
+function isInt(s){ return /^-?\d+$/.test(String(s).trim()); }
+
+function readWin(){
+  return { s: document.getElementById('inStart').value.trim(), e: document.getElementById('inEnd').value.trim() };
+}
+function onWindowChange(){
+  dirty = true;
+  var w = readWin();
+  var okS = isInt(w.s) && +w.s >= 0 && +w.s <= 30;
+  var okE = isInt(w.e) && +w.e >= 0 && +w.e <= 30;
+  var okOrder = okS && okE && +w.e >= +w.s;
+
+  var dup = null;
+  if (okOrder) {
+    dup = fields.filter(function(f){ return f.stat && f.id !== editingId && f.start === +w.s && f.end === +w.e; })[0] || null;
+  }
+
+  document.getElementById('errStart').classList.toggle('show', w.s !== '' && !okS);
+  document.getElementById('errEnd').classList.toggle('show', w.e !== '' && !okE);
+  document.getElementById('errOrder').classList.toggle('show', okS && okE && !okOrder);
+  var dupEl = document.getElementById('errDup');
+  dupEl.classList.toggle('show', !!dup);
+  if (dup) dupEl.textContent = '该统计窗口已存在字段「' + statName(dup) + '」，请勿重复创建';
+
+  document.getElementById('inStart').classList.toggle('err', w.s !== '' && !okS);
+  document.getElementById('inEnd').classList.toggle('err', (w.e !== '' && !okE) || (okS && okE && !okOrder));
+
+  var preview = okOrder ? { start: +w.s, end: +w.e } : null;
+  document.getElementById('previewName').textContent = preview ? statName(preview) : '—';
+  document.getElementById('previewDesc').textContent = preview ? statDesc(preview) : '—';
+
+  var changed = mode === 'edit' && origWin !== (w.s + '-' + w.e);
+  document.getElementById('editWarn').classList.toggle('show', changed);
+
+  var canSave = okS && okE && okOrder && !dup && w.s !== '' && w.e !== '';
+  var btn = document.getElementById('btnFieldOk');
+  btn.disabled = !canSave;
+  btn.title = canSave ? '' : '请先填写正确的统计窗口';
+}
+
+function submitField(){
+  var w = readWin();
+  if (mode === 'create') {
+    seq++;
+    fields.unshift({ id: Date.now(), cat: 'custom', stat: true, start: +w.s, end: +w.e,
+                     key: '000000000000000000' + String(seq).padStart(2, '0'), rules: 0 });
+    dirty = false; hide('dlgField');
+    curCat = 'custom'; selectCat('custom');
+    toast('ok', '统计字段创建成功');
+  } else {
+    if (origWin === (w.s + '-' + w.e)) { dirty = false; hide('dlgField'); toast('ok', '修改成功'); return; }
+    pendingSave = { s: +w.s, e: +w.e };
+    show('dlgConfirmEdit');
+  }
+}
+function doConfirmEdit(){
+  var f = fields.filter(function(x){ return x.id === editingId; })[0];
+  if (f && pendingSave) { f.start = pendingSave.s; f.end = pendingSave.e; }
+  pendingSave = null; dirty = false;
+  hide('dlgConfirmEdit'); hide('dlgField');
+  renderAttr();
+  toast('ok', '修改成功，该字段已有取值已清空并按新窗口重新统计');
+}
+
+/* ========================= 删除 ========================= */
+var delId = null;
+function askDelete(id){
+  var f = fields.filter(function(x){ return x.id === id; })[0];
+  delId = id;
+  var note = document.getElementById('delRuleNote');
+  note.textContent = (f && f.stat && f.rules > 0) ? ('当前有 ' + f.rules + ' 条规则正在使用该字段') : '';
+  show('dlgDelete');
+}
+function doDelete(){
+  fields = fields.filter(function(x){ return x.id !== delId; });
+  hide('dlgDelete'); renderAttr(); toast('ok', '删除成功');
+}
+
+/* ========================= 规则条件变量选择 ========================= */
+var vpCat = 'custom';
+function toggleVarPanel(ev){
+  ev.stopPropagation();
+  var p = document.getElementById('varPanel');
+  if (p.classList.contains('show')) { hideVarPanel(); return; }
+  var r = document.getElementById('varPicker').getBoundingClientRect();
+  p.style.left = (r.left + window.scrollX) + 'px';
+  p.style.top  = (r.bottom + window.scrollY + 6) + 'px';
+  p.classList.add('show');
+  renderVarCats(); renderVarList();
+}
+function hideVarPanel(){ document.getElementById('varPanel').classList.remove('show'); }
+document.addEventListener('click', function(e){
+  var p = document.getElementById('varPanel');
+  if (p.classList.contains('show') && !p.contains(e.target)) hideVarPanel();
+});
+function renderVarCats(){
+  var cats = ['custom','base','session','region','activity','study','pay'];
+  document.getElementById('vpCats').innerHTML = cats.map(function(c){
+    return '<div class="vp-cat' + (c === vpCat ? ' active' : '') + '" onclick="vpCat=\'' + c + '\';renderVarCats();renderVarList()">' + catNames[c] + '</div>';
+  }).join('');
+}
+function renderVarList(){
+  var kw = document.getElementById('vpSearch').value.trim();
+  var items = [];
+  if (vpCat === 'custom') {
+    items = fields.map(function(f){ return { n: fName(f), d: fDesc(f), stat: f.stat }; });
+  } else {
+    items = (presets[vpCat] || []).map(function(r){ return { n: r[0], d: r[2], stat: false }; });
+  }
+  items = items.filter(function(i){ return i.n.indexOf(kw) >= 0; });
+  var el = document.getElementById('vpList');
+  if (!items.length) { el.innerHTML = '<div class="vp-empty">没有匹配的变量</div>'; return; }
+  el.innerHTML = items.map(function(i){
+    return '<div class="vp-item" onclick="pickVar(this)" data-stat="' + (i.stat ? 1 : 0) + '">'
+         + i.n + (i.stat ? '<span class="tag blue">统计字段</span>' : '')
+         + '<div class="vp-desc">' + i.d + '</div></div>';
+  }).join('');
+}
+function pickVar(el){
+  var name = el.childNodes[0].nodeValue;
+  var isStat = el.getAttribute('data-stat') === '1';
+  document.getElementById('varPickerText').textContent = name;
+  document.getElementById('varPicker').classList.remove('placeholder');
+  document.getElementById('condHint').textContent = isStat
+    ? '已选中统计字段，比较值单位为分钟。取值为空的客户（字段创建前已加微或尚未加微）数值比较一律判定为不成立。'
+    : '已选中系统默认字段。';
+  hideVarPanel();
+  validateVal();
+}
+function validateVal(){
+  var op = document.getElementById('opSel').value;
+  var input = document.getElementById('valInput');
+  var noVal = (op === 'empty' || op === 'notEmpty');
+  input.disabled = noVal;
+  input.style.background = noVal ? '#f5f7fa' : '#fff';
+  if (noVal) { document.getElementById('valErr').classList.remove('show'); input.classList.remove('err'); return; }
+  var v = input.value.trim();
+  var bad = v !== '' && !/^\d+$/.test(v);
+  document.getElementById('valErr').classList.toggle('show', bad);
+  input.classList.toggle('err', bad);
+}
+
+/* ========================= init ========================= */
+renderAttr();
+validateVal();
+</script>
+</body>
+</html>
