@@ -109,6 +109,11 @@
 
   .add-btn-wrapper { margin-top: 10px; padding-left: 54px; }
 
+  .auto-action { background: #fbfcfe; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; max-width: 620px; }
+  .notice-box { margin-top: 10px; background: #fff7e6; border: 1px solid #ffd591; border-radius: 8px; padding: 10px 12px; max-width: 620px; }
+  .notice-title { font-size: 13px; font-weight: 600; color: #d46b08; margin-bottom: 4px; }
+  .notice-tags { margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap; }
+
   /* ===== 弹出面板 ===== */
   .mask { position: fixed; inset: 0; background: rgba(0,0,0,.25); z-index: 900; }
   .panel {
@@ -228,7 +233,7 @@
 
           <div class="section-content">
             <div class="desc-text">
-              开启后，客户满足下方命中条件时，企业微信侧边栏「AI 私域画像 · 画像」的关键信息标题旁展示「可人工跟进」，并为客户打上下方选定的企业微信标签。
+              开启后，客户满足下方命中条件时，企业微信侧边栏「AI 私域画像 · 画像」的关键信息标题旁展示「可人工跟进」，并自动为客户打上企业微信标签「AI机器人 · 人工可跟进」。
             </div>
             <div class="desc-text">
               关闭后，侧边栏不再展示该标识，也不再打标；已打上的企业微信标签保留不变。
@@ -254,16 +259,20 @@
                 </div>
               </div>
 
-              <div class="sub-title">命中后动作</div>
-              <div class="desc-text" style="margin-bottom:10px;">
-                1. 企业微信侧边栏「AI 私域画像 · 画像」的关键信息标题旁展示「可人工跟进」，不再命中时自动隐藏。
+              <div class="sub-title">命中后动作<span class="new-badge" style="margin-left:6px;">全自动，无需配置</span></div>
+              <div class="auto-action">
+                <div class="desc-text">1. 企业微信侧边栏「AI 私域画像 · 画像」的关键信息标题旁展示「可人工跟进」，不再命中时自动隐藏。</div>
+                <div class="desc-text">2. 为客户打上企业微信标签「AI机器人 · 人工可跟进」，并移除同组的「不可跟进」。</div>
+                <div class="desc-text">3. 标签由系统自动维护，运营与销售无需手动更新；一经打上不再自动移除，客户后续不再命中也保持「人工可跟进」。</div>
               </div>
-              <div class="desc-text" style="margin-bottom:6px;">
-                2. 为客户打上以下企业微信标签，标签一经打上不再自动移除。
-              </div>
-              <div style="max-width:520px;">
-                <div class="picker" id="tagPicker" onclick="openTagPanel()"></div>
-                <div class="row-err hide" id="tagErr" style="padding-left:0;">请至少选择一个企业微信标签</div>
+              <div class="notice-box">
+                <div class="notice-title">上线前置：需在企业微信后台建立标签组</div>
+                <div class="desc-text">在企业微信管理后台新建客户标签组「AI机器人」，组内包含两个标签「人工可跟进」「不可跟进」。系统按该固定名称识别标签组，未建立时不执行打标。</div>
+                <div class="notice-tags">
+                  <span class="chip">AI机器人</span>
+                  <span class="chip blue">人工可跟进</span>
+                  <span class="chip">不可跟进</span>
+                </div>
               </div>
             </div>
           </div>
@@ -338,13 +347,13 @@
         </div>
 
         <div class="wecom-card">
-          <h3>企业微信客户标签</h3>
-          <div class="sub">销售在企业微信客户资料里看到的标签，命中后自动打上，不再命中也不移除。</div>
+          <h3>企业微信客户标签 · AI机器人</h3>
+          <div class="sub">销售在企业微信客户资料里看到的标签，由系统自动维护。加好友进入 AI 接待时默认「不可跟进」，命中后换成「人工可跟进」且不再回退。</div>
           <div class="wt-row">
             <div class="wt-avatar">洋葱</div>
             <div style="flex:1;min-width:0;">
               <div style="font-size:13px;">洋葱同学</div>
-              <div class="wt-tags" id="grantedTags"><span class="muted" style="font-size:12px;">暂无标签</span></div>
+              <div class="wt-tags" id="grantedTags"></div>
             </div>
           </div>
         </div>
@@ -412,17 +421,6 @@
   </div>
 </div>
 
-<!-- 企微标签选择面板 -->
-<div class="panel hide" id="tagPanel" style="width:320px;">
-  <div class="panel-head"><span class="pt">选择企业微信标签</span></div>
-  <div class="opt-list" id="tagList"></div>
-  <div class="panel-foot">
-    <span class="limit-tip" id="tagCount"></span>
-    <span class="spacer" style="flex:1"></span>
-    <button class="btn-link" onclick="closeAllPanels()">完成</button>
-  </div>
-</div>
-
 <div class="toast" id="toast"></div>
 
 <script>
@@ -464,13 +462,10 @@ function opLabel(t, op) {
 }
 function needValue(op) { return op !== 'empty' && op !== 'notEmpty'; }
 
-/* ========== 企微标签库 ========== */
-var TAG_GROUPS = [
-  { group: '销售跟进', tags: ['可人工跟进', '重点跟进', '暂缓跟进'] },
-  { group: '意向等级', tags: ['高意向', '中意向', '低意向'] },
-  { group: 'Z系统-用户身份', tags: ['学生', '家长', '未知'] },
-  { group: 'Z系统-付费属性', tags: ['付费', '未付费'] }
-];
+/* ========== 企微标签组（企业微信后台预先建立，系统按固定名称识别） ========== */
+var TAG_GROUP_NAME = 'AI机器人';
+var TAG_FOLLOW = '人工可跟进';
+var TAG_BLOCKED = '不可跟进';
 
 /* ========== 配置状态 ========== */
 var MAX_GROUPS = 5, MAX_CONDS = 10;
@@ -489,11 +484,11 @@ var cfg = {
       { id: ++uid, key: 'watch_total', op: 'gte', val: '120' },
       { id: ++uid, key: 'wecom_add_days', op: 'gte', val: '3' }
     ]}
-  ],
-  tags: [{ group: '销售跟进', tag: '可人工跟进' }]
+  ]
 };
 var saved = clone(cfg);
-var grantedTags = [];
+/* 客户当前所处的标签状态：加好友进入 AI 接待时默认「不可跟进」 */
+var tagState = TAG_BLOCKED;
 var dirty = false;
 
 function clone(o) { return JSON.parse(JSON.stringify(o)); }
@@ -511,7 +506,7 @@ function showToast(msg, type) {
 var panelCtx = null;
 function closeAllPanels() {
   document.getElementById('mask').classList.add('hide');
-  ['varPanel', 'enumPanel', 'tagPanel'].forEach(function (id) { document.getElementById(id).classList.add('hide'); });
+  ['varPanel', 'enumPanel'].forEach(function (id) { document.getElementById(id).classList.add('hide'); });
   panelCtx = null;
 }
 function placePanel(el, anchor) {
@@ -596,34 +591,6 @@ function toggleEnum(o) {
   var i = c.val.indexOf(o);
   if (i >= 0) c.val.splice(i, 1); else c.val.push(o);
   markDirty(); renderEnumList(); render();
-}
-
-/* --- 企微标签 --- */
-function openTagPanel() {
-  if (!canEdit()) return;
-  renderTagList();
-  document.getElementById('mask').classList.remove('hide');
-  placePanel(document.getElementById('tagPanel'), document.getElementById('tagPicker'));
-}
-function renderTagList() {
-  var html = '';
-  TAG_GROUPS.forEach(function (g) {
-    html += '<div class="grp-title">' + g.group + '</div>';
-    g.tags.forEach(function (t) {
-      var on = cfg.tags.some(function (x) { return x.group === g.group && x.tag === t; });
-      html += '<div class="opt-item" onclick="toggleTag(\'' + g.group + '\',\'' + t + '\')">'
-        + '<input type="checkbox" ' + (on ? 'checked' : '') + ' onclick="event.stopPropagation();toggleTag(\'' + g.group + '\',\'' + t + '\')" />'
-        + '<span>' + t + '</span></div>';
-    });
-  });
-  document.getElementById('tagList').innerHTML = html;
-  document.getElementById('tagCount').textContent = '已选 ' + cfg.tags.length + ' 个标签';
-}
-function toggleTag(g, t) {
-  var i = -1;
-  cfg.tags.forEach(function (x, idx) { if (x.group === g && x.tag === t) i = idx; });
-  if (i >= 0) cfg.tags.splice(i, 1); else cfg.tags.push({ group: g, tag: t });
-  markDirty(); renderTagList(); render();
 }
 
 /* ========== 配置操作 ========== */
@@ -784,9 +751,7 @@ function validate() {
       if (msg) { errs[c.id] = msg; if (!first) first = msg; }
     });
   });
-  var tagErr = cfg.tags.length ? null : '请至少选择一个企业微信标签';
-  if (tagErr && !first) first = tagErr;
-  return { ok: !first, errs: errs, tagErr: tagErr, msg: first };
+  return { ok: !first, errs: errs, msg: first };
 }
 
 function onSave() {
@@ -800,7 +765,7 @@ function onSave() {
   render();
 }
 function renderErrors(v) {
-  document.querySelectorAll('.row-err').forEach(function (e) { if (e.id !== 'tagErr') e.classList.add('hide'); });
+  document.querySelectorAll('.row-err').forEach(function (e) { e.classList.add('hide'); });
   document.querySelectorAll('.txt, .picker').forEach(function (e) { e.classList.remove('error'); });
   if (!v) return;
   Object.keys(v.errs || {}).forEach(function (cid) {
@@ -809,9 +774,6 @@ function renderErrors(v) {
     var inp = document.getElementById('val_' + cid);
     if (inp) inp.classList.add('error');
   });
-  var te = document.getElementById('tagErr');
-  te.classList.toggle('hide', !v.tagErr);
-  document.getElementById('tagPicker').classList.toggle('error', !!v.tagErr);
 }
 
 /* ========== 渲染 ========== */
@@ -904,14 +866,6 @@ function renderGroups(sim) {
   document.getElementById('groupLimitTip').classList.toggle('hide', cfg.groups.length < MAX_GROUPS);
 }
 
-function renderTagPicker() {
-  var el = document.getElementById('tagPicker');
-  el.classList.toggle('disabled', !canEdit());
-  el.innerHTML = cfg.tags.length
-    ? cfg.tags.map(function (t) { return '<span class="chip">' + t.group + ' · ' + t.tag + '</span>'; }).join('') + '<span class="arrow">▾</span>'
-    : '<span class="ph">请选择企业微信标签，可多选</span><span class="arrow">▾</span>';
-}
-
 function refreshJudgeOnly() {
   var sim = getSim();
   var r = judge(sim, saved);
@@ -920,19 +874,16 @@ function refreshJudgeOnly() {
   var res = document.getElementById('judgeResult');
   res.className = 'judge-res ' + (r.show ? 'show' : 'hidden');
   if (r.show) {
-    saved.tags.forEach(function (t) {
-      if (!grantedTags.some(function (x) { return x.group === t.group && x.tag === t.tag; })) grantedTags.push(t);
-    });
-    res.textContent = '判定结果：命中，展示「可人工跟进」并打上企业微信标签';
+    if (tagState !== TAG_FOLLOW) tagState = TAG_FOLLOW;
+    res.textContent = '判定结果：命中，展示「可人工跟进」，打上「人工可跟进」并移除「不可跟进」';
   } else {
-    res.textContent = grantedTags.length
-      ? '判定结果：未命中，隐藏「可人工跟进」；已打上的企业微信标签保留'
-      : '判定结果：未命中，不展示、不打标';
+    res.textContent = tagState === TAG_FOLLOW
+      ? '判定结果：未命中，隐藏「可人工跟进」；企业微信标签保持「人工可跟进」不回退'
+      : '判定结果：未命中，不展示；企业微信标签保持默认「不可跟进」';
   }
-  var gt = document.getElementById('grantedTags');
-  gt.innerHTML = grantedTags.length
-    ? grantedTags.map(function (t) { return '<span class="chip blue">' + t.tag + '</span>'; }).join('')
-    : '<span class="muted" style="font-size:12px;">暂无标签</span>';
+  document.getElementById('grantedTags').innerHTML =
+    '<span class="chip ' + (tagState === TAG_FOLLOW ? 'blue' : '') + '">'
+    + TAG_GROUP_NAME + ' · ' + tagState + '</span>';
 }
 
 function render() {
@@ -943,7 +894,6 @@ function render() {
   document.getElementById('saveBar').classList.toggle('hide', !canEdit());
   document.getElementById('unsavedTip').classList.toggle('hide', !dirty || !canEdit());
   renderGroups(sim);
-  renderTagPicker();
   renderErrors(null);
   refreshJudgeOnly();
 }
