@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>私域线索企业微信掉库逻辑调整</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;background:#f5f7fa;color:#303133;font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+    button,input,select{font:inherit}.layout{display:flex;min-height:100vh}.side{width:208px;background:#18222f;color:#b9c2ce;padding:18px 0;flex:none}.brand{padding:0 20px 20px;color:#fff;font-size:18px;font-weight:600}.menu-group{padding:10px 20px;color:#778392;font-size:12px}.menu{padding:12px 24px}.menu.active{background:#1677ff;color:#fff}.main{min-width:0;flex:1}.top{height:56px;background:#fff;border-bottom:1px solid #e8eaec;display:flex;align-items:center;justify-content:space-between;padding:0 24px}.crumb{color:#606266}.user{color:#909399}.content{padding:20px}.panel{background:#fff;border-radius:4px;padding:18px;box-shadow:0 1px 2px rgba(0,0,0,.03)}.title-row,.bulk-row,.toolbar,.tabs,.states{display:flex;align-items:center}.title-row{justify-content:space-between;margin-bottom:14px}.title{font-size:18px;font-weight:600}.help{color:#909399;font-size:13px}.bulk-row{justify-content:flex-end;gap:10px}.btn{border:1px solid #dcdfe6;background:#fff;color:#606266;border-radius:4px;padding:8px 14px;cursor:pointer}.btn:hover{border-color:#409eff;color:#409eff}.btn.primary{background:#409eff;border-color:#409eff;color:#fff}.btn.text{border:0;padding:3px 4px;color:#409eff;background:transparent}.tabs{gap:26px;border-bottom:1px solid #e4e7ed;margin:12px 0 14px}.tab{padding:11px 4px;cursor:pointer;color:#606266}.tab.active{color:#409eff;border-bottom:2px solid #409eff}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}.card{position:relative;border:1px solid #ebeef5;border-radius:8px;padding:14px 16px;min-height:84px}.card:first-child:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:#f56c6c;border-radius:8px 0 0 8px}.card-label{font-size:12px;color:#909399}.card-value{font-size:22px;font-weight:600;margin-top:5px}.sub{font-size:12px;color:#909399;font-weight:400}.search{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center;margin:6px 0 14px}.field{display:flex;align-items:center;gap:8px}.control{height:34px;border:1px solid #dcdfe6;border-radius:4px;padding:0 10px;background:#fff;color:#606266}.states{padding:12px 14px;margin-bottom:14px;background:#f4f8ff;border:1px solid #d9ecff;border-radius:6px;gap:8px;flex-wrap:wrap}.states strong{color:#409eff;margin-right:4px}.state{border:1px solid #b3d8ff;background:#fff;color:#409eff;border-radius:14px;padding:4px 10px;cursor:pointer}.state.active{background:#409eff;color:#fff}.note{margin-left:auto;color:#606266;font-size:12px}.table-wrap{overflow-x:auto;border:1px solid #ebeef5}.table{border-collapse:collapse;min-width:1830px;width:100%;font-size:13px}.table th,.table td{padding:11px 10px;border-right:1px solid #ebeef5;border-bottom:1px solid #ebeef5;text-align:left;white-space:nowrap}.table th{background:#fafafa;color:#606266;font-weight:600}.table tr:nth-child(even) td{background:#fafcff}.new-col{background:#fff8e8!important}.new-badge{display:inline-block;margin-left:4px;padding:1px 5px;background:#e6a23c;color:#fff;border-radius:8px;font-size:10px}.tag{display:inline-block;border-radius:4px;padding:2px 7px}.red{color:#f56c6c;background:#fef0f0;border:1px solid #fbc4c4}.green{color:#67c23a;background:#f0f9eb;border:1px solid #c2e7b0}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#67c23a;margin-right:5px}.pagination{text-align:right;padding:15px 0 2px;color:#606266}.rule{margin-top:16px;border:1px solid #ebeef5;border-radius:6px;padding:14px}.rule h3{margin:0 0 10px;font-size:15px}.timeline{display:flex;align-items:stretch;gap:8px}.event{flex:1;min-width:130px;border:1px solid #dcdfe6;border-radius:5px;padding:10px;background:#fafafa}.event.valid{border-color:#67c23a;background:#f0f9eb}.event.ignored{border-color:#c0c4cc;color:#909399}.arrow{display:flex;align-items:center;color:#c0c4cc}.event b{display:block;margin-bottom:3px}.event small{display:block;color:#909399}.result{margin-top:10px;color:#606266}.result strong{color:#409eff}.toast{position:fixed;right:24px;top:70px;padding:10px 16px;background:#303133;color:#fff;border-radius:4px;opacity:0;transform:translateY(-8px);transition:.2s;pointer-events:none}.toast.show{opacity:1;transform:none}@media(max-width:900px){.side{display:none}.cards{grid-template-columns:1fr 1fr}.note{width:100%;margin:0}}
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="side">
+      <div class="brand">电销管理后台</div>
+      <div class="menu-group">客户管理</div>
+      <div class="menu">客户池</div>
+      <div class="menu active">付费线索池</div>
+      <div class="menu">线索溯源</div>
+      <div class="menu-group">企微机器人</div>
+      <div class="menu">AI 员工明细</div>
+    </aside>
+    <main class="main">
+      <header class="top"><span class="crumb">客户管理 / 付费线索池</span><span class="user">产品评审演示</span></header>
+      <div class="content">
+        <section class="panel">
+          <div class="title-row"><div class="title">付费线索池</div><div class="help">原型仅演示本次新增字段与掉库起算规则</div></div>
+          <div class="bulk-row"><button class="btn primary">+ 新建群发任务</button><button class="btn">群发任务记录</button></div>
+          <div class="tabs"><span class="tab">活动定金</span><span class="tab">蓄水品</span><span class="tab">高净值</span><span class="tab">零售商品</span><span class="tab">体验品</span><span class="tab active">私域线索池</span></div>
+          <div class="tabs" id="layerTabs"><span class="tab active">A类 · 高意向</span><span class="tab">B类 · 中意向</span><span class="tab">C类 · 低意向</span><span class="tab">D类 · 无意向</span></div>
+          <div class="cards"><div class="card"><div class="card-label">当前分层用户数</div><div class="card-value">1,268 <span class="sub">今日新增 32</span></div></div><div class="card"><div class="card-label">已同步标签数</div><div class="card-value">1,251 <span class="sub">/ 99%</span></div></div><div class="card"><div class="card-label">承接 AI 员工数</div><div class="card-value">26 <span class="sub">覆盖率 98.42%</span></div></div><div class="card"><div class="card-label">最近更新时间</div><div class="card-value" style="font-size:14px">2026-09-04 17:52</div></div></div>
+          <div class="search"><label class="field">用户手机号<input class="control" placeholder="请输入手机号"></label><label class="field">承接AI员工<select class="control"><option>全部</option><option>企微AI-小葱</option></select></label><label class="field">标签同步状态<select class="control"><option>全部</option><option>已同步</option><option>待同步</option></select></label><label class="field">企业微信添加时间<input class="control" value="开始日期 至 结束日期" readonly></label><button class="btn primary" id="searchBtn">搜索</button><button class="btn">重置</button></div>
+          <div class="states"><strong>演示关键态</strong><button class="state active" data-state="none">从未有效转人工</button><button class="state" data-state="sales">销售主动在先</button><button class="state" data-state="rule">规则首次触发</button><button class="state" data-state="coze">扣子首次触发</button><button class="state" data-state="repeat">后续再次转人工</button><span class="note" id="stateNote">首次有效转人工时间与掉库日期均为空。</span></div>
+          <div class="table-wrap">
+            <table class="table"><thead><tr><th>洋葱ID</th><th>用户手机号</th><th>用户昵称</th><th>承接AI员工</th><th>当前分层</th><th>变更前分层</th><th>企微标签状态</th><th>好友关系状态</th><th>企业微信添加时间</th><th class="new-col">首次转人工时间<span class="new-badge">新增</span></th><th class="new-col">掉库日期<span class="new-badge">新增</span></th><th>最后一次企微跟进时间</th><th>外呼次数</th><th>最近一次拨打时间</th><th>分层更新时间</th><th>操作</th></tr></thead>
+              <tbody><tr><td>100238812</td><td>138****2601</td><td>向日葵</td><td>企微AI-小葱</td><td><span class="tag red">A类</span></td><td><span class="tag">B类</span></td><td><span class="tag green">已同步</span></td><td><span class="dot"></span>好友</td><td>2026-08-03 10:25</td><td class="new-col" id="firstTime">--</td><td class="new-col" id="expireDate">--</td><td>2026-09-04 16:20</td><td>6 次</td><td>2026-09-04 11:30</td><td>2026-09-04 16:25</td><td><button class="btn text">一键外呼</button><button class="btn text" id="detailBtn">查看线索详情</button></td></tr>
+              <tr><td>100238799</td><td>159****7812</td><td>晴天</td><td>企微AI-小葱</td><td><span class="tag red">A类</span></td><td><span class="tag">新进入</span></td><td><span class="tag green">已同步</span></td><td><span class="dot"></span>好友</td><td>2026-08-01 09:12</td><td class="new-col">2026-08-20 14:05</td><td class="new-col">按企微规则计算</td><td>2026-09-03 19:10</td><td>3 次</td><td>2026-09-03 10:16</td><td>2026-09-03 19:12</td><td><button class="btn text">一键外呼</button><button class="btn text">查看线索详情</button></td></tr></tbody>
+            </table>
+          </div>
+          <div class="pagination">共 1,268 条　10 条/页　‹　1　2　3　…　127　›</div>
+          <div class="rule"><h3>当前选中线索 · 转人工事件判定</h3><div class="timeline" id="timeline"></div><div class="result" id="result">结果：<strong>未开始掉库时间计算，线索继续留在私域线索池。</strong></div></div>
+        </section>
+      </div>
+    </main>
+  </div>
+  <div class="toast" id="toast">列表已按当前条件刷新</div>
+  <script>
+    const configs={
+      none:{first:"--",expire:"--",note:"首次有效转人工时间与掉库日期均为空。",events:[["企业微信加友","2026-08-03 10:25",""],["AI 持续接待","尚未有效转人工","ignored"]],result:"未开始掉库时间计算，线索继续留在私域线索池。"},
+      sales:{first:"--",expire:"--",note:"销售主动转人工被忽略，后续规则或扣子触发时才起算。",events:[["销售主动转人工","2026-09-01 09:30","ignored"],["人工转 AI","2026-09-01 11:00","ignored"],["等待有效触发","规则或扣子",""]],result:"销售主动转人工不生效，线索不计算掉库日期。"},
+      rule:{first:"2026-09-04 10:00",expire:"按企微规则计算",note:"首次有效来源为规则触发，立即记录时间并生成掉库日期。",events:[["销售主动转人工","2026-09-01 09:30","ignored"],["规则触发转人工","2026-09-04 10:00","valid"],["生成掉库日期","沿用企微规则","valid"]],result:"以 2026-09-04 10:00 作为首次有效转人工时间，按企微规则计算掉库日期。"},
+      coze:{first:"2026-09-04 13:20",expire:"按企微规则计算",note:"首次有效来源为扣子触发，立即记录时间并生成掉库日期。",events:[["扣子触发转人工","2026-09-04 13:20","valid"],["记录首次有效时间","仅记录一次","valid"],["生成掉库日期","沿用企微规则","valid"]],result:"以 2026-09-04 13:20 作为首次有效转人工时间，按企微规则计算掉库日期。"},
+      repeat:{first:"2026-09-04 10:00",expire:"保持首次计算结果",note:"首次有效时间已存在，后续转人工和数据重置均不重算。",events:[["规则首次转人工","2026-09-04 10:00","valid"],["数据重置","2026-09-05 09:00","ignored"],["扣子再次转人工","2026-09-06 15:30","ignored"]],result:"保留首次有效转人工时间及原掉库日期，不重复计算。"}
+    };
+    function render(key){
+      const c=configs[key];document.getElementById("firstTime").textContent=c.first;document.getElementById("expireDate").textContent=c.expire;document.getElementById("stateNote").textContent=c.note;
+      document.getElementById("timeline").innerHTML=c.events.map((e,i)=>`${i?'<span class="arrow">→</span>':''}<div class="event ${e[2]}"><b>${e[0]}</b><small>${e[1]}</small></div>`).join("");
+      document.getElementById("result").innerHTML=`结果：<strong>${c.result}</strong>`;
+      document.querySelectorAll(".state").forEach(x=>x.classList.toggle("active",x.dataset.state===key));
+      document.body.dataset.demoState=key;
+    }
+    document.querySelectorAll(".state").forEach(x=>x.onclick=()=>render(x.dataset.state));
+    document.querySelectorAll("#layerTabs .tab").forEach(x=>x.onclick=()=>{document.querySelectorAll("#layerTabs .tab").forEach(t=>t.classList.remove("active"));x.classList.add("active")});
+    document.getElementById("searchBtn").onclick=()=>{const t=document.getElementById("toast");t.classList.add("show");setTimeout(()=>t.classList.remove("show"),1300)};
+    document.getElementById("detailBtn").onclick=()=>alert("沿用现有“查看线索详情”跳转，本需求不调整详情页。");
+    render("none");
+  </script>
+</body>
+</html>
