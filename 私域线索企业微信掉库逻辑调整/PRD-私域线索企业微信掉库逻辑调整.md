@@ -53,7 +53,11 @@ flowchart TD
 
 ## 六、可交互原型
 
+可交互原型（公网，点击可直接操作）：https://leo-ai05.github.io/prototypes/%E7%A7%81%E5%9F%9F%E7%BA%BF%E7%B4%A2%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%8E%89%E5%BA%93%E9%80%BB%E8%BE%91%E8%B0%83%E6%95%B4/
+
 可交互原型（内网，需飞连）：https://minio.yc345.tv/onionext/prototypes/private-lead-wecom-expiry/index.html
+
+GitHub 预览（公网）：[点击查看](https://leo-ai05.github.io/prototypes/%E7%A7%81%E5%9F%9F%E7%BA%BF%E7%B4%A2%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1%E6%8E%89%E5%BA%93%E9%80%BB%E8%BE%91%E8%B0%83%E6%95%B4/)
 
 原型模式：html-wireframe（单文件可交互原型，无需登录、无需本地启动）
 
