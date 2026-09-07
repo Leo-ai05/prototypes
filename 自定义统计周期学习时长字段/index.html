@@ -393,7 +393,7 @@ table.el tbody tr:hover { background: #f5f7fa; }
           <div class="err-msg" id="errTarget">请选择统计字段</div>
           <div class="err-msg" id="errDup">该组合已存在字段，请勿重复创建</div>
           <div class="err-msg" id="errName">生成的名称已被占用</div>
-          <div class="hint">从会话属性中选择一个数值型属性作为统计对象。聚合方式由系统按该属性的口径自动判定，不需要也不能手工指定。</div>
+          <div class="hint">从会话属性中选择一个属性作为统计对象，可选数值型属性与「当日」口径的是否标记。聚合方式由系统按该属性的口径自动判定，不需要也不能手工指定。</div>
         </div>
       </div>
 
@@ -477,12 +477,14 @@ var seq = 12;
 
 /* 窗口聚合方式由所选会话属性的口径决定，运营不配置 */
 var AGG = {
-  sum:   { word: '累计', text: '窗口内各自然日的值相加',                 why: '该属性是每日 0 点重置的当日增量值' },
-  delta: { word: '新增', text: '窗口结束时的值减去窗口开始前一日的值',   why: '该属性是只增不减的累计快照值，直接相加会重复计算' },
-  avg:   { word: '日均', text: '窗口内有数据的各自然日取平均',           why: '该属性是比率值，跨天相加没有意义' }
+  sum:   { word: '累计', label: '累计',   text: '窗口内各自然日的值相加',                 why: '该属性是每日 0 点重置的当日增量值' },
+  delta: { word: '新增', label: '新增',   text: '窗口结束时的值减去窗口开始前一日的值',   why: '该属性是只增不减的累计快照值，直接相加会重复计算' },
+  avg:   { word: '日均', label: '日均',   text: '窗口内有数据的各自然日取平均',           why: '该属性是比率值，跨天相加没有意义' },
+  days:  { word: '天数', label: '计天数', text: '窗口内该标记为「是」的自然日天数',       why: '该属性是每日重置的是否标记，数天数才有意义', suffix: true }
 };
 
-/* 可作为统计对象的会话属性：全部数值型属性，含当日增量、累计快照与比率三类口径 */
+/* 可作为统计对象的会话属性：全部数值型属性（含当日增量、累计快照、比率三类口径）
+   与「当日」口径的布尔标记属性（按窗口数天数） */
 var ATTRS = [
   { k:'video_dur_d',   cat:'study',    name:'观看视频时长（当日·分钟）',     short:'观看视频时长',   unit:'分钟', agg:'sum',   desc:'客户观看知识点视频产生的时长，每日 0 点重置' },
   { k:'problem_dur_d', cat:'study',    name:'答题时长（当日·分钟）',         short:'答题时长',       unit:'分钟', agg:'sum',   desc:'客户做题产生的时长，每日 0 点重置' },
@@ -494,7 +496,9 @@ var ATTRS = [
   { k:'video_cnt_d',   cat:'study',    name:'观看视频课数（当日·个）',       short:'观看视频课数',   unit:'个',   agg:'sum',   desc:'客户当日有学习记录的去重知识点数' },
   { k:'right_rate_d',  cat:'study',    name:'答题正确率（当日·%）',          short:'答题正确率',     unit:'%',    agg:'avg',   desc:'客户当日答题正确率，当日没做题时为空' },
   { k:'video_dur_t',   cat:'study',    name:'观看视频时长（上线后累计·分钟）', short:'观看视频时长',  unit:'分钟', agg:'delta', desc:'客户上线后累计观看视频时长，只增不减' },
+  { k:'has_learn_d',   cat:'study',    name:'当日是否有学习（布尔）',        short:'学习',           unit:'天',   agg:'days',  desc:'客户当日是否产生学习行为，每日 0 点重置' },
   { k:'app_cnt_d',     cat:'activity', name:'打开 APP 次数（当日·次）',      short:'打开 APP 次数',  unit:'次',   agg:'sum',   desc:'客户当日前后台切换次数，每日 0 点重置' },
+  { k:'has_open_d',    cat:'activity', name:'当日是否打开 APP（布尔）',      short:'打开 APP',       unit:'天',   agg:'days',  desc:'客户当日是否打开过 APP，每日 0 点重置' },
   { k:'active_days',   cat:'activity', name:'累计活跃天数（天）',            short:'累计活跃天数',   unit:'天',   agg:'delta', desc:'客户历史累计活跃自然日天数，只增不减' },
   { k:'wecom_days',    cat:'base',     name:'加微天数（天）',                short:'加微天数',       unit:'天',   agg:'delta', desc:'加微当天起算至今的自然日天数' },
   { k:'intro_cnt_d',   cat:'pay',      name:'产介页打开次数（近1日·次）',    short:'产介页打开次数', unit:'次',   agg:'sum',   desc:'客户近 1 日打开产品介绍页的次数' }
@@ -505,18 +509,18 @@ var fields = [
   { id: 2, cat: 'custom', stat: true, start: 0, end: 7, attr: 'wrong_cnt_d',  key: '00000000000000000012', rules: 0 },
   { id: 3, cat: 'custom', stat: false, name: '意向等级备注', type: '字符串', key: '00000000000000000009', desc: '坐席人工标注的意向等级说明', coze: '是', cozeUpd: '是' }
 ];
-/* 非数值型预置属性；数值型的由 ATTRS 统一提供，保证「可选统计对象」与属性列表口径一致 */
+/* 不可作为统计对象的预置属性；可选的那些由 ATTRS 统一提供，保证两处口径一致 */
 var presetsExtra = {
   base:     [ ['客户昵称','字符串','客户在企微中的展示昵称'], ['年级','字符串','客户所处年级'], ['学段','字符串','客户所处学段'], ['注册时间','日期','客户注册洋葱账号的时间'], ['加微时间','日期','客户与坐席建立好友关系的时间'] ],
   session:  [ ['转人工','布尔','当前会话是否已转人工'], ['最近客户消息时间','数字','距离客户最近一条消息的分钟数'] ],
   region:   [ ['城市分线','字符串','客户所在城市的分线层级'] ],
-  activity: [ ['近7日是否活跃','布尔','近 7 个自然日内是否有访问'] ],
-  study:    [ ['当日是否有学习','布尔','客户当日是否产生学习行为'], ['最近错题明细','字符串','客户最近答错的题目明细'] ],
+  activity: [ ['近7日是否活跃','布尔','近 7 个自然日内是否有访问，滚动窗口口径'] ],
+  study:    [ ['最近错题明细','字符串','客户最近答错的题目明细'] ],
   pay:      []
 };
 var presets = (function(){
   var m = { base:[], session:[], region:[], activity:[], study:[], pay:[] };
-  ATTRS.forEach(function(a){ m[a.cat].push([a.name, '数字', a.desc]); });
+  ATTRS.forEach(function(a){ m[a.cat].push([a.name, a.agg === 'days' ? '布尔' : '数字', a.desc]); });
   for (var c in presetsExtra) presetsExtra[c].forEach(function(r){ m[c].push(r); });
   return m;
 })();
@@ -536,7 +540,8 @@ function sigOf(start, end, attr){ return start + '-' + end + '|' + (attr || '');
 function statName(f){
   var a = attrOf(f.attr);
   if (!a) return '';
-  return '加微后' + f.start + '-' + f.end + '天' + AGG[a.agg].word + a.short;
+  var g = AGG[a.agg], w = '加微后' + f.start + '-' + f.end + '天';
+  return g.suffix ? (w + a.short + g.word) : (w + g.word + a.short);
 }
 function statDesc(f){
   var a = attrOf(f.attr);
@@ -657,7 +662,7 @@ function renderTargetList(){
   var kw = document.getElementById('tpSearch').value.trim();
   var el = document.getElementById('tpList');
   if (tpCat === 'custom') {
-    el.innerHTML = '<div class="vp-empty">自定义字段中暂无数值型属性可选。<br/>统计字段本身不能再作为统计对象。</div>';
+    el.innerHTML = '<div class="vp-empty">自定义字段中暂无可作为统计对象的属性。<br/>统计字段本身不能再作为统计对象。</div>';
     return;
   }
   var items = ATTRS.filter(function(a){ return a.cat === tpCat && a.name.indexOf(kw) >= 0; });
@@ -665,7 +670,7 @@ function renderTargetList(){
   el.innerHTML = items.map(function(a){
     return '<div class="vp-item' + (a.k === picked ? ' sel' : '') + '" onclick="pickTarget(\'' + a.k + '\')">'
          + a.name
-         + '<div class="vp-desc">' + a.desc + '｜按窗口' + AGG[a.agg].word + '</div></div>';
+         + '<div class="vp-desc">' + a.desc + '｜按窗口' + AGG[a.agg].label + '</div></div>';
   }).join('');
 }
 function pickTarget(k){
@@ -682,7 +687,7 @@ function renderTargetPicked(){
   var box = document.getElementById('aggBox');
   box.classList.toggle('show', !!a);
   if (a) {
-    box.innerHTML = '本字段将按<b>' + AGG[a.agg].word + '</b>统计：' + AGG[a.agg].text
+    box.innerHTML = '本字段将按<b>' + AGG[a.agg].label + '</b>统计：' + AGG[a.agg].text
                   + '，单位' + a.unit + '。<br/>聚合方式由该属性的口径决定（' + AGG[a.agg].why + '），不可手工更改。';
   }
 }
