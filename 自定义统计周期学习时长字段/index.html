@@ -146,6 +146,13 @@ table.el tbody tr:hover { background: #f5f7fa; }
 .readonly-box {
   background: #f5f7fa; border: 1px solid #ebeef5; border-radius: 4px; padding: 9px 12px; color: #606266; min-height: 38px;
 }
+.metric-list { display: flex; flex-direction: column; gap: 2px; padding-top: 7px; }
+.metric-item { display: flex; align-items: flex-start; gap: 8px; padding: 5px 0; cursor: pointer; }
+.metric-item input { width: 14px; height: 14px; margin-top: 3px; accent-color: #409eff; flex: none; cursor: pointer; }
+.metric-item .mt-name { color: #303133; }
+.metric-item .mt-desc { color: #909399; font-size: 12px; margin-top: 2px; line-height: 1.5; }
+.metric-all { border-bottom: 1px dashed #ebeef5; padding-bottom: 8px; margin-bottom: 4px; }
+.metric-all .mt-name { color: #606266; }
 .preview-name { color: #303133; font-weight: 600; }
 .warn-box {
   background: #fdf6ec; border: 1px solid #faecd8; color: #e6a23c; border-radius: 4px;
@@ -260,13 +267,13 @@ table.el tbody tr:hover { background: #f5f7fa; }
                 <div class="cat-item" data-cat="session" onclick="selectCat('session')">会话状态 <span class="cnt">2</span></div>
                 <div class="cat-item" data-cat="region" onclick="selectCat('region')">地区相关 <span class="cnt">1</span></div>
                 <div class="cat-item" data-cat="activity" onclick="selectCat('activity')">活跃数据 <span class="cnt">2</span></div>
-                <div class="cat-item" data-cat="study" onclick="selectCat('study')">学情数据-累积 <span class="cnt">3</span></div>
+                <div class="cat-item" data-cat="study" onclick="selectCat('study')">学情数据-累积 <span class="cnt">5</span></div>
                 <div class="cat-item" data-cat="pay" onclick="selectCat('pay')">付费意向 <span class="cnt">1</span></div>
               </div>
               <div class="attr-main">
                 <div class="attr-toolbar">
                   <input class="search-box" id="attrSearch" placeholder="请输入属性名称搜索" oninput="renderAttr()" />
-                  <div style="color:#909399;font-size:12px">统计字段数量不限</div>
+                  <div style="color:#909399;font-size:12px">统计字段 = 加微后指定天数区间 + 勾选的时长字段合计，数量不限</div>
                 </div>
                 <div id="attrGroups"></div>
               </div>
@@ -351,31 +358,32 @@ table.el tbody tr:hover { background: #f5f7fa; }
   <div class="dialog">
     <div class="dlg-hd"><span id="dlgFieldTitle">新建统计字段</span><button class="dlg-close" onclick="tryCloseField()">✕</button></div>
     <div class="dlg-bd">
-      <div class="warn-box" id="editWarn">修改统计窗口会清空该字段已统计出的全部取值</div>
-
-      <div class="form-row" id="rowContent">
-        <div class="form-label">统计内容</div>
-        <div class="form-ctrl">
-          <div class="readonly-box">加微后指定区间内的累计学习时长（分钟）</div>
-          <div class="hint">本期仅提供这一种统计内容。</div>
-        </div>
-      </div>
+      <div class="warn-box" id="editWarn">修改统计窗口或统计字段会清空该字段已统计出的全部取值</div>
 
       <div class="form-row">
         <div class="form-label"><span class="req">*</span>统计窗口</div>
         <div class="form-ctrl">
           <div class="inline">
             <span style="color:#606266">加微后第</span>
-            <input class="num-input" id="inStart" value="0" oninput="onWindowChange()" />
+            <input class="num-input" id="inStart" value="0" oninput="onFormChange()" />
             <span style="color:#606266">天 至 第</span>
-            <input class="num-input" id="inEnd" value="7" oninput="onWindowChange()" />
+            <input class="num-input" id="inEnd" value="7" oninput="onFormChange()" />
             <span style="color:#606266">天</span>
           </div>
           <div class="err-msg" id="errStart">起始天需为 0 到 30 之间的整数</div>
           <div class="err-msg" id="errEnd">结束天需为 0 到 30 之间的整数</div>
           <div class="err-msg" id="errOrder">结束天不能早于起始天</div>
-          <div class="err-msg" id="errDup">该统计窗口已存在字段，请勿重复创建</div>
           <div class="hint">加微当天记为第 0 天，按自然日划分，起始天与结束天两端都计入。结束天最大为第 30 天。</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-label"><span class="req">*</span>统计字段</div>
+        <div class="form-ctrl">
+          <div class="metric-list" id="metricList"></div>
+          <div class="err-msg" id="errMetric">请至少勾选一个统计字段</div>
+          <div class="err-msg" id="errDup">该组合已存在字段，请勿重复创建</div>
+          <div class="hint">勾选多个时，字段取值为窗口内这几项时长的合计。三项全选即为完整学习时长口径。</div>
         </div>
       </div>
 
@@ -404,9 +412,9 @@ table.el tbody tr:hover { background: #f5f7fa; }
 <!-- ====== 二次确认：修改统计窗口 ====== -->
 <div class="mask lv2" id="dlgConfirmEdit">
   <div class="dialog narrow">
-    <div class="dlg-hd"><span>确认修改统计窗口？</span><button class="dlg-close" onclick="hide('dlgConfirmEdit')">✕</button></div>
+    <div class="dlg-hd"><span>确认修改统计口径？</span><button class="dlg-close" onclick="hide('dlgConfirmEdit')">✕</button></div>
     <div class="dlg-bd">
-      <p class="confirm-text">该字段已统计出的<span class="strong">全部取值将被清空</span>，并按新窗口重新统计。此操作不可撤销。</p>
+      <p class="confirm-text">该字段已统计出的<span class="strong">全部取值将被清空</span>，并按新的统计窗口与统计字段重新统计。此操作不可撤销。</p>
     </div>
     <div class="dlg-ft">
       <button class="btn" onclick="hide('dlgConfirmEdit')">取消</button>
@@ -447,9 +455,18 @@ table.el tbody tr:hover { background: #f5f7fa; }
 <script>
 /* ========================= 数据 ========================= */
 var seq = 12;
+
+/* 可参与统计的时长指标，来源为学情数据的按日明细，顺序固定以保证同一组合生成同一名称 */
+var METRICS = [
+  { k: 'video',   name: '观看视频时长', short: '视频', desc: '客户观看知识点视频产生的时长' },
+  { k: 'problem', name: '答题时长',     short: '答题', desc: '客户做题产生的时长' },
+  { k: 'theme',   name: '看题型时长',   short: '题型', desc: '客户学习题型讲解产生的时长' }
+];
+var ALL_METRICS = METRICS.map(function(m){ return m.k; });
+
 var fields = [
-  { id: 1, cat: 'custom', stat: true,  start: 0, end: 7,  key: '00000000000000000011', rules: 2 },
-  { id: 2, cat: 'custom', stat: true,  start: 1, end: 3,  key: '00000000000000000012', rules: 0 },
+  { id: 1, cat: 'custom', stat: true, start: 0, end: 7, ms: ['video'],                    key: '00000000000000000011', rules: 2 },
+  { id: 2, cat: 'custom', stat: true, start: 1, end: 3, ms: ['video','problem','theme'],  key: '00000000000000000012', rules: 0 },
   { id: 3, cat: 'custom', stat: false, name: '意向等级备注', type: '字符串', key: '00000000000000000009', desc: '坐席人工标注的意向等级说明', coze: '是', cozeUpd: '是' }
 ];
 var presets = {
@@ -457,20 +474,39 @@ var presets = {
   session:  [ ['转人工','布尔','当前会话是否已转人工'], ['最近客户消息时间','数字','距离客户最近一条消息的分钟数'] ],
   region:   [ ['城市分线','字符串','客户所在城市的分线层级'] ],
   activity: [ ['近7日是否活跃','布尔','近 7 个自然日内是否有访问'], ['累计活跃天数','数字','历史累计活跃自然日天数'] ],
-  study:    [ ['昨日学习时长','数字','昨日学习总时长，单位分钟'], ['当周学习时长','数字','本自然周至昨日的学习总时长，单位分钟'], ['加微后连续学习天数','数字','加微后连续学习的自然日天数'] ],
+  study:    [ ['观看视频时长（当日·分钟）','数字','客户观看知识点视频产生的时长'], ['答题时长（当日·分钟）','数字','客户做题产生的时长'], ['看题型时长（当日·分钟）','数字','客户学习题型讲解产生的时长'], ['当周学习时长','数字','本自然周至昨日的学习总时长，单位分钟'], ['加微后连续学习天数','数字','加微后连续学习的自然日天数'] ],
   pay:      [ ['产介页打开次数','数字','近 1 日打开产品介绍页的次数'] ]
 };
 var catNames = { all:'全部属性', custom:'自定义字段', base:'基础信息', session:'会话状态', region:'地区相关', activity:'活跃数据', study:'学情数据-累积', pay:'付费意向' };
 var curCat = 'all';
 var mode = 'create';      // create | edit
 var editingId = null;
-var origWin = null;
+var origSig = null;
 var dirty = false;
 var pendingSave = null;
+var picked = ALL_METRICS.slice();
 
 /* ========================= 工具 ========================= */
-function statName(f){ return '加微后' + f.start + '-' + f.end + '天累计学习时长'; }
-function statDesc(f){ return '统计客户加微当天起第 ' + f.start + ' 天至第 ' + f.end + ' 天（含两端）的累计学习时长，单位分钟'; }
+function sortMs(ms){ return ALL_METRICS.filter(function(k){ return ms.indexOf(k) >= 0; }); }
+function sigOf(start, end, ms){ return start + '-' + end + '|' + sortMs(ms).join(','); }
+function metricOf(k){ return METRICS.filter(function(m){ return m.k === k; })[0]; }
+
+/* 三项全选即完整学习时长口径，用统称；子集用短名以「+」连接 */
+function msLabel(ms){
+  var s = sortMs(ms);
+  if (s.length === METRICS.length) return '学习';
+  return s.map(function(k){ return metricOf(k).short; }).join('+');
+}
+function msFullLabel(ms){
+  var s = sortMs(ms);
+  if (s.length === METRICS.length) return '观看视频时长、答题时长、看题型时长的合计';
+  return s.map(function(k){ return metricOf(k).name; }).join(' + ');
+}
+function statName(f){ return '加微后' + f.start + '-' + f.end + '天累计' + msLabel(f.ms) + '时长'; }
+function statDesc(f){
+  return '统计客户加微当天起第 ' + f.start + ' 天至第 ' + f.end + ' 天（含两端）的'
+       + msFullLabel(f.ms) + '，单位分钟';
+}
 function fName(f){ return f.stat ? statName(f) : f.name; }
 function fDesc(f){ return f.stat ? statDesc(f) : f.desc; }
 function fType(f){ return f.stat ? '数字' : f.type; }
@@ -555,26 +591,50 @@ function renderAttr(){
 }
 
 /* ========================= 新建 / 编辑弹窗 ========================= */
+function renderMetrics(){
+  var allOn = picked.length === METRICS.length;
+  var h = '<label class="metric-item metric-all">'
+        + '<input type="checkbox" ' + (allOn ? 'checked' : '') + ' onchange="toggleAllMetrics(this.checked)" />'
+        + '<span><span class="mt-name">全选（等同完整学习时长口径）</span></span></label>';
+  h += METRICS.map(function(m){
+    return '<label class="metric-item">'
+         + '<input type="checkbox" value="' + m.k + '" ' + (picked.indexOf(m.k) >= 0 ? 'checked' : '') + ' onchange="toggleMetric(this)" />'
+         + '<span><span class="mt-name">' + m.name + '</span><div class="mt-desc">' + m.desc + '</div></span></label>';
+  }).join('');
+  document.getElementById('metricList').innerHTML = h;
+}
+function toggleAllMetrics(on){
+  picked = on ? ALL_METRICS.slice() : [];
+  renderMetrics(); onFormChange();
+}
+function toggleMetric(el){
+  var k = el.value;
+  if (el.checked) { if (picked.indexOf(k) < 0) picked.push(k); }
+  else picked = picked.filter(function(x){ return x !== k; });
+  picked = sortMs(picked);
+  renderMetrics(); onFormChange();
+}
+
 function openCreate(){
-  mode = 'create'; editingId = null; origWin = null; dirty = false;
+  mode = 'create'; editingId = null; origSig = null; dirty = false;
+  picked = ALL_METRICS.slice();
   document.getElementById('dlgFieldTitle').textContent = '新建统计字段';
-  document.getElementById('rowContent').classList.remove('hidden');
   document.getElementById('inStart').value = '0';
   document.getElementById('inEnd').value = '7';
   document.getElementById('editWarn').classList.remove('show');
-  onWindowChange();
+  renderMetrics(); onFormChange(); dirty = false;
   show('dlgField');
 }
 function openEdit(id){
   var f = fields.filter(function(x){ return x.id === id; })[0];
   if (!f) return;
   if (!f.stat) { toast('warn', '原型未实现：普通自定义字段编辑沿用现有弹窗'); return; }
-  mode = 'edit'; editingId = id; origWin = f.start + '-' + f.end; dirty = false;
+  mode = 'edit'; editingId = id; origSig = sigOf(f.start, f.end, f.ms); dirty = false;
+  picked = f.ms.slice();
   document.getElementById('dlgFieldTitle').textContent = '编辑统计字段';
-  document.getElementById('rowContent').classList.add('hidden');
   document.getElementById('inStart').value = String(f.start);
   document.getElementById('inEnd').value = String(f.end);
-  onWindowChange();
+  renderMetrics(); onFormChange(); dirty = false;
   show('dlgField');
 }
 function tryCloseField(){ if (dirty) show('dlgDiscard'); else hide('dlgField'); }
@@ -584,63 +644,68 @@ function isInt(s){ return /^-?\d+$/.test(String(s).trim()); }
 function readWin(){
   return { s: document.getElementById('inStart').value.trim(), e: document.getElementById('inEnd').value.trim() };
 }
-function onWindowChange(){
+function onFormChange(){
   dirty = true;
   var w = readWin();
   var okS = isInt(w.s) && +w.s >= 0 && +w.s <= 30;
   var okE = isInt(w.e) && +w.e >= 0 && +w.e <= 30;
   var okOrder = okS && okE && +w.e >= +w.s;
+  var okMetric = picked.length > 0;
 
   var dup = null;
-  if (okOrder) {
-    dup = fields.filter(function(f){ return f.stat && f.id !== editingId && f.start === +w.s && f.end === +w.e; })[0] || null;
+  if (okOrder && okMetric) {
+    var sig = sigOf(+w.s, +w.e, picked);
+    dup = fields.filter(function(f){
+      return f.stat && f.id !== editingId && sigOf(f.start, f.end, f.ms) === sig;
+    })[0] || null;
   }
 
   document.getElementById('errStart').classList.toggle('show', w.s !== '' && !okS);
   document.getElementById('errEnd').classList.toggle('show', w.e !== '' && !okE);
   document.getElementById('errOrder').classList.toggle('show', okS && okE && !okOrder);
+  document.getElementById('errMetric').classList.toggle('show', !okMetric);
   var dupEl = document.getElementById('errDup');
   dupEl.classList.toggle('show', !!dup);
-  if (dup) dupEl.textContent = '该统计窗口已存在字段「' + statName(dup) + '」，请勿重复创建';
+  if (dup) dupEl.textContent = '该统计窗口与统计字段的组合已存在字段「' + statName(dup) + '」，请勿重复创建';
 
   document.getElementById('inStart').classList.toggle('err', w.s !== '' && !okS);
   document.getElementById('inEnd').classList.toggle('err', (w.e !== '' && !okE) || (okS && okE && !okOrder));
 
-  var preview = okOrder ? { start: +w.s, end: +w.e } : null;
+  var preview = (okOrder && okMetric) ? { start: +w.s, end: +w.e, ms: picked } : null;
   document.getElementById('previewName').textContent = preview ? statName(preview) : '—';
   document.getElementById('previewDesc').textContent = preview ? statDesc(preview) : '—';
 
-  var changed = mode === 'edit' && origWin !== (w.s + '-' + w.e);
+  var changed = mode === 'edit' && okMetric && origSig !== sigOf(w.s, w.e, picked);
   document.getElementById('editWarn').classList.toggle('show', changed);
 
-  var canSave = okS && okE && okOrder && !dup && w.s !== '' && w.e !== '';
+  var canSave = okS && okE && okOrder && okMetric && !dup && w.s !== '' && w.e !== '';
   var btn = document.getElementById('btnFieldOk');
   btn.disabled = !canSave;
-  btn.title = canSave ? '' : '请先填写正确的统计窗口';
+  btn.title = canSave ? '' : '请先填写正确的统计窗口并勾选统计字段';
 }
 
 function submitField(){
   var w = readWin();
   if (mode === 'create') {
     seq++;
-    fields.unshift({ id: Date.now(), cat: 'custom', stat: true, start: +w.s, end: +w.e,
+    fields.unshift({ id: Date.now(), cat: 'custom', stat: true, start: +w.s, end: +w.e, ms: picked.slice(),
                      key: '000000000000000000' + String(seq).padStart(2, '0'), rules: 0 });
     dirty = false; hide('dlgField');
     curCat = 'custom'; selectCat('custom');
     toast('ok', '统计字段创建成功');
   } else {
-    if (origWin === (w.s + '-' + w.e)) { dirty = false; hide('dlgField'); toast('ok', '修改成功'); return; }
-    pendingSave = { s: +w.s, e: +w.e };
+    if (origSig === sigOf(w.s, w.e, picked)) { dirty = false; hide('dlgField'); toast('ok', '修改成功'); return; }
+    pendingSave = { s: +w.s, e: +w.e, ms: picked.slice() };
     show('dlgConfirmEdit');
   }
 }
 function doConfirmEdit(){
   var f = fields.filter(function(x){ return x.id === editingId; })[0];
-  if (f && pendingSave) { f.start = pendingSave.s; f.end = pendingSave.e; }
+  if (f && pendingSave) { f.start = pendingSave.s; f.end = pendingSave.e; f.ms = pendingSave.ms; }
   pendingSave = null; dirty = false;
   hide('dlgConfirmEdit'); hide('dlgField');
   renderAttr();
-  toast('ok', '修改成功，该字段已有取值已清空并按新窗口重新统计');
+  toast('ok', '修改成功，该字段已有取值已清空并按新口径重新统计');
 }
 
 /* ========================= 删除 ========================= */
