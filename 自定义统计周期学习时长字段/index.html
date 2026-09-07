@@ -146,13 +146,19 @@ table.el tbody tr:hover { background: #f5f7fa; }
 .readonly-box {
   background: #f5f7fa; border: 1px solid #ebeef5; border-radius: 4px; padding: 9px 12px; color: #606266; min-height: 38px;
 }
-.metric-list { display: flex; flex-direction: column; gap: 2px; padding-top: 7px; }
-.metric-item { display: flex; align-items: flex-start; gap: 8px; padding: 5px 0; cursor: pointer; }
-.metric-item input { width: 14px; height: 14px; margin-top: 3px; accent-color: #409eff; flex: none; cursor: pointer; }
-.metric-item .mt-name { color: #303133; }
-.metric-item .mt-desc { color: #909399; font-size: 12px; margin-top: 2px; line-height: 1.5; }
-.metric-all { border-bottom: 1px dashed #ebeef5; padding-bottom: 8px; margin-bottom: 4px; }
-.metric-all .mt-name { color: #606266; }
+.attr-picker {
+  border: 1px solid #dcdfe6; border-radius: 4px; padding: 9px 12px; background: #fff;
+  color: #606266; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+}
+.attr-picker:hover { border-color: #409eff; }
+.attr-picker.placeholder { color: #c0c4cc; }
+.attr-picker.err { border-color: #f56c6c; }
+.agg-box {
+  background: #ecf5ff; border: 1px solid #d9ecff; border-radius: 4px;
+  padding: 9px 12px; margin-top: 8px; font-size: 12px; color: #409eff; line-height: 1.7; display: none;
+}
+.agg-box.show { display: block; }
+.agg-box b { font-weight: 600; }
 .preview-name { color: #303133; font-weight: 600; }
 .warn-box {
   background: #fdf6ec; border: 1px solid #faecd8; color: #e6a23c; border-radius: 4px;
@@ -263,17 +269,17 @@ table.el tbody tr:hover { background: #f5f7fa; }
                 <div class="cat-item active" data-cat="all" onclick="selectCat('all')">全部属性 <span class="cnt" id="cntAll">0</span></div>
                 <div class="cat-item" data-cat="custom" onclick="selectCat('custom')">自定义字段 <span class="cnt" id="cntCustom">0</span></div>
                 <div class="cat-group">系统默认字段</div>
-                <div class="cat-item" data-cat="base" onclick="selectCat('base')">基础信息 <span class="cnt">6</span></div>
-                <div class="cat-item" data-cat="session" onclick="selectCat('session')">会话状态 <span class="cnt">2</span></div>
-                <div class="cat-item" data-cat="region" onclick="selectCat('region')">地区相关 <span class="cnt">1</span></div>
-                <div class="cat-item" data-cat="activity" onclick="selectCat('activity')">活跃数据 <span class="cnt">2</span></div>
-                <div class="cat-item" data-cat="study" onclick="selectCat('study')">学情数据-累积 <span class="cnt">5</span></div>
-                <div class="cat-item" data-cat="pay" onclick="selectCat('pay')">付费意向 <span class="cnt">1</span></div>
+                <div class="cat-item" data-cat="base" onclick="selectCat('base')">基础信息 <span class="cnt" id="cntBase">0</span></div>
+                <div class="cat-item" data-cat="session" onclick="selectCat('session')">会话状态 <span class="cnt" id="cntSession">0</span></div>
+                <div class="cat-item" data-cat="region" onclick="selectCat('region')">地区相关 <span class="cnt" id="cntRegion">0</span></div>
+                <div class="cat-item" data-cat="activity" onclick="selectCat('activity')">活跃数据 <span class="cnt" id="cntActivity">0</span></div>
+                <div class="cat-item" data-cat="study" onclick="selectCat('study')">学情数据-累积 <span class="cnt" id="cntStudy">0</span></div>
+                <div class="cat-item" data-cat="pay" onclick="selectCat('pay')">付费意向 <span class="cnt" id="cntPay">0</span></div>
               </div>
               <div class="attr-main">
                 <div class="attr-toolbar">
                   <input class="search-box" id="attrSearch" placeholder="请输入属性名称搜索" oninput="renderAttr()" />
-                  <div style="color:#909399;font-size:12px">统计字段 = 加微后指定天数区间 + 勾选的时长字段合计，数量不限</div>
+                  <div style="color:#909399;font-size:12px">统计字段 = 加微后指定天数区间 + 一个会话属性，数量不限</div>
                 </div>
                 <div id="attrGroups"></div>
               </div>
@@ -321,8 +327,8 @@ table.el tbody tr:hover { background: #f5f7fa; }
                   </select>
                   <input class="val-input" id="valInput" placeholder="请输入数值" oninput="validateVal()" />
                 </div>
-                <div class="err-msg" id="valErr" style="margin-left:80px">请输入整数分钟数</div>
-                <div class="hint" id="condHint" style="margin-left:80px">选中统计字段后，比较值单位为分钟。</div>
+                <div class="err-msg" id="valErr" style="margin-left:80px">请输入整数</div>
+                <div class="hint" id="condHint" style="margin-left:80px">选中统计字段后，比较值单位与该字段所选会话属性一致。</div>
               </div>
             </div>
 
@@ -380,10 +386,14 @@ table.el tbody tr:hover { background: #f5f7fa; }
       <div class="form-row">
         <div class="form-label"><span class="req">*</span>统计字段</div>
         <div class="form-ctrl">
-          <div class="metric-list" id="metricList"></div>
-          <div class="err-msg" id="errMetric">请至少勾选一个统计字段</div>
+          <div class="attr-picker placeholder" id="targetPicker" onclick="openTargetPanel(event)">
+            <span id="targetPickerText">请选择会话属性</span><span style="color:#c0c4cc">▾</span>
+          </div>
+          <div class="agg-box" id="aggBox"></div>
+          <div class="err-msg" id="errTarget">请选择统计字段</div>
           <div class="err-msg" id="errDup">该组合已存在字段，请勿重复创建</div>
-          <div class="hint">勾选多个时，字段取值为窗口内这几项时长的合计。三项全选即为完整学习时长口径。</div>
+          <div class="err-msg" id="errName">生成的名称已被占用</div>
+          <div class="hint">从会话属性中选择一个数值型属性作为统计对象。聚合方式由系统按该属性的口径自动判定，不需要也不能手工指定。</div>
         </div>
       </div>
 
@@ -406,6 +416,15 @@ table.el tbody tr:hover { background: #f5f7fa; }
       <button class="btn" onclick="tryCloseField()">取消</button>
       <button class="btn primary" id="btnFieldOk" onclick="submitField()" title="">确定</button>
     </div>
+  </div>
+</div>
+
+<!-- ====== 统计对象（会话属性）选择面板 ====== -->
+<div class="var-panel" id="targetPanel" style="z-index:70">
+  <div class="vp-search"><input id="tpSearch" placeholder="搜索会话属性名称" oninput="renderTargetList()" /></div>
+  <div class="vp-body">
+    <div class="vp-cats" id="tpCats"></div>
+    <div class="vp-list" id="tpList"></div>
   </div>
 </div>
 
@@ -456,27 +475,51 @@ table.el tbody tr:hover { background: #f5f7fa; }
 /* ========================= 数据 ========================= */
 var seq = 12;
 
-/* 可参与统计的时长指标，来源为学情数据的按日明细，顺序固定以保证同一组合生成同一名称 */
-var METRICS = [
-  { k: 'video',   name: '观看视频时长', short: '视频', desc: '客户观看知识点视频产生的时长' },
-  { k: 'problem', name: '答题时长',     short: '答题', desc: '客户做题产生的时长' },
-  { k: 'theme',   name: '看题型时长',   short: '题型', desc: '客户学习题型讲解产生的时长' }
+/* 窗口聚合方式由所选会话属性的口径决定，运营不配置 */
+var AGG = {
+  sum:   { word: '累计', text: '窗口内各自然日的值相加',                 why: '该属性是每日 0 点重置的当日增量值' },
+  delta: { word: '新增', text: '窗口结束时的值减去窗口开始前一日的值',   why: '该属性是只增不减的累计快照值，直接相加会重复计算' },
+  avg:   { word: '日均', text: '窗口内有数据的各自然日取平均',           why: '该属性是比率值，跨天相加没有意义' }
+};
+
+/* 可作为统计对象的会话属性：全部数值型属性，含当日增量、累计快照与比率三类口径 */
+var ATTRS = [
+  { k:'video_dur_d',   cat:'study',    name:'观看视频时长（当日·分钟）',     short:'观看视频时长',   unit:'分钟', agg:'sum',   desc:'客户观看知识点视频产生的时长，每日 0 点重置' },
+  { k:'problem_dur_d', cat:'study',    name:'答题时长（当日·分钟）',         short:'答题时长',       unit:'分钟', agg:'sum',   desc:'客户做题产生的时长，每日 0 点重置' },
+  { k:'theme_dur_d',   cat:'study',    name:'看题型时长（当日·分钟）',       short:'看题型时长',     unit:'分钟', agg:'sum',   desc:'客户学习题型讲解产生的时长，每日 0 点重置' },
+  { k:'prac_cnt_d',    cat:'study',    name:'实战刷题数（当日·个）',         short:'实战刷题数',     unit:'个',   agg:'sum',   desc:'客户当日答题数量，各学科相加' },
+  { k:'right_cnt_d',   cat:'study',    name:'答题正确数（当日·个）',         short:'答题正确数',     unit:'个',   agg:'sum',   desc:'客户当日答对的题目数' },
+  { k:'wrong_cnt_d',   cat:'study',    name:'错题数（实时·当日·个）',        short:'错题数',         unit:'个',   agg:'sum',   desc:'客户当日答错的去重题目数，实时口径' },
+  { k:'wrong_cnt_off', cat:'study',    name:'错题数（离线·日·个）',          short:'错题数',         unit:'个',   agg:'sum',   desc:'客户答错的去重题目数，数仓 T-1 离线口径' },
+  { k:'video_cnt_d',   cat:'study',    name:'观看视频课数（当日·个）',       short:'观看视频课数',   unit:'个',   agg:'sum',   desc:'客户当日有学习记录的去重知识点数' },
+  { k:'right_rate_d',  cat:'study',    name:'答题正确率（当日·%）',          short:'答题正确率',     unit:'%',    agg:'avg',   desc:'客户当日答题正确率，当日没做题时为空' },
+  { k:'video_dur_t',   cat:'study',    name:'观看视频时长（上线后累计·分钟）', short:'观看视频时长',  unit:'分钟', agg:'delta', desc:'客户上线后累计观看视频时长，只增不减' },
+  { k:'app_cnt_d',     cat:'activity', name:'打开 APP 次数（当日·次）',      short:'打开 APP 次数',  unit:'次',   agg:'sum',   desc:'客户当日前后台切换次数，每日 0 点重置' },
+  { k:'active_days',   cat:'activity', name:'累计活跃天数（天）',            short:'累计活跃天数',   unit:'天',   agg:'delta', desc:'客户历史累计活跃自然日天数，只增不减' },
+  { k:'wecom_days',    cat:'base',     name:'加微天数（天）',                short:'加微天数',       unit:'天',   agg:'delta', desc:'加微当天起算至今的自然日天数' },
+  { k:'intro_cnt_d',   cat:'pay',      name:'产介页打开次数（近1日·次）',    short:'产介页打开次数', unit:'次',   agg:'sum',   desc:'客户近 1 日打开产品介绍页的次数' }
 ];
-var ALL_METRICS = METRICS.map(function(m){ return m.k; });
 
 var fields = [
-  { id: 1, cat: 'custom', stat: true, start: 0, end: 7, ms: ['video'],                    key: '00000000000000000011', rules: 2 },
-  { id: 2, cat: 'custom', stat: true, start: 1, end: 3, ms: ['video','problem','theme'],  key: '00000000000000000012', rules: 0 },
+  { id: 1, cat: 'custom', stat: true, start: 0, end: 7, attr: 'video_dur_d',  key: '00000000000000000011', rules: 2 },
+  { id: 2, cat: 'custom', stat: true, start: 0, end: 7, attr: 'wrong_cnt_d',  key: '00000000000000000012', rules: 0 },
   { id: 3, cat: 'custom', stat: false, name: '意向等级备注', type: '字符串', key: '00000000000000000009', desc: '坐席人工标注的意向等级说明', coze: '是', cozeUpd: '是' }
 ];
-var presets = {
-  base:     [ ['客户昵称','字符串','客户在企微中的展示昵称'], ['年级','字符串','客户所处年级'], ['学段','字符串','客户所处学段'], ['注册时间','日期','客户注册洋葱账号的时间'], ['加微时间','日期','客户与坐席建立好友关系的时间'], ['加微天数','数字','加微当天起算至今的自然日天数'] ],
+/* 非数值型预置属性；数值型的由 ATTRS 统一提供，保证「可选统计对象」与属性列表口径一致 */
+var presetsExtra = {
+  base:     [ ['客户昵称','字符串','客户在企微中的展示昵称'], ['年级','字符串','客户所处年级'], ['学段','字符串','客户所处学段'], ['注册时间','日期','客户注册洋葱账号的时间'], ['加微时间','日期','客户与坐席建立好友关系的时间'] ],
   session:  [ ['转人工','布尔','当前会话是否已转人工'], ['最近客户消息时间','数字','距离客户最近一条消息的分钟数'] ],
   region:   [ ['城市分线','字符串','客户所在城市的分线层级'] ],
-  activity: [ ['近7日是否活跃','布尔','近 7 个自然日内是否有访问'], ['累计活跃天数','数字','历史累计活跃自然日天数'] ],
-  study:    [ ['观看视频时长（当日·分钟）','数字','客户观看知识点视频产生的时长'], ['答题时长（当日·分钟）','数字','客户做题产生的时长'], ['看题型时长（当日·分钟）','数字','客户学习题型讲解产生的时长'], ['当周学习时长','数字','本自然周至昨日的学习总时长，单位分钟'], ['加微后连续学习天数','数字','加微后连续学习的自然日天数'] ],
-  pay:      [ ['产介页打开次数','数字','近 1 日打开产品介绍页的次数'] ]
+  activity: [ ['近7日是否活跃','布尔','近 7 个自然日内是否有访问'] ],
+  study:    [ ['当日是否有学习','布尔','客户当日是否产生学习行为'], ['最近错题明细','字符串','客户最近答错的题目明细'] ],
+  pay:      []
 };
+var presets = (function(){
+  var m = { base:[], session:[], region:[], activity:[], study:[], pay:[] };
+  ATTRS.forEach(function(a){ m[a.cat].push([a.name, '数字', a.desc]); });
+  for (var c in presetsExtra) presetsExtra[c].forEach(function(r){ m[c].push(r); });
+  return m;
+})();
 var catNames = { all:'全部属性', custom:'自定义字段', base:'基础信息', session:'会话状态', region:'地区相关', activity:'活跃数据', study:'学情数据-累积', pay:'付费意向' };
 var curCat = 'all';
 var mode = 'create';      // create | edit
@@ -484,28 +527,22 @@ var editingId = null;
 var origSig = null;
 var dirty = false;
 var pendingSave = null;
-var picked = ALL_METRICS.slice();
+var picked = null;   // 当前选中的会话属性 key
 
 /* ========================= 工具 ========================= */
-function sortMs(ms){ return ALL_METRICS.filter(function(k){ return ms.indexOf(k) >= 0; }); }
-function sigOf(start, end, ms){ return start + '-' + end + '|' + sortMs(ms).join(','); }
-function metricOf(k){ return METRICS.filter(function(m){ return m.k === k; })[0]; }
+function attrOf(k){ return ATTRS.filter(function(a){ return a.k === k; })[0] || null; }
+function sigOf(start, end, attr){ return start + '-' + end + '|' + (attr || ''); }
 
-/* 三项全选即完整学习时长口径，用统称；子集用短名以「+」连接 */
-function msLabel(ms){
-  var s = sortMs(ms);
-  if (s.length === METRICS.length) return '学习';
-  return s.map(function(k){ return metricOf(k).short; }).join('+');
+function statName(f){
+  var a = attrOf(f.attr);
+  if (!a) return '';
+  return '加微后' + f.start + '-' + f.end + '天' + AGG[a.agg].word + a.short;
 }
-function msFullLabel(ms){
-  var s = sortMs(ms);
-  if (s.length === METRICS.length) return '观看视频时长、答题时长、看题型时长的合计';
-  return s.map(function(k){ return metricOf(k).name; }).join(' + ');
-}
-function statName(f){ return '加微后' + f.start + '-' + f.end + '天累计' + msLabel(f.ms) + '时长'; }
 function statDesc(f){
-  return '统计客户加微当天起第 ' + f.start + ' 天至第 ' + f.end + ' 天（含两端）的'
-       + msFullLabel(f.ms) + '，单位分钟';
+  var a = attrOf(f.attr);
+  if (!a) return '';
+  return '统计客户加微当天起第 ' + f.start + ' 天至第 ' + f.end + ' 天（含两端）的「'
+       + a.name + '」，聚合方式为' + AGG[a.agg].text + '，单位' + a.unit;
 }
 function fName(f){ return f.stat ? statName(f) : f.name; }
 function fDesc(f){ return f.stat ? statDesc(f) : f.desc; }
@@ -588,53 +625,90 @@ function renderAttr(){
   var total = fields.length; for (var k in presets) total += presets[k].length;
   document.getElementById('cntAll').textContent = total;
   document.getElementById('cntCustom').textContent = fields.length;
+  var capId = { base:'cntBase', session:'cntSession', region:'cntRegion', activity:'cntActivity', study:'cntStudy', pay:'cntPay' };
+  for (var c in capId) document.getElementById(capId[c]).textContent = presets[c].length;
 }
 
 /* ========================= 新建 / 编辑弹窗 ========================= */
-function renderMetrics(){
-  var allOn = picked.length === METRICS.length;
-  var h = '<label class="metric-item metric-all">'
-        + '<input type="checkbox" ' + (allOn ? 'checked' : '') + ' onchange="toggleAllMetrics(this.checked)" />'
-        + '<span><span class="mt-name">全选（等同完整学习时长口径）</span></span></label>';
-  h += METRICS.map(function(m){
-    return '<label class="metric-item">'
-         + '<input type="checkbox" value="' + m.k + '" ' + (picked.indexOf(m.k) >= 0 ? 'checked' : '') + ' onchange="toggleMetric(this)" />'
-         + '<span><span class="mt-name">' + m.name + '</span><div class="mt-desc">' + m.desc + '</div></span></label>';
+/* ---- 统计对象选择面板 ---- */
+var tpCat = 'study';
+function openTargetPanel(ev){
+  ev.stopPropagation();
+  var p = document.getElementById('targetPanel');
+  if (p.classList.contains('show')) { hideTargetPanel(); return; }
+  var r = document.getElementById('targetPicker').getBoundingClientRect();
+  p.style.left = (r.left + window.scrollX) + 'px';
+  p.style.top  = (r.bottom + window.scrollY + 6) + 'px';
+  p.classList.add('show');
+  renderTargetCats(); renderTargetList();
+}
+function hideTargetPanel(){ document.getElementById('targetPanel').classList.remove('show'); }
+document.addEventListener('click', function(e){
+  var p = document.getElementById('targetPanel');
+  if (p.classList.contains('show') && !p.contains(e.target)) hideTargetPanel();
+});
+function renderTargetCats(){
+  var cats = ['study','activity','base','pay','custom'];
+  document.getElementById('tpCats').innerHTML = cats.map(function(c){
+    return '<div class="vp-cat' + (c === tpCat ? ' active' : '') + '" onclick="tpCat=\'' + c + '\';renderTargetCats();renderTargetList()">' + catNames[c] + '</div>';
   }).join('');
-  document.getElementById('metricList').innerHTML = h;
 }
-function toggleAllMetrics(on){
-  picked = on ? ALL_METRICS.slice() : [];
-  renderMetrics(); onFormChange();
+function renderTargetList(){
+  var kw = document.getElementById('tpSearch').value.trim();
+  var el = document.getElementById('tpList');
+  if (tpCat === 'custom') {
+    el.innerHTML = '<div class="vp-empty">自定义字段中暂无数值型属性可选。<br/>统计字段本身不能再作为统计对象。</div>';
+    return;
+  }
+  var items = ATTRS.filter(function(a){ return a.cat === tpCat && a.name.indexOf(kw) >= 0; });
+  if (!items.length) { el.innerHTML = '<div class="vp-empty">没有匹配的会话属性</div>'; return; }
+  el.innerHTML = items.map(function(a){
+    return '<div class="vp-item' + (a.k === picked ? ' sel' : '') + '" onclick="pickTarget(\'' + a.k + '\')">'
+         + a.name
+         + '<div class="vp-desc">' + a.desc + '｜按窗口' + AGG[a.agg].word + '</div></div>';
+  }).join('');
 }
-function toggleMetric(el){
-  var k = el.value;
-  if (el.checked) { if (picked.indexOf(k) < 0) picked.push(k); }
-  else picked = picked.filter(function(x){ return x !== k; });
-  picked = sortMs(picked);
-  renderMetrics(); onFormChange();
+function pickTarget(k){
+  picked = k;
+  hideTargetPanel();
+  renderTargetPicked();
+  onFormChange();
+}
+function renderTargetPicked(){
+  var a = attrOf(picked);
+  var el = document.getElementById('targetPicker');
+  document.getElementById('targetPickerText').textContent = a ? a.name : '请选择会话属性';
+  el.classList.toggle('placeholder', !a);
+  var box = document.getElementById('aggBox');
+  box.classList.toggle('show', !!a);
+  if (a) {
+    box.innerHTML = '本字段将按<b>' + AGG[a.agg].word + '</b>统计：' + AGG[a.agg].text
+                  + '，单位' + a.unit + '。<br/>聚合方式由该属性的口径决定（' + AGG[a.agg].why + '），不可手工更改。';
+  }
 }
 
 function openCreate(){
   mode = 'create'; editingId = null; origSig = null; dirty = false;
-  picked = ALL_METRICS.slice();
+  picked = null; tpCat = 'study';
   document.getElementById('dlgFieldTitle').textContent = '新建统计字段';
   document.getElementById('inStart').value = '0';
   document.getElementById('inEnd').value = '7';
+  document.getElementById('tpSearch').value = '';
   document.getElementById('editWarn').classList.remove('show');
-  renderMetrics(); onFormChange(); dirty = false;
+  renderTargetPicked(); onFormChange(); dirty = false;
   show('dlgField');
 }
 function openEdit(id){
   var f = fields.filter(function(x){ return x.id === id; })[0];
   if (!f) return;
   if (!f.stat) { toast('warn', '原型未实现：普通自定义字段编辑沿用现有弹窗'); return; }
-  mode = 'edit'; editingId = id; origSig = sigOf(f.start, f.end, f.ms); dirty = false;
-  picked = f.ms.slice();
+  mode = 'edit'; editingId = id; origSig = sigOf(f.start, f.end, f.attr); dirty = false;
+  picked = f.attr; tpCat = (attrOf(f.attr) || {}).cat || 'study';
   document.getElementById('dlgFieldTitle').textContent = '编辑统计字段';
   document.getElementById('inStart').value = String(f.start);
   document.getElementById('inEnd').value = String(f.end);
-  renderMetrics(); onFormChange(); dirty = false;
+  document.getElementById('tpSearch').value = '';
+  renderTargetPicked(); onFormChange(); dirty = false;
   show('dlgField');
 }
 function tryCloseField(){ if (dirty) show('dlgDiscard'); else hide('dlgField'); }
@@ -650,58 +724,73 @@ function onFormChange(){
   var okS = isInt(w.s) && +w.s >= 0 && +w.s <= 30;
   var okE = isInt(w.e) && +w.e >= 0 && +w.e <= 30;
   var okOrder = okS && okE && +w.e >= +w.s;
-  var okMetric = picked.length > 0;
+  var okTarget = !!picked;
 
-  var dup = null;
-  if (okOrder && okMetric) {
-    var sig = sigOf(+w.s, +w.e, picked);
+  var preview = (okOrder && okTarget) ? { start: +w.s, end: +w.e, attr: picked } : null;
+
+  var dup = null, clash = null;
+  if (preview) {
+    var sig = sigOf(preview.start, preview.end, picked);
     dup = fields.filter(function(f){
-      return f.stat && f.id !== editingId && sigOf(f.start, f.end, f.ms) === sig;
+      return f.stat && f.id !== editingId && sigOf(f.start, f.end, f.attr) === sig;
     })[0] || null;
+    // 不同属性可能生成同名（如当日与累计口径的同名指标），名称必须唯一
+    if (!dup) {
+      var nm = statName(preview);
+      clash = fields.filter(function(f){
+        return f.stat && f.id !== editingId && statName(f) === nm;
+      })[0] || null;
+    }
   }
 
   document.getElementById('errStart').classList.toggle('show', w.s !== '' && !okS);
   document.getElementById('errEnd').classList.toggle('show', w.e !== '' && !okE);
   document.getElementById('errOrder').classList.toggle('show', okS && okE && !okOrder);
-  document.getElementById('errMetric').classList.toggle('show', !okMetric);
+  document.getElementById('errTarget').classList.toggle('show', !okTarget);
+  document.getElementById('targetPicker').classList.toggle('err', !okTarget);
+
   var dupEl = document.getElementById('errDup');
   dupEl.classList.toggle('show', !!dup);
   if (dup) dupEl.textContent = '该统计窗口与统计字段的组合已存在字段「' + statName(dup) + '」，请勿重复创建';
 
+  var clashEl = document.getElementById('errName');
+  clashEl.classList.toggle('show', !!clash);
+  if (clash) clashEl.textContent = '生成的名称「' + statName(clash) + '」已被占用，该字段统计的是「'
+    + attrOf(clash.attr).name + '」。请改选统计字段或调整统计窗口';
+
   document.getElementById('inStart').classList.toggle('err', w.s !== '' && !okS);
   document.getElementById('inEnd').classList.toggle('err', (w.e !== '' && !okE) || (okS && okE && !okOrder));
 
-  var preview = (okOrder && okMetric) ? { start: +w.s, end: +w.e, ms: picked } : null;
   document.getElementById('previewName').textContent = preview ? statName(preview) : '—';
   document.getElementById('previewDesc').textContent = preview ? statDesc(preview) : '—';
 
-  var changed = mode === 'edit' && okMetric && origSig !== sigOf(w.s, w.e, picked);
+  var changed = mode === 'edit' && okTarget && origSig !== sigOf(w.s, w.e, picked);
   document.getElementById('editWarn').classList.toggle('show', changed);
 
-  var canSave = okS && okE && okOrder && okMetric && !dup && w.s !== '' && w.e !== '';
+  var canSave = okS && okE && okOrder && okTarget && !dup && !clash && w.s !== '' && w.e !== '';
   var btn = document.getElementById('btnFieldOk');
   btn.disabled = !canSave;
-  btn.title = canSave ? '' : '请先填写正确的统计窗口并勾选统计字段';
+  btn.title = canSave ? '' : '请先填写正确的统计窗口并选择统计字段';
 }
 
 function submitField(){
   var w = readWin();
   if (mode === 'create') {
     seq++;
-    fields.unshift({ id: Date.now(), cat: 'custom', stat: true, start: +w.s, end: +w.e, ms: picked.slice(),
+    fields.unshift({ id: Date.now(), cat: 'custom', stat: true, start: +w.s, end: +w.e, attr: picked,
                      key: '000000000000000000' + String(seq).padStart(2, '0'), rules: 0 });
     dirty = false; hide('dlgField');
     curCat = 'custom'; selectCat('custom');
     toast('ok', '统计字段创建成功');
   } else {
     if (origSig === sigOf(w.s, w.e, picked)) { dirty = false; hide('dlgField'); toast('ok', '修改成功'); return; }
-    pendingSave = { s: +w.s, e: +w.e, ms: picked.slice() };
+    pendingSave = { s: +w.s, e: +w.e, attr: picked };
     show('dlgConfirmEdit');
   }
 }
 function doConfirmEdit(){
   var f = fields.filter(function(x){ return x.id === editingId; })[0];
-  if (f && pendingSave) { f.start = pendingSave.s; f.end = pendingSave.e; f.ms = pendingSave.ms; }
+  if (f && pendingSave) { f.start = pendingSave.s; f.end = pendingSave.e; f.attr = pendingSave.attr; }
   pendingSave = null; dirty = false;
   hide('dlgConfirmEdit'); hide('dlgField');
   renderAttr();
@@ -749,7 +838,9 @@ function renderVarList(){
   var kw = document.getElementById('vpSearch').value.trim();
   var items = [];
   if (vpCat === 'custom') {
-    items = fields.map(function(f){ return { n: fName(f), d: fDesc(f), stat: f.stat }; });
+    items = fields.map(function(f){
+      return { n: fName(f), d: fDesc(f), stat: f.stat, unit: f.stat ? (attrOf(f.attr) || {}).unit : '' };
+    });
   } else {
     items = (presets[vpCat] || []).map(function(r){ return { n: r[0], d: r[2], stat: false }; });
   }
@@ -757,7 +848,7 @@ function renderVarList(){
   var el = document.getElementById('vpList');
   if (!items.length) { el.innerHTML = '<div class="vp-empty">没有匹配的变量</div>'; return; }
   el.innerHTML = items.map(function(i){
-    return '<div class="vp-item" onclick="pickVar(this)" data-stat="' + (i.stat ? 1 : 0) + '">'
+    return '<div class="vp-item" onclick="pickVar(this)" data-stat="' + (i.stat ? 1 : 0) + '" data-unit="' + (i.unit || '') + '">'
          + i.n + (i.stat ? '<span class="tag blue">统计字段</span>' : '')
          + '<div class="vp-desc">' + i.d + '</div></div>';
   }).join('');
@@ -765,10 +856,12 @@ function renderVarList(){
 function pickVar(el){
   var name = el.childNodes[0].nodeValue;
   var isStat = el.getAttribute('data-stat') === '1';
+  var unit = el.getAttribute('data-unit') || '';
   document.getElementById('varPickerText').textContent = name;
   document.getElementById('varPicker').classList.remove('placeholder');
   document.getElementById('condHint').textContent = isStat
-    ? '已选中统计字段，比较值单位为分钟。取值为空的客户（字段创建前已加微或尚未加微）数值比较一律判定为不成立。'
+    ? '已选中统计字段，比较值单位为' + (unit || '该字段所选会话属性的单位')
+      + '。取值为空的客户（字段创建前已加微或尚未加微）数值比较一律判定为不成立。'
     : '已选中系统默认字段。';
   hideVarPanel();
   validateVal();
