@@ -141,12 +141,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
 
   <div class="topbar">
     <h1>转人工提醒卡片增加原因细分提示<span class="badge">可交互原型 v1.1</span></h1>
-    <p>在企微机器人板块的企业微信提醒卡片与飞书机器人提醒卡片中，新增转人工类型、原因分类、具体原因、用户手机号四行，并在存在补充说明时追加一行；同时在 AI员工明细的转人工明细弹窗中为每条切换记录补上转人工类型与原因分类，并新增按原因分类筛选（弹窗不展示用户手机号）。左侧调整场景，右侧实时查看效果；黄色高亮为本次新增内容。</p>
+    <p>在企微机器人板块的企业微信提醒卡片与飞书机器人提醒卡片中，新增转人工类型、原因分类、具体原因、用户手机号四行，并在存在补充说明时追加一行；同时把两种卡片的发送范围拉齐，扣子转人工与规则引擎转人工都同时发送两种卡片；另外在 AI员工明细的转人工明细弹窗中为每条切换记录补上转人工类型与原因分类，并新增按原因分类筛选（弹窗不展示用户手机号）。左侧调整触发来源与发送条件，右侧实时查看效果；黄色高亮为本次新增内容。</p>
   </div>
 
   <div class="tabs">
-    <div class="tab on" data-tab="wx">企业微信提醒卡片（被动转人工）</div>
-    <div class="tab" data-tab="fs">飞书机器人提醒卡片（规则引擎转人工）</div>
+    <div class="tab on" data-tab="wx">企业微信提醒卡片</div>
+    <div class="tab" data-tab="fs">飞书机器人提醒卡片</div>
     <div class="tab" data-tab="dt">AI员工明细 · 转人工明细弹窗</div>
   </div>
 
@@ -157,15 +157,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
         <div class="sec">
           <h3>转人工场景</h3>
           <div class="f">
-            <label>具体原因（被动转人工共 6 条明细）</label>
-            <select id="wxReason">
-              <option value="确认购买意向|用户意向">确认购买意向</option>
-              <option value="主动要求转人工|用户意向">主动要求转人工</option>
-              <option value="复杂咨询/超出 AI 范围|用户意向">复杂咨询/超出 AI 范围</option>
-              <option value="AI 服务异常|异常协助">AI 服务异常</option>
-              <option value="敏感内容/违规拦截|异常协助">敏感内容/违规拦截</option>
-              <option value="多轮无效对话|异常协助">多轮无效对话</option>
+            <label>触发来源（本次拉齐后三类都发企业微信卡片）</label>
+            <select id="wxTrig">
+              <option value="coze_abnormal">扣子异常违规转人工（原有）</option>
+              <option value="coze_unrecognized">扣子无法识别消息转人工（新增）</option>
+              <option value="rule_engine">规则引擎转人工（新增）</option>
             </select>
+          </div>
+          <div class="f">
+            <label>具体原因</label>
+            <select id="wxReason"></select>
           </div>
           <div class="f">
             <label>客户昵称</label>
@@ -180,6 +181,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
             <textarea id="wxNote" placeholder="留空则整行不展示">客户已询问优惠券使用方式</textarea>
             <div class="cnt" id="wxCnt">已输入 12 字</div>
           </div>
+        </div>
+
+        <div class="sec">
+          <h3>发送条件</h3>
+          <div class="sw" id="wxAlready"><div class="knob"></div><div class="txt"><strong>客户此前已处于人工接待</strong><span>重复转人工，两种卡片均不发送。本次新增该判断，与飞书卡片口径一致</span></div></div>
+          <div class="sw" id="wxNotifyOff"><div class="knob"></div><div class="txt"><strong>关闭该规则的坐席通知开关</strong><span>仅规则引擎触发时生效，关闭时两种卡片均不发送</span></div></div>
         </div>
 
         <div class="sec">
@@ -218,7 +225,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
           </div>
         </div>
         <div class="legend"><span><i></i>本次新增行</span><span>标题与跳转链接沿用现有配置</span></div>
-        <div class="note">发送条件沿用现有配置：仅被动转人工且方向为「转人工接待」时发送。销售主动转人工、标签回调转人工、无法识别消息转人工、规则引擎转人工均不发送本卡片。</div>
+        <div class="note">发送范围拉齐后：扣子异常违规转人工、扣子无法识别消息转人工、规则引擎转人工三类触发来源且方向为「转人工接待」时均发送，后两类为本次新增。规则引擎触发还需该规则的坐席通知开关开启；客户此前已处于人工接待时不发送。销售主动转人工、RPA 手改会话标签、防御性转人工、空闲超时自动转回 AI 均不发送。</div>
       </div>
     </div>
   </div>
@@ -230,23 +237,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
         <div class="sec">
           <h3>转人工场景</h3>
           <div class="f">
-            <label>具体原因（规则引擎转人工共 7 条明细）</label>
-            <select id="fsReason">
-              <option>关键词命中</option>
-              <option>频次阈值命中</option>
-              <option>行为模式匹配</option>
-              <option>时间窗口命中</option>
-              <option>用户意向匹配</option>
-              <option>兜底规则</option>
-              <option>触发器动作</option>
+            <label>触发来源（本次拉齐后三类都发飞书卡片）</label>
+            <select id="fsTrig">
+              <option value="rule_engine">规则引擎转人工（原有）</option>
+              <option value="coze_abnormal">扣子异常违规转人工（新增）</option>
+              <option value="coze_unrecognized">扣子无法识别消息转人工（新增）</option>
             </select>
+          </div>
+          <div class="f">
+            <label>具体原因</label>
+            <select id="fsReason"></select>
           </div>
           <div class="f">
             <label>客户昵称</label>
             <input type="text" id="fsNick" value="洋葱家长-小明妈妈">
           </div>
-          <div class="f">
-            <label>命中规则名</label>
+          <div class="f" id="fsRuleField">
+            <label>命中规则名（扣子触发时整行不展示）</label>
             <input type="text" id="fsRule" value="高意向客户即时承接规则">
           </div>
           <div class="f">
@@ -261,11 +268,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei
         </div>
 
         <div class="sec">
+          <h3>发送条件</h3>
+          <div class="sw" id="fsAlready"><div class="knob"></div><div class="txt"><strong>客户此前已处于人工接待</strong><span>重复转人工，两种卡片均不发送，沿用现有口径</span></div></div>
+          <div class="sw" id="fsOff"><div class="knob"></div><div class="txt"><strong>关闭该规则的坐席通知开关</strong><span>仅规则引擎触发时生效，关闭时两种卡片均不发送；扣子触发不受该开关控制</span></div></div>
+        </div>
+
+        <div class="sec">
           <h3>边界场景</h3>
           <div class="sw" id="fsMiss"><div class="knob"></div><div class="txt"><strong>模拟原因信息缺失</strong><span>字典未配置对照关系，三行均展示「未记录」</span></div></div>
           <div class="sw" id="fsNoPhone"><div class="knob"></div><div class="txt"><strong>模拟手机号读取不到</strong><span>客户未绑定洋葱账号、账号上号码为空或画像尚未写入，该行展示「未获取到」</span></div></div>
           <div class="sw" id="fsTpl"><div class="knob"></div><div class="txt"><strong>模拟卡片模板尚未扩展</strong><span>通知服务侧模板未更新时，新增五行不展示，卡片按现有样式正常发送</span></div></div>
-          <div class="sw" id="fsOff"><div class="knob"></div><div class="txt"><strong>关闭该规则的坐席通知开关</strong><span>开关关闭时不发送飞书卡片，扩展内容随之不展示</span></div></div>
         </div>
 
         <div class="sec">
@@ -407,12 +419,54 @@ function bindSeg(id,cb){
   });
 }
 
+/* ============ 触发来源与原因字典 ============ */
+var TRIG = {
+  coze_abnormal: {
+    name: '扣子异常违规转人工', type: '用户被动',
+    reasons: [
+      ['确认购买意向','用户意向'],
+      ['主动要求转人工','用户意向'],
+      ['复杂咨询/超出 AI 范围','用户意向'],
+      ['AI 服务异常','异常协助'],
+      ['敏感内容/违规拦截','异常协助'],
+      ['多轮无效对话','异常协助']
+    ]
+  },
+  coze_unrecognized: {
+    name: '扣子无法识别消息转人工', type: '无法识别消息',
+    reasons: [['特殊消息转人工','用户意向']]
+  },
+  rule_engine: {
+    name: '规则引擎转人工', type: '规则引擎',
+    reasons: [
+      ['关键词命中','规则命中'],
+      ['频次阈值命中','规则命中'],
+      ['行为模式匹配','规则命中'],
+      ['时间窗口命中','规则命中'],
+      ['用户意向匹配','规则命中'],
+      ['兜底规则','规则命中'],
+      ['触发器动作','规则命中']
+    ]
+  }
+};
+
+function fillReasons(selId, trigKey){
+  var sel=$(selId), list=TRIG[trigKey].reasons, html='';
+  for(var i=0;i<list.length;i++){
+    html += '<option value="'+list[i][0]+'|'+list[i][1]+'">'+list[i][0]+'</option>';
+  }
+  sel.innerHTML=html;
+}
+
 /* ================= 企业微信 ================= */
 var wxMode='after';
 bindSeg('wxSeg',function(v){wxMode=v;renderWx()});
 bindSw('wxMiss',renderWx);
 bindSw('wxNoPhone',renderWx);
+bindSw('wxAlready',renderWx);
+bindSw('wxNotifyOff',renderWx);
 bindSw('wxLong',function(on){ $('wxNote').value = on ? LONG : '客户已询问优惠券使用方式'; renderWx(); });
+$('wxTrig').addEventListener('change',function(){ fillReasons('wxReason',$('wxTrig').value); renderWx(); });
 ['wxReason','wxNick','wxMobile','wxNote'].forEach(function(id){
   $(id).addEventListener('input',renderWx);
   $(id).addEventListener('change',renderWx);
@@ -420,26 +474,54 @@ bindSw('wxLong',function(on){ $('wxNote').value = on ? LONG : '客户已询问�
 
 function truncate(s,n){ return s.length>n ? s.slice(0,n)+'……' : s; }
 
+var WX_PHONE_HTML = $('wxPhone').innerHTML;
+function restoreWxPhone(){
+  if(!$('wxDesc')) $('wxPhone').innerHTML = WX_PHONE_HTML;
+}
+
 function renderWx(){
+  var trigKey=$('wxTrig').value, trig=TRIG[trigKey];
   var pair=$('wxReason').value.split('|');
   var reason=pair[0], category=pair[1];
   var miss=isOn('wxMiss');
   var noPhone=isOn('wxNoPhone');
+  var already=isOn('wxAlready');
+  var notifyOff=isOn('wxNotifyOff') && trigKey==='rule_engine';
   var nick=$('wxNick').value.trim();
   var mobileIn=$('wxMobile').value.trim();
   var note=$('wxNote').value.trim();
 
-  var type = miss?MISS:'用户被动';
+  var type = miss?MISS:trig.type;
   var cat  = miss?MISS:category;
   var rsn  = miss?MISS:reason;
   var noMobile = noPhone || !mobileIn;
   var mobile = noMobile ? NOPHONE : mobileIn;
+  var blocked = already || notifyOff;
+
+  if(blocked){
+    var why = already ? '客户此前已处于人工接待，本次属于重复转人工'
+                      : '该规则的坐席通知开关已关闭';
+    $('wxResolved').innerHTML =
+      row('触发来源',trig.name,false)+
+      row('是否发送','不发送',true)+
+      row('不发送原因',why,true)+
+      row('飞书卡片','同步不发送',true);
+    $('wxDesc').innerHTML='';
+    $('wxPhone').innerHTML='<div class="empty"><div class="ic">🔕</div>'+esc(why)+'<br>企业微信卡片与飞书卡片均不发送</div>';
+    var c0=$('wxCnt');
+    c0.textContent='已输入 '+note.length+' 字';
+    c0.className='cnt';
+    return;
+  }
+  restoreWxPhone();
 
   /* 解析结果面板 */
   $('wxResolved').innerHTML =
+    row('触发来源',trig.name,false)+
     row('转人工类型',type,miss)+row('原因分类',cat,miss)+row('具体原因',rsn,miss)+
     row('用户手机号',mobile,noMobile)+
-    row('补充说明', note? (note.length>30? '超长，截取前 30 字' : '完整展示') : '为空，整行不展示', false);
+    row('补充说明', note? (note.length>30? '超长，截取前 30 字' : '完整展示') : '为空，整行不展示', false)+
+    row('飞书卡片','同步发送',false);
 
   /* 卡片正文 */
   var L1='您的好友【'+esc(nick)+'】由AI转为人工接待';
@@ -477,44 +559,61 @@ bindSw('fsMiss',renderFs);
 bindSw('fsNoPhone',renderFs);
 bindSw('fsTpl',renderFs);
 bindSw('fsOff',renderFs);
+bindSw('fsAlready',renderFs);
+$('fsTrig').addEventListener('change',function(){ fillReasons('fsReason',$('fsTrig').value); renderFs(); });
 ['fsReason','fsNick','fsRule','fsMobile','fsNote'].forEach(function(id){
   $(id).addEventListener('input',renderFs);
   $(id).addEventListener('change',renderFs);
 });
 
 function renderFs(){
-  var miss=isOn('fsMiss'), noPhone=isOn('fsNoPhone'), tplOld=isOn('fsTpl'), off=isOn('fsOff');
-  var reason=$('fsReason').value;
+  var trigKey=$('fsTrig').value, trig=TRIG[trigKey], isRule=(trigKey==='rule_engine');
+  var miss=isOn('fsMiss'), noPhone=isOn('fsNoPhone'), tplOld=isOn('fsTpl');
+  var off=isOn('fsOff') && isRule, already=isOn('fsAlready');
+  var pair=$('fsReason').value.split('|');
+  var reason=pair[0], category=pair[1];
   var nick=$('fsNick').value.trim();
   var rule=$('fsRule').value.trim();
   var mobileIn=$('fsMobile').value.trim();
   var note=$('fsNote').value.trim();
 
-  var type = miss?MISS:'规则引擎';
-  var cat  = miss?MISS:'规则命中';
+  $('fsRuleField').style.display = isRule ? '' : 'none';
+
+  var type = miss?MISS:trig.type;
+  var cat  = miss?MISS:category;
   var rsn  = miss?MISS:reason;
   var noMobile = noPhone || !mobileIn;
   var mobile = noMobile ? NOPHONE : mobileIn;
-
-  $('fsResolved').innerHTML =
-    row('转人工类型',type,miss)+row('原因分类',cat,miss)+row('具体原因',rsn,miss)+
-    row('用户手机号',mobile,noMobile)+
-    row('补充说明', note? '完整展示，不截断' : '为空，整行不展示', false)+
-    row('是否发送', off? '不发送（坐席通知开关关闭）':'发送', off);
+  var blocked = already || off;
 
   var cnt=$('fsCnt');
   cnt.textContent='已输入 '+note.length+' 字';
   cnt.className = note.length>200 ? 'cnt warn':'cnt';
 
-  if(off){
-    $('fsBody').innerHTML='<div class="empty"><div class="ic">🔕</div>该规则的坐席通知开关已关闭<br>本次规则引擎转人工不发送飞书提醒卡片</div>';
+  if(blocked){
+    var why = already ? '客户此前已处于人工接待，本次属于重复转人工'
+                      : '该规则的坐席通知开关已关闭';
+    $('fsResolved').innerHTML =
+      row('触发来源',trig.name,false)+
+      row('是否发送','不发送',true)+
+      row('不发送原因',why,true)+
+      row('企业微信卡片','同步不发送',true);
+    $('fsBody').innerHTML='<div class="empty"><div class="ic">🔕</div>'+esc(why)+'<br>飞书卡片与企业微信卡片均不发送</div>';
     return;
   }
+
+  $('fsResolved').innerHTML =
+    row('触发来源',trig.name,false)+
+    row('转人工类型',type,miss)+row('原因分类',cat,miss)+row('具体原因',rsn,miss)+
+    row('用户手机号',mobile,noMobile)+
+    row('补充说明', note? '完整展示，不截断' : '为空，整行不展示', false)+
+    row('命中规则名', isRule? '展示规则名称' : '扣子触发，整行不展示', !isRule)+
+    row('企业微信卡片','同步发送',false);
 
   var showNew = (fsMode==='after') && !tplOld;
   var lines='';
   lines += line('客户昵称', nick||'—', false, false);
-  lines += line('命中规则名', rule||'—', false, false);
+  if(isRule) lines += line('命中规则名', rule||'—', false, false);
   if(showNew){
     lines += line('转人工类型', type, miss, true);
     lines += line('原因分类', cat, miss, true);
@@ -534,7 +633,7 @@ function renderFs(){
       '<div class="fscard">'+
         '<div class="fshdr">⚠️ 客户已转人工接待，请及时承接</div>'+
         '<div class="fsbd">'+lines+'</div>'+
-        '<div class="fsftr">来源：企微机器人规则引擎</div>'+
+        '<div class="fsftr">来源：企微机器人'+(isRule?'规则引擎':'扣子智能体')+'</div>'+
       '</div>'+
     '</div></div>'+tip;
 }
@@ -660,6 +759,8 @@ function renderDt(){
   }).join('')+'</div>';
 }
 
+fillReasons('wxReason',$('wxTrig').value);
+fillReasons('fsReason',$('fsTrig').value);
 renderWx();
 renderFs();
 dtFillSelects();
