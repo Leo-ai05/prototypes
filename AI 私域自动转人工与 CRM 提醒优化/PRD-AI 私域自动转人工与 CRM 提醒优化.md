@@ -65,7 +65,7 @@ flowchart TD
 
 ## 六、可交互原型
 
-[查看可交互原型](https://minio.yc345.tv/onionext/prototypes/ai-private-auto-handoff-crm-alert/index.html)
+[查看可交互原型](https://leo-ai05.github.io/prototypes/AI%20%E7%A7%81%E5%9F%9F%E8%87%AA%E5%8A%A8%E8%BD%AC%E4%BA%BA%E5%B7%A5%E4%B8%8E%20CRM%20%E6%8F%90%E9%86%92%E4%BC%98%E5%8C%96/)
 
 ## 七、功能需求详细描述
 
