@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AI 私域自动转人工与 CRM 提醒优化</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;background:#f3f5f8;color:#303133;font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif}.top{height:56px;background:#fff;border-bottom:1px solid #e6e8eb;display:flex;align-items:center;padding:0 24px}.brand{font-size:18px;font-weight:600;color:#222}.crumb{margin-left:28px;color:#909399}.page{padding:20px}.layout{display:flex;gap:14px;max-width:1440px;margin:auto}.side{width:210px;background:#fff;border:1px solid #ebeef5;border-radius:6px;padding:14px 0;min-height:720px}.side-title{padding:0 18px 12px;color:#909399;font-size:13px}.nav{padding:11px 18px;cursor:pointer}.nav.active{color:#409eff;background:#ecf5ff;border-right:3px solid #409eff}.main{flex:1;min-width:0}.card{background:#fff;border:1px solid #ebeef5;border-radius:6px;padding:18px;margin-bottom:14px}.title-row{display:flex;align-items:center;justify-content:space-between}.title{font-size:18px;font-weight:600}.sub{color:#909399;margin-top:4px}.badge{padding:4px 10px;border-radius:12px;background:#f0f9eb;color:#67c23a}.grid{display:grid;grid-template-columns:360px 1fr;gap:14px;margin-top:16px}.panel{border:1px solid #ebeef5;border-radius:6px;padding:16px}.panel h3{margin:0 0 14px;font-size:15px}.field{margin-bottom:14px}.field label{display:block;margin-bottom:6px;color:#606266}.switch-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f0f2f5}.switch{width:40px;height:22px;border-radius:11px;background:#dcdfe6;position:relative;cursor:pointer;transition:.2s}.switch:after{content:"";position:absolute;width:18px;height:18px;top:2px;left:2px;background:#fff;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:.2s}.switch.on{background:#409eff}.switch.on:after{left:20px}.select{height:34px;width:100%;border:1px solid #dcdfe6;border-radius:4px;background:#fff;padding:0 10px;color:#606266}.btn{height:34px;padding:0 16px;border:1px solid #dcdfe6;border-radius:4px;background:#fff;color:#606266;cursor:pointer}.btn.primary{background:#409eff;border-color:#409eff;color:#fff}.btn:disabled{background:#f5f7fa;color:#c0c4cc;cursor:not-allowed}.actions{display:flex;gap:10px;margin-top:16px}.flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:14px 0}.step{padding:9px 12px;border-radius:4px;background:#f5f7fa;color:#606266}.step.active{background:#ecf5ff;color:#409eff;border:1px solid #b3d8ff}.step.success{background:#f0f9eb;color:#67c23a;border:1px solid #c2e7b0}.arrow{color:#c0c4cc}.result{margin-top:14px;border-radius:6px;padding:14px;background:#f5f7fa}.result.success{background:#f0f9eb;border:1px solid #c2e7b0}.result.ai{background:#fdf6ec;border:1px solid #f5dab1}.result.error{background:#fef0f0;border:1px solid #fbc4c4}.result strong{display:block;margin-bottom:5px}.tag{display:inline-block;margin:4px 6px 0 0;padding:2px 8px;border-radius:3px;background:#ecf5ff;color:#409eff}.tag.orange{background:#fdf6ec;color:#e6a23c}.notice{margin-top:12px;padding:10px 12px;border-left:3px solid #e6a23c;background:#fdf6ec;color:#8a6420}.hidden{display:none!important}.toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:16px}.input{height:34px;border:1px solid #dcdfe6;border-radius:4px;padding:0 10px;color:#909399}.summary{margin-left:auto;color:#606266}.table-wrap{margin-top:14px;border:1px solid #ebeef5;overflow:auto}.table{border-collapse:collapse;width:100%;min-width:940px}.table th,.table td{height:50px;padding:0 12px;border-bottom:1px solid #ebeef5;text-align:left;white-space:nowrap}.table th{background:#f5f7fa;color:#606266;font-weight:500}.bell{color:#e6a23c;font-size:18px}.muted{color:#c0c4cc}.yes{color:#67c23a}.no{color:#909399}.empty{display:none;height:220px;align-items:center;justify-content:center;flex-direction:column;color:#909399}.empty strong{color:#606266;font-size:16px;margin-bottom:6px}.toast{position:fixed;top:75px;left:50%;transform:translateX(-50%);padding:10px 18px;border-radius:4px;background:#f0f9eb;border:1px solid #c2e7b0;color:#67c23a;display:none;z-index:50}.toast.show{display:block}.legend{display:flex;gap:18px;margin-top:12px;color:#909399}.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}.dot.green{background:#67c23a}.dot.gray{background:#c0c4cc}@media(max-width:900px){.side{display:none}.grid{grid-template-columns:1fr}.page{padding:10px}.toolbar .summary{margin-left:0;width:100%}}
+  </style>
+</head>
+<body>
+  <header class="top"><div class="brand">私域运营后台</div><div class="crumb">AI 私域 / 规则验证</div></header>
+  <main class="page">
+    <div class="layout">
+      <aside class="side">
+        <div class="side-title">需求演示</div>
+        <div class="nav active" data-view="handoff">AI 私域进线模拟</div>
+        <div class="nav" data-view="bell">CRM 销售机会提醒</div>
+      </aside>
+      <section class="main">
+        <div id="handoffView">
+          <div class="card">
+            <div class="title-row"><div><div class="title">AI 私域进线模拟</div><div class="sub">识别用户后，任一条件命中即转给当前渠道销售</div></div><span class="badge">P1</span></div>
+            <div class="grid">
+              <div class="panel">
+                <h3>模拟用户条件</h3>
+                <div class="field"><label>当前私域渠道</label><select class="select" id="channel"><option>企微渠道 A · 王老师</option><option>企微渠道 B · 李老师</option></select></div>
+                <div class="switch-row"><span>当前有效的转介绍绑定</span><span class="switch" id="referral"></span></div>
+                <div class="switch-row"><span>已归属当前渠道销售</span><span class="switch" id="owned"></span></div>
+                <div class="switch-row"><span>符合既有付费用户口径</span><span class="switch" id="paid"></span></div>
+                <div class="switch-row"><span>模拟转人工失败</span><span class="switch" id="fail"></span></div>
+                <div class="actions"><button class="btn primary" id="simulate">模拟重新进线</button><button class="btn" id="resetHandoff">重置</button></div>
+              </div>
+              <div class="panel">
+                <h3>识别与接待结果</h3>
+                <div class="flow">
+                  <span class="step" id="s1">私域进线</span><span class="arrow">→</span>
+                  <span class="step" id="s2">身份识别</span><span class="arrow">→</span>
+                  <span class="step" id="s3">条件判断</span><span class="arrow">→</span>
+                  <span class="step" id="s4">确定接待方</span>
+                </div>
+                <div class="result ai" id="handoffResult"><strong>等待模拟</strong>请选择用户条件并点击“模拟重新进线”。</div>
+                <div class="notice">用户侧提示与转人工失败处理沿用现有逻辑；付费用户识别口径不变。</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="bellView" class="hidden">
+          <div class="card">
+            <div class="title-row"><div><div class="title">CRM 销售机会提醒</div><div class="sub">从未发起过转人工的 AI 私域线索不进入小铃铛提醒</div></div><span class="badge">P1</span></div>
+            <div class="toolbar">
+              <div class="input">客户手机号 / 洋葱 ID</div>
+              <select class="select" id="historyFilter" style="width:210px"><option value="all">全部转人工历史</option><option value="attempted">历史发起过转人工</option><option value="never">历史从未发起转人工</option></select>
+              <button class="btn primary" id="applyFilter">查询</button><button class="btn" id="toggleRule">切换为改造前</button>
+              <div class="summary">本批次提醒 <strong id="bellCount">3</strong> 条</div>
+            </div>
+            <div class="legend"><span><i class="dot green"></i>参与现有小铃铛提醒</span><span><i class="dot gray"></i>不提醒</span></div>
+            <div class="table-wrap">
+              <table class="table">
+                <thead><tr><th>客户</th><th>线索来源</th><th>当前归属销售</th><th>AI 私域转人工历史</th><th>本批次提醒结果</th><th>说明</th></tr></thead>
+                <tbody id="leadRows">
+                  <tr data-history="attempted"><td>张同学家长</td><td>AI机器人</td><td>王老师</td><td class="yes">发起过</td><td class="bell">🔔 提醒</td><td>沿用现有提醒时机与跳转</td></tr>
+                  <tr data-history="never"><td>李同学家长</td><td>AI机器人</td><td>李老师</td><td class="no">从未发起</td><td class="muted rule-result">— 不提醒</td><td class="rule-note">本次新增过滤</td></tr>
+                  <tr data-history="attempted"><td>陈同学家长</td><td>AI机器人</td><td>赵老师</td><td class="yes">发起过但未成功</td><td class="bell">🔔 提醒</td><td>以发起动作作为判断口径</td></tr>
+                  <tr data-history="never"><td>周同学家长</td><td>AI机器人</td><td>王老师</td><td class="no">从未发起</td><td class="muted rule-result">— 不提醒</td><td class="rule-note">本次新增过滤</td></tr>
+                  <tr data-history="attempted"><td>吴同学家长</td><td>AI机器人</td><td>李老师</td><td class="yes">发起过</td><td class="bell">🔔 提醒</td><td>跨 AI 私域渠道统计历史</td></tr>
+                </tbody>
+              </table>
+              <div class="empty" id="empty"><strong>暂无符合条件的数据</strong><span>请调整筛选条件后重试</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+  <div class="toast" id="toast">规则已应用</div>
+  <script>
+    const switches=[...document.querySelectorAll('.switch')];
+    switches.forEach(x=>x.onclick=()=>x.classList.toggle('on'));
+    const result=document.getElementById('handoffResult'),steps=[1,2,3,4].map(i=>document.getElementById('s'+i));
+    function resetSteps(){steps.forEach(x=>x.className='step')}
+    function showToast(text){const t=document.getElementById('toast');t.textContent=text;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1500)}
+    document.getElementById('simulate').onclick=()=>{
+      resetSteps();let i=0;const timer=setInterval(()=>{steps[i].classList.add('active');i++;if(i===4){clearInterval(timer);finishHandoff()}},180)
+    };
+    function finishHandoff(){
+      const matched=['referral','owned','paid'].filter(id=>document.getElementById(id).classList.contains('on'));
+      const names={referral:'当前有效转介绍绑定',owned:'已归属当前渠道销售',paid:'既有付费用户'};
+      steps.forEach(x=>{x.classList.remove('active');x.classList.add('success')});
+      if(!matched.length){result.className='result ai';result.innerHTML='<strong>继续由 AI 接待</strong>未命中自动转人工条件，不发起转人工。';steps[3].className='step active';return}
+      if(document.getElementById('fail').classList.contains('on')){result.className='result error';result.innerHTML='<strong>自动转人工未完成</strong>已命中：'+matched.map(x=>'<span class="tag orange">'+names[x]+'</span>').join('')+'<br>后续按现有转人工失败逻辑处理。';return}
+      const owner=document.getElementById('channel').value.split('·')[1].trim();
+      result.className='result success';result.innerHTML='<strong>已立即转为人工接待</strong>命中：'+matched.map(x=>'<span class="tag">'+names[x]+'</span>').join('')+'<br>承接人：当前渠道销售 '+owner+'；不再进入 AI 首轮接待。'
+    }
+    document.getElementById('resetHandoff').onclick=()=>{switches.forEach(x=>x.classList.remove('on'));resetSteps();result.className='result ai';result.innerHTML='<strong>等待模拟</strong>请选择用户条件并点击“模拟重新进线”。'};
+    document.querySelectorAll('.nav').forEach(n=>n.onclick=()=>{document.querySelectorAll('.nav').forEach(x=>x.classList.remove('active'));n.classList.add('active');document.getElementById('handoffView').classList.toggle('hidden',n.dataset.view!=='handoff');document.getElementById('bellView').classList.toggle('hidden',n.dataset.view!=='bell')});
+    let newRule=true;
+    function refreshRows(){
+      const filter=document.getElementById('historyFilter').value,rows=[...document.querySelectorAll('#leadRows tr')];let visible=0,bells=0;
+      rows.forEach(r=>{const show=filter==='all'||r.dataset.history===filter;r.style.display=show?'':'none';if(show){visible++;if(newRule?r.dataset.history==='attempted':true)bells++}});
+      document.getElementById('leadRows').style.display=visible?'':'none';document.getElementById('empty').style.display=visible?'none':'flex';document.getElementById('bellCount').textContent=bells;
+    }
+    document.getElementById('applyFilter').onclick=()=>{refreshRows();showToast('筛选已应用')};
+    document.getElementById('toggleRule').onclick=e=>{
+      newRule=!newRule;e.target.textContent=newRule?'切换为改造前':'切换为改造后';
+      document.querySelectorAll('.rule-result').forEach(x=>{x.className=newRule?'muted rule-result':'bell rule-result';x.textContent=newRule?'— 不提醒':'🔔 提醒'});
+      document.querySelectorAll('.rule-note').forEach(x=>x.textContent=newRule?'本次新增过滤':'改造前仍会提醒');
+      refreshRows();showToast(newRule?'已切换为改造后规则':'已切换为改造前规则')
+    };
+  </script>
+</body>
+</html>
