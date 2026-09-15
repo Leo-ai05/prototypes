@@ -86,12 +86,13 @@ input { font-family: inherit; font-size: inherit; }
 .attr-main { flex: 1; min-width: 0; padding-left: 20px; }
 .attr-toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; gap: 12px; }
 .search-box {
-  border: 1px solid #dcdfe6; border-radius: 4px; padding: 8px 12px; width: 260px; color: #606266; outline: none;
+  border: 1px solid #dcdfe6; border-radius: 4px; padding: 8px 12px; width: 300px; color: #606266; outline: none;
 }
 .search-box:focus { border-color: #409eff; }
-.group-block { margin-bottom: 22px; }
-.group-hd { font-size: 14px; font-weight: 600; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+.group-block { margin-bottom: 22px; border: 1px solid #ebeef5; border-radius: 4px; padding: 14px; }
+.group-hd { font-size: 14px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
 .group-hd .num { color: #909399; font-weight: 400; font-size: 12px; }
+.group-hd .gdesc { color: #c0c4cc; font-weight: 400; font-size: 12px; margin-left: auto; }
 
 /* ---------- table ---------- */
 table.el { width: 100%; border-collapse: collapse; border: 1px solid #ebeef5; font-size: 13px; }
@@ -117,7 +118,7 @@ table.el tbody tr:hover { background: #f5f7fa; }
 .mask { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: none; align-items: flex-start; justify-content: center; z-index: 50; }
 .mask.show { display: flex; }
 .mask.lv2 { z-index: 60; }
-.dialog { background: #fff; border-radius: 4px; width: 560px; margin-top: 12vh; box-shadow: 0 8px 30px rgba(0,0,0,.2); }
+.dialog { background: #fff; border-radius: 4px; width: 640px; margin-top: 8vh; box-shadow: 0 8px 30px rgba(0,0,0,.2); }
 .dialog.narrow { width: 460px; }
 .dlg-hd {
   background: #f8f8f8; border-bottom: 1px solid #e6e6e6; padding: 14px 20px;
@@ -126,45 +127,64 @@ table.el tbody tr:hover { background: #f5f7fa; }
 }
 .dlg-close { border: none; background: none; color: #909399; font-size: 18px; line-height: 1; }
 .dlg-close:hover { color: #409eff; }
-.dlg-bd { padding: 22px 20px 4px; max-height: 60vh; overflow: auto; }
+.dlg-bd { padding: 22px 20px 4px; max-height: 66vh; overflow: auto; }
 .dlg-ft { padding: 16px 20px 20px; text-align: right; display: flex; gap: 10px; justify-content: flex-end; }
 
 /* ---------- form ---------- */
 .form-row { display: flex; margin-bottom: 20px; }
-.form-label { width: 132px; flex: none; text-align: right; padding-right: 12px; padding-top: 9px; color: #606266; font-size: 14px; }
+.form-label { width: 110px; flex: none; text-align: right; padding-right: 12px; padding-top: 9px; color: #606266; font-size: 14px; }
 .form-label .req { color: #f56c6c; margin-right: 4px; }
 .form-ctrl { flex: 1; min-width: 0; }
-.num-input {
-  width: 110px; border: 1px solid #dcdfe6; border-radius: 4px; padding: 9px 12px; color: #606266; outline: none;
-}
-.num-input:focus { border-color: #409eff; }
-.num-input.err { border-color: #f56c6c; }
-.inline { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .hint { color: #909399; font-size: 12px; margin-top: 6px; line-height: 1.6; }
-.err-msg { color: #f56c6c; font-size: 12px; margin-top: 6px; display: none; }
+.err-msg { color: #f56c6c; font-size: 12px; margin-top: 6px; display: none; line-height: 1.6; }
 .err-msg.show { display: block; }
 .readonly-box {
-  background: #f5f7fa; border: 1px solid #ebeef5; border-radius: 4px; padding: 9px 12px; color: #606266; min-height: 38px;
+  background: #f5f7fa; border: 1px solid #ebeef5; border-radius: 4px; padding: 9px 12px; color: #606266; min-height: 38px; line-height: 1.6;
 }
-.attr-picker {
-  border: 1px solid #dcdfe6; border-radius: 4px; padding: 9px 12px; background: #fff;
+.preview-name { color: #303133; font-weight: 600; font-size: 15px; }
+.preview-name .pfx { color: #409eff; }
+.preview-name .ph { color: #c0c4cc; font-weight: 400; }
+
+/* ---------- 周期档单选 ---------- */
+.period-group { display: flex; gap: 8px; flex-wrap: wrap; }
+.period-item {
+  border: 1px solid #dcdfe6; border-radius: 4px; padding: 8px 12px; cursor: pointer;
+  background: #fff; text-align: center; min-width: 92px;
+}
+.period-item:hover { border-color: #409eff; }
+.period-item.on { border-color: #409eff; background: #ecf5ff; }
+.period-item .pname { color: #303133; font-size: 14px; line-height: 1.4; }
+.period-item.on .pname { color: #409eff; font-weight: 600; }
+.period-item .prange { color: #909399; font-size: 11px; margin-top: 3px; }
+.period-item.on .prange { color: #79bbff; }
+
+/* ---------- 统计口径多选 ---------- */
+.metric-picker {
+  border: 1px solid #dcdfe6; border-radius: 4px; padding: 6px 10px; background: #fff;
   color: #606266; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+  min-height: 38px; gap: 8px; flex-wrap: wrap;
 }
-.attr-picker:hover { border-color: #409eff; }
-.attr-picker.placeholder { color: #c0c4cc; }
-.attr-picker.err { border-color: #f56c6c; }
+.metric-picker:hover { border-color: #409eff; }
+.metric-picker.err { border-color: #f56c6c; }
+.metric-picker .ph { color: #c0c4cc; }
+.chip {
+  background: #f4f4f5; border: 1px solid #e9e9eb; border-radius: 3px; color: #606266;
+  font-size: 12px; padding: 2px 6px; display: inline-flex; align-items: center; gap: 5px; margin: 2px 0;
+}
+.chip .x { color: #909399; cursor: pointer; font-style: normal; }
+.chip .x:hover { color: #f56c6c; }
 .agg-box {
   background: #ecf5ff; border: 1px solid #d9ecff; border-radius: 4px;
   padding: 9px 12px; margin-top: 8px; font-size: 12px; color: #409eff; line-height: 1.7; display: none;
 }
 .agg-box.show { display: block; }
 .agg-box b { font-weight: 600; }
-.preview-name { color: #303133; font-weight: 600; }
-.warn-box {
-  background: #fdf6ec; border: 1px solid #faecd8; color: #e6a23c; border-radius: 4px;
-  padding: 10px 12px; font-size: 13px; line-height: 1.6; display: none; margin-bottom: 20px;
+.name-input {
+  border: 1px solid #dcdfe6; border-radius: 4px; padding: 9px 12px; color: #606266; outline: none; width: 260px;
 }
-.warn-box.show { display: block; }
+.name-input:focus { border-color: #409eff; }
+.name-input.err { border-color: #f56c6c; }
+.pfx-tip { color: #909399; font-size: 13px; margin-right: 6px; }
 .confirm-text { color: #606266; line-height: 1.8; font-size: 14px; }
 .confirm-text .strong { color: #f56c6c; }
 
@@ -172,7 +192,7 @@ table.el tbody tr:hover { background: #f5f7fa; }
 #toastWrap { position: fixed; top: 20px; left: 0; right: 0; z-index: 100; display: flex; flex-direction: column; align-items: center; gap: 10px; pointer-events: none; }
 .toast {
   padding: 11px 18px; border-radius: 4px; font-size: 14px; box-shadow: 0 2px 12px rgba(0,0,0,.1);
-  display: flex; align-items: center; gap: 8px;
+  display: flex; align-items: center; gap: 8px; max-width: 70%;
 }
 .toast.ok { background: #f0f9eb; border: 1px solid #e1f3d8; color: #67c23a; }
 .toast.err { background: #fef0f0; border: 1px solid #fde2e2; color: #f56c6c; }
@@ -199,25 +219,38 @@ table.el tbody tr:hover { background: #f5f7fa; }
 .val-input { width: 150px; border: 1px solid #dcdfe6; border-radius: 4px; padding: 8px 12px; color: #606266; outline: none; }
 .val-input:focus { border-color: #409eff; }
 .val-input.err { border-color: #f56c6c; }
+
+/* ---------- 浮层面板 ---------- */
 .var-panel {
   position: absolute; z-index: 70; background: #fff; border: 1px solid #ebeef5; border-radius: 6px;
-  box-shadow: 0 4px 18px rgba(0,0,0,.14); width: 460px; display: none;
+  box-shadow: 0 4px 18px rgba(0,0,0,.14); width: 520px; display: none;
 }
 .var-panel.show { display: block; }
 .var-panel .vp-search { padding: 10px; border-bottom: 1px solid #ebeef5; }
 .var-panel .vp-search input { width: 100%; border: 1px solid #dcdfe6; border-radius: 4px; padding: 7px 10px; outline: none; }
-.var-panel .vp-body { display: flex; height: 280px; }
-.vp-cats { width: 140px; border-right: 1px solid #ebeef5; overflow: auto; padding: 6px; }
+.var-panel .vp-body { display: flex; height: 300px; }
+.vp-cats { width: 140px; border-right: 1px solid #ebeef5; overflow: auto; padding: 6px; flex: none; }
 .vp-cat { padding: 8px 10px; border-radius: 4px; cursor: pointer; font-size: 13px; color: #606266; }
 .vp-cat:hover { background: #f5f7fa; }
 .vp-cat.active { background: #ecf5ff; color: #409eff; }
 .vp-list { flex: 1; overflow: auto; padding: 6px; }
-.vp-item { padding: 8px 10px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+.vp-item { padding: 8px 10px; border-radius: 4px; cursor: pointer; font-size: 13px; display: flex; gap: 8px; align-items: flex-start; }
 .vp-item:hover { background: #f5f7fa; }
 .vp-item.sel { background: #ecf5ff; color: #409eff; }
-.vp-item .vp-desc { color: #909399; font-size: 12px; margin-top: 2px; }
+.vp-item .vp-desc { color: #909399; font-size: 12px; margin-top: 2px; line-height: 1.5; }
 .vp-item.sel .vp-desc { color: #7fb8f5; }
-.vp-empty { color: #909399; text-align: center; padding: 40px 0; font-size: 13px; }
+.vp-item.off { cursor: not-allowed; color: #c0c4cc; }
+.vp-item.off:hover { background: #fff; }
+.vp-item.off .vp-desc { color: #d3d6db; }
+.vp-box {
+  width: 14px; height: 14px; border: 1px solid #dcdfe6; border-radius: 2px; flex: none; margin-top: 3px;
+  display: flex; align-items: center; justify-content: center; font-size: 10px; color: #fff; background: #fff;
+}
+.vp-item.sel .vp-box { background: #409eff; border-color: #409eff; }
+.vp-item.off .vp-box { background: #f5f7fa; border-color: #e4e7ed; }
+.vp-empty { color: #909399; text-align: center; padding: 40px 10px; font-size: 13px; line-height: 1.8; }
+.vp-ft { border-top: 1px solid #ebeef5; padding: 8px 10px; display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
+.vp-ft .cnt { color: #909399; font-size: 12px; margin-right: auto; padding-left: 4px; }
 .action-row { background: #fff; border: 1px solid #ebeef5; border-radius: 8px; padding: 14px; display: flex; align-items: center; gap: 10px; }
 .hidden { display: none !important; }
 .note-bar {
@@ -267,19 +300,20 @@ table.el tbody tr:hover { background: #f5f7fa; }
               <div class="cat-side">
                 <div class="cat-group">分类</div>
                 <div class="cat-item active" data-cat="all" onclick="selectCat('all')">全部属性 <span class="cnt" id="cntAll">0</span></div>
-                <div class="cat-item" data-cat="custom" onclick="selectCat('custom')">自定义字段 <span class="cnt" id="cntCustom">0</span></div>
+                <div class="cat-item" data-cat="custom" onclick="selectCat('custom')">自定义字段 <span class="cnt" id="cntcustom">0</span></div>
                 <div class="cat-group">系统默认字段</div>
-                <div class="cat-item" data-cat="base" onclick="selectCat('base')">基础信息 <span class="cnt" id="cntBase">0</span></div>
-                <div class="cat-item" data-cat="session" onclick="selectCat('session')">会话状态 <span class="cnt" id="cntSession">0</span></div>
-                <div class="cat-item" data-cat="region" onclick="selectCat('region')">地区相关 <span class="cnt" id="cntRegion">0</span></div>
-                <div class="cat-item" data-cat="activity" onclick="selectCat('activity')">活跃数据 <span class="cnt" id="cntActivity">0</span></div>
-                <div class="cat-item" data-cat="study" onclick="selectCat('study')">学情数据-累积 <span class="cnt" id="cntStudy">0</span></div>
-                <div class="cat-item" data-cat="pay" onclick="selectCat('pay')">付费意向 <span class="cnt" id="cntPay">0</span></div>
+                <div class="cat-item" data-cat="base" onclick="selectCat('base')">基础信息 <span class="cnt" id="cntbase">0</span></div>
+                <div class="cat-item" data-cat="session" onclick="selectCat('session')">会话状态 <span class="cnt" id="cntsession">0</span></div>
+                <div class="cat-item" data-cat="region" onclick="selectCat('region')">地区相关 <span class="cnt" id="cntregion">0</span></div>
+                <div class="cat-item" data-cat="activity" onclick="selectCat('activity')">活跃数据 <span class="cnt" id="cntactivity">0</span></div>
+                <div class="cat-item" data-cat="cumulative" onclick="selectCat('cumulative')">累计学习 <span class="cnt" id="cntcumulative">0</span></div>
+                <div class="cat-item" data-cat="daily" onclick="selectCat('daily')">每日学情 <span class="cnt" id="cntdaily">0</span></div>
+                <div class="cat-item" data-cat="pay" onclick="selectCat('pay')">付费意向 <span class="cnt" id="cntpay">0</span></div>
               </div>
               <div class="attr-main">
                 <div class="attr-toolbar">
-                  <input class="search-box" id="attrSearch" placeholder="请输入属性名称搜索" oninput="renderAttr()" />
-                  <div style="color:#909399;font-size:12px">统计字段 = 加微后指定天数区间 + 一个会话属性，数量不限</div>
+                  <input class="search-box" id="attrSearch" placeholder="搜索属性名称、描述、字段标识" oninput="renderAttr()" />
+                  <span style="color:#909399;font-size:12px">自定义字段在最上 · 系统默认按分组聚合 · 同分组内按创建时间倒序</span>
                 </div>
                 <div id="attrGroups"></div>
               </div>
@@ -296,13 +330,13 @@ table.el tbody tr:hover { background: #f5f7fa; }
             <button class="btn" onclick="gotoPage('attr')">返回会话属性</button>
           </div>
           <div class="card-bd">
-            <div class="note-bar">统计字段建好后会出现在下方「触发条件」的变量选择面板中，位于「自定义字段」分类下。需要判定区间时在同一条件组内配置两条条件。</div>
+            <div class="note-bar">统计字段建好后会出现在下方「触发条件」的变量选择面板中，位于「自定义字段」分类下，每项下方注明该字段的周期档与聚合方式。需要判定区间时在同一条件组内配置两条条件。</div>
 
             <div class="rule-sec">
               <div class="rule-sec-title">基本信息</div>
               <div class="form-row" style="margin-bottom:0">
                 <div class="form-label"><span class="req">*</span>规则名称</div>
-                <div class="form-ctrl"><input class="num-input" style="width:320px" value="首周学习不足转人工" readonly /></div>
+                <div class="form-ctrl"><input class="name-input" style="width:320px" value="首周学习不足转人工" readonly /></div>
               </div>
             </div>
 
@@ -328,7 +362,7 @@ table.el tbody tr:hover { background: #f5f7fa; }
                   <input class="val-input" id="valInput" placeholder="请输入数值" oninput="validateVal()" />
                 </div>
                 <div class="err-msg" id="valErr" style="margin-left:80px">请输入整数</div>
-                <div class="hint" id="condHint" style="margin-left:80px">选中统计字段后，比较值单位与该字段所选会话属性一致。</div>
+                <div class="hint" id="condHint" style="margin-left:80px">选中统计字段后，比较值单位与该字段的统计口径一致。</div>
               </div>
             </div>
 
@@ -359,56 +393,61 @@ table.el tbody tr:hover { background: #f5f7fa; }
   </div>
 </div>
 
-<!-- ====== 新建 / 编辑 统计字段弹窗 ====== -->
+<!-- ====== 新建统计字段弹窗 ====== -->
 <div class="mask" id="dlgField">
   <div class="dialog">
-    <div class="dlg-hd"><span id="dlgFieldTitle">新建统计字段</span><button class="dlg-close" onclick="tryCloseField()">✕</button></div>
+    <div class="dlg-hd"><span>新建统计字段</span><button class="dlg-close" onclick="tryCloseField()">✕</button></div>
     <div class="dlg-bd">
-      <div class="warn-box" id="editWarn">修改统计窗口或统计字段会清空该字段已统计出的全部取值</div>
 
       <div class="form-row">
-        <div class="form-label"><span class="req">*</span>统计窗口</div>
+        <div class="form-label"><span class="req">*</span>统计周期</div>
         <div class="form-ctrl">
-          <div class="inline">
-            <span style="color:#606266">加微后第</span>
-            <input class="num-input" id="inStart" value="0" oninput="onFormChange()" />
-            <span style="color:#606266">天 至 第</span>
-            <input class="num-input" id="inEnd" value="7" oninput="onFormChange()" />
-            <span style="color:#606266">天</span>
-          </div>
-          <div class="err-msg" id="errStart">起始天需为 0 到 30 之间的整数</div>
-          <div class="err-msg" id="errEnd">结束天需为 0 到 30 之间的整数</div>
-          <div class="err-msg" id="errOrder">结束天不能早于起始天</div>
-          <div class="hint">加微当天记为第 0 天，按自然日划分，起始天与结束天两端都计入。结束天最大为第 30 天。</div>
+          <div class="period-group" id="periodGroup"></div>
+          <div class="hint">加微当天记为第 0 天，按自然日划分。六档互不重叠也无间隙，一条数据只落入其中一档。统计上限日为第 60 天。</div>
         </div>
       </div>
 
       <div class="form-row">
-        <div class="form-label"><span class="req">*</span>统计字段</div>
+        <div class="form-label"><span class="req">*</span>统计口径</div>
         <div class="form-ctrl">
-          <div class="attr-picker placeholder" id="targetPicker" onclick="openTargetPanel(event)">
-            <span id="targetPickerText">请选择会话属性</span><span style="color:#c0c4cc">▾</span>
+          <div class="metric-picker" id="metricPicker" onclick="openMetricPanel(event)">
+            <span class="ph" id="metricPh">请选择会话属性变量</span>
+            <span id="metricChips" style="display:flex;gap:6px;flex-wrap:wrap"></span>
+            <span style="color:#c0c4cc;margin-left:auto">▾</span>
           </div>
           <div class="agg-box" id="aggBox"></div>
-          <div class="err-msg" id="errTarget">请选择统计字段</div>
-          <div class="err-msg" id="errDup">该组合已存在字段，请勿重复创建</div>
-          <div class="err-msg" id="errName">生成的名称已被占用</div>
-          <div class="hint">从会话属性中选择一个属性作为统计对象，可选数值型属性与「当日」口径的是否标记。聚合方式由系统按该属性的口径自动判定，不需要也不能手工指定。</div>
+          <div class="err-msg" id="errMetric">请选择统计口径</div>
+          <div class="err-msg" id="errDup">该统计周期与统计口径的组合已存在</div>
+          <div class="hint">可多选，多选时把各变量在周期档内的结果相加，只做求和。聚合方式由所选变量的口径自动判定，不需要也不能手工指定。</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-label"><span class="req">*</span>名称后缀</div>
+        <div class="form-ctrl">
+          <div style="display:flex;align-items:center">
+            <span class="pfx-tip" id="sfxPfx">加微后首日</span>
+            <input class="name-input" id="inSuffix" placeholder="如：看课时长" oninput="onFormChange()" />
+          </div>
+          <div class="hint" id="sfxCount">已输入 0/20 字</div>
+          <div class="err-msg" id="errSfxEmpty">请填写字段名称后缀</div>
+          <div class="err-msg" id="errSfxChar">名称后缀只能填写中文、数字或英文</div>
+          <div class="err-msg" id="errName">该字段名称已存在，请修改名称后缀</div>
         </div>
       </div>
 
       <div class="form-row">
         <div class="form-label">字段名称</div>
         <div class="form-ctrl">
-          <div class="readonly-box preview-name" id="previewName">加微后0-7天累计学习时长</div>
-          <div class="hint">名称由统计窗口自动生成，不可手工修改。</div>
+          <div class="readonly-box preview-name" id="previewName"></div>
+          <div class="hint">前缀由统计周期决定、不可修改；后缀由你填写。</div>
         </div>
       </div>
 
       <div class="form-row">
         <div class="form-label">字段说明</div>
         <div class="form-ctrl">
-          <div class="readonly-box" id="previewDesc">统计客户加微当天起第 0 天至第 7 天（含两端）的累计学习时长，单位分钟</div>
+          <div class="readonly-box" id="previewDesc">—</div>
         </div>
       </div>
     </div>
@@ -419,26 +458,16 @@ table.el tbody tr:hover { background: #f5f7fa; }
   </div>
 </div>
 
-<!-- ====== 统计对象（会话属性）选择面板 ====== -->
-<div class="var-panel" id="targetPanel" style="z-index:70">
-  <div class="vp-search"><input id="tpSearch" placeholder="搜索会话属性名称" oninput="renderTargetList()" /></div>
+<!-- ====== 统计口径选择面板 ====== -->
+<div class="var-panel" id="metricPanel" style="z-index:70">
+  <div class="vp-search"><input id="mpSearch" placeholder="搜索会话属性名称" oninput="renderMetricList()" /></div>
   <div class="vp-body">
-    <div class="vp-cats" id="tpCats"></div>
-    <div class="vp-list" id="tpList"></div>
+    <div class="vp-cats" id="mpCats"></div>
+    <div class="vp-list" id="mpList"></div>
   </div>
-</div>
-
-<!-- ====== 二次确认：修改统计窗口 ====== -->
-<div class="mask lv2" id="dlgConfirmEdit">
-  <div class="dialog narrow">
-    <div class="dlg-hd"><span>确认修改统计口径？</span><button class="dlg-close" onclick="hide('dlgConfirmEdit')">✕</button></div>
-    <div class="dlg-bd">
-      <p class="confirm-text">该字段已统计出的<span class="strong">全部取值将被清空</span>，并按新的统计窗口与统计字段重新统计。此操作不可撤销。</p>
-    </div>
-    <div class="dlg-ft">
-      <button class="btn" onclick="hide('dlgConfirmEdit')">取消</button>
-      <button class="btn primary" onclick="doConfirmEdit()">确认修改</button>
-    </div>
+  <div class="vp-ft">
+    <span class="cnt" id="mpCount">已选 0 个</span>
+    <button class="btn small primary" onclick="hideMetricPanel()">完成</button>
   </div>
 </div>
 
@@ -472,86 +501,97 @@ table.el tbody tr:hover { background: #f5f7fa; }
 <div id="toastWrap"></div>
 
 <script>
-/* ========================= 数据 ========================= */
-var seq = 12;
+/* ========================= 基础数据 ========================= */
 
-/* 窗口聚合方式由所选会话属性的口径决定，运营不配置 */
+/* 六个固定周期档：以加微当天为第 0 天，互不重叠也无间隙，统计上限日为第 60 天 */
+var PERIODS = [
+  { k:'d0',   name:'首日',     pfx:'加微后首日',     s:0,  e:0,  range:'第 0 天',        freeze:'第 1 天零点'  },
+  { k:'d13',  name:'1-3日',    pfx:'加微后1-3日',    s:1,  e:3,  range:'第 1-3 天',      freeze:'第 4 天零点'  },
+  { k:'d47',  name:'4-7日',    pfx:'加微后4-7日',    s:4,  e:7,  range:'第 4-7 天',      freeze:'第 8 天零点'  },
+  { k:'d814', name:'8-14日',   pfx:'加微后8-14日',   s:8,  e:14, range:'第 8-14 天',     freeze:'第 15 天零点' },
+  { k:'d1530',name:'15-30日',  pfx:'加微后15-30日',  s:15, e:30, range:'第 15-30 天',    freeze:'第 31 天零点' },
+  { k:'d30p', name:'30日以后', pfx:'加微后30日以后', s:31, e:60, range:'第 31-60 天',    freeze:'第 61 天零点' }
+];
+
+/* 聚合方式由所选变量的口径自动判定，运营不配置 */
 var AGG = {
-  sum:   { word: '累计', label: '累计',   text: '窗口内各自然日的值相加',                 why: '该属性是每日 0 点重置的当日增量值' },
-  delta: { word: '新增', label: '新增',   text: '窗口结束时的值减去窗口开始前一日的值',   why: '该属性是只增不减的累计快照值，直接相加会重复计算' },
-  avg:   { word: '日均', label: '日均',   text: '窗口内有数据的各自然日取平均',           why: '该属性是比率值，跨天相加没有意义' },
-  days:  { word: '天数', label: '计天数', text: '窗口内该标记为「是」的自然日天数',       why: '该属性是每日重置的是否标记，数天数才有意义', suffix: true }
+  sum:   { label:'累计', text:'周期档内各自然日的值相加',                       why:'所选变量是每日零点重置的当日增量值' },
+  delta: { label:'新增', text:'周期档结束当日的值减去起始天前一日的值',         why:'所选变量是只增不减的累计快照值，直接相加会重复计算' },
+  days:  { label:'天数', text:'周期档内该标记为是的自然日天数',                 why:'所选变量是每日重置的是否标记，数天数才有意义' }
 };
 
-/* 可作为统计对象的会话属性：全部数值型属性（含当日增量、累计快照、比率三类口径）
-   与「当日」口径的布尔标记属性（按窗口数天数） */
-var ATTRS = [
-  { k:'video_dur_d',   cat:'study',    name:'观看视频时长（当日·分钟）',     short:'观看视频时长',   unit:'分钟', agg:'sum',   desc:'客户观看知识点视频产生的时长，每日 0 点重置' },
-  { k:'problem_dur_d', cat:'study',    name:'答题时长（当日·分钟）',         short:'答题时长',       unit:'分钟', agg:'sum',   desc:'客户做题产生的时长，每日 0 点重置' },
-  { k:'theme_dur_d',   cat:'study',    name:'看题型时长（当日·分钟）',       short:'看题型时长',     unit:'分钟', agg:'sum',   desc:'客户学习题型讲解产生的时长，每日 0 点重置' },
-  { k:'prac_cnt_d',    cat:'study',    name:'实战刷题数（当日·个）',         short:'实战刷题数',     unit:'个',   agg:'sum',   desc:'客户当日答题数量，各学科相加' },
-  { k:'right_cnt_d',   cat:'study',    name:'答题正确数（当日·个）',         short:'答题正确数',     unit:'个',   agg:'sum',   desc:'客户当日答对的题目数' },
-  { k:'wrong_cnt_d',   cat:'study',    name:'错题数（实时·当日·个）',        short:'错题数',         unit:'个',   agg:'sum',   desc:'客户当日答错的去重题目数，实时口径' },
-  { k:'wrong_cnt_off', cat:'study',    name:'错题数（离线·日·个）',          short:'错题数',         unit:'个',   agg:'sum',   desc:'客户答错的去重题目数，数仓 T-1 离线口径' },
-  { k:'video_cnt_d',   cat:'study',    name:'观看视频课数（当日·个）',       short:'观看视频课数',   unit:'个',   agg:'sum',   desc:'客户当日有学习记录的去重知识点数' },
-  { k:'right_rate_d',  cat:'study',    name:'答题正确率（当日·%）',          short:'答题正确率',     unit:'%',    agg:'avg',   desc:'客户当日答题正确率，当日没做题时为空' },
-  { k:'video_dur_t',   cat:'study',    name:'观看视频时长（上线后累计·分钟）', short:'观看视频时长',  unit:'分钟', agg:'delta', desc:'客户上线后累计观看视频时长，只增不减' },
-  { k:'has_learn_d',   cat:'study',    name:'当日是否有学习（布尔）',        short:'学习',           unit:'天',   agg:'days',  desc:'客户当日是否产生学习行为，每日 0 点重置' },
-  { k:'app_cnt_d',     cat:'activity', name:'打开 APP 次数（当日·次）',      short:'打开 APP 次数',  unit:'次',   agg:'sum',   desc:'客户当日前后台切换次数，每日 0 点重置' },
-  { k:'has_open_d',    cat:'activity', name:'当日是否打开 APP（布尔）',      short:'打开 APP',       unit:'天',   agg:'days',  desc:'客户当日是否打开过 APP，每日 0 点重置' },
-  { k:'active_days',   cat:'activity', name:'累计活跃天数（天）',            short:'累计活跃天数',   unit:'天',   agg:'delta', desc:'客户历史累计活跃自然日天数，只增不减' },
-  { k:'wecom_days',    cat:'base',     name:'加微天数（天）',                short:'加微天数',       unit:'天',   agg:'delta', desc:'加微当天起算至今的自然日天数' },
-  { k:'intro_cnt_d',   cat:'pay',      name:'产介页打开次数（近1日·次）',    short:'产介页打开次数', unit:'次',   agg:'sum',   desc:'客户近 1 日打开产品介绍页的次数' }
+/* 会话属性变量池。
+   type: num 数值型 / bool 是否型 / str 字符串 / date 日期
+   scope: daily 当日增量 / total 上线后累计 / week 当周 / month 当月 / roll 滚动窗口 / fixed 定点档
+   off: 不可作为统计口径的原因（有值即置灰不可勾选） */
+var VARS = [
+  /* ---- 每日学情 ---- */
+  { k:'rv_d',  cat:'daily', name:'学情报告-观看视频时长（当日·分钟）', type:'num', scope:'daily', unit:'分钟', desc:'客户观看视频课产生的时长，每日零点重置' },
+  { k:'rp_d',  cat:'daily', name:'学情报告-答题时长（当日·分钟）',     type:'num', scope:'daily', unit:'分钟', desc:'客户做题产生的时长，每日零点重置' },
+  { k:'rt_d',  cat:'daily', name:'学情报告-看题型时长（当日·分钟）',   type:'num', scope:'daily', unit:'分钟', desc:'客户学习题型讲解产生的时长，每日零点重置' },
+  { k:'pc_d',  cat:'daily', name:'实战刷题数（当日·道）',              type:'num', scope:'daily', unit:'道',   desc:'客户当日答题数量，各学科相加' },
+  { k:'wc_d',  cat:'daily', name:'错题数（当日·道）',                  type:'num', scope:'daily', unit:'道',   desc:'客户当日答错的去重题目数' },
+  { k:'hl_d',  cat:'daily', name:'当日是否有学习（实时）',             type:'bool', scope:'daily', unit:'天',  desc:'客户当日是否产生学习行为，每日零点重置' },
+  { k:'rr_d',  cat:'daily', name:'答题正确率（当日·百分比）',          type:'num', scope:'daily', unit:'%',    desc:'客户当日答题正确率', off:'比率型变量不可作为统计口径，百分数相加没有业务含义' },
+  { k:'ls_in', cat:'daily', name:'学习场景进入次数（当日·次）',        type:'num', scope:'daily', unit:'次',   desc:'客户当日进入学习场景的次数', off:'该变量尚未接入会话属性，接入后自动可勾选' },
+  { k:'ls_fin',cat:'daily', name:'学习场景完成次数（当日·次）',        type:'num', scope:'daily', unit:'次',   desc:'客户当日完成学习场景的次数', off:'该变量尚未接入会话属性，接入后自动可勾选' },
+  { k:'hl_d2', cat:'daily', name:'加微后第2日是否有学习',              type:'bool', scope:'fixed', unit:'天',  desc:'客户加微后第 2 日当天是否有学习行为', off:'该变量本身已是定点单日口径，再套一层周期档没有业务含义' },
+
+  /* ---- 累计学习 ---- */
+  { k:'rv_t',  cat:'cumulative', name:'学情报告-观看视频时长（上线后累计·分钟）', type:'num', scope:'total', unit:'分钟', desc:'客户上线后累计观看视频时长，只增不减' },
+  { k:'rp_t',  cat:'cumulative', name:'学情报告-答题时长（上线后累计·分钟）',     type:'num', scope:'total', unit:'分钟', desc:'客户上线后累计答题时长，只增不减' },
+  { k:'ld_t',  cat:'cumulative', name:'累计学习天数（上线后·天）',                type:'num', scope:'total', unit:'天',   desc:'客户上线后累计有学习行为的自然日天数，只增不减' },
+  { k:'rv_w',  cat:'cumulative', name:'学情报告-观看视频时长（当周·分钟）',       type:'num', scope:'week',  unit:'分钟', desc:'客户本周至今观看视频时长', off:'当周口径变量会在自然周边界重置，落进跨周的周期档必然算出错值' },
+  { k:'rv_m',  cat:'cumulative', name:'学情报告-观看视频时长（当月·分钟）',       type:'num', scope:'month', unit:'分钟', desc:'客户本月至今观看视频时长', off:'当月口径变量会在自然月边界重置，落进跨月的周期档必然算出错值' },
+
+  /* ---- 活跃数据 ---- */
+  { k:'oa_d',  cat:'activity', name:'打开APP次数（当日·含前后台切换·次）', type:'num', scope:'daily', unit:'次', desc:'客户当日打开APP次数，每次前后台切换算一次' },
+  { k:'ho_d',  cat:'activity', name:'当日是否打开APP（实时）',              type:'bool', scope:'daily', unit:'天', desc:'客户当日是否打开过APP，每日零点重置' },
+  { k:'ad_t',  cat:'activity', name:'累计活跃天数（天）',                   type:'num', scope:'total', unit:'天', desc:'客户历史累计活跃自然日天数，只增不减' },
+  { k:'oa_w',  cat:'activity', name:'打开APP次数（当周·次）',               type:'num', scope:'week', unit:'次', desc:'客户本周至今打开APP次数', off:'当周口径变量会在自然周边界重置，落进跨周的周期档必然算出错值' },
+  { k:'a7_r',  cat:'activity', name:'近7日是否活跃',                        type:'bool', scope:'roll', unit:'天', desc:'客户近 7 个自然日内是否有访问', off:'滚动窗口口径的是否型变量不可选，数天数会把同一次活跃重复计入' },
+
+  /* ---- 付费意向 ---- */
+  { k:'ip_d',  cat:'pay', name:'产介页打开次数（当日·次）',   type:'num', scope:'daily', unit:'次', desc:'客户当日打开产品介绍页的次数' },
+  { k:'op_d',  cat:'pay', name:'订单详情页进入次数（当日·次）', type:'num', scope:'daily', unit:'次', desc:'客户当日进入订单详情页的次数' },
+
+  /* ---- 基础信息 ---- */
+  { k:'nick',  cat:'base', name:'客户昵称',   type:'str',  scope:'-', unit:'', desc:'客户在企微中的展示昵称', off:'字符串型会话属性不可作为统计口径' },
+  { k:'wtime', cat:'base', name:'加微时间',   type:'date', scope:'-', unit:'', desc:'客户与坐席建立好友关系的时间', off:'日期型会话属性不可作为统计口径' },
+  { k:'grade', cat:'base', name:'年级',       type:'str',  scope:'-', unit:'', desc:'客户所处年级', off:'字符串型会话属性不可作为统计口径' },
+
+  /* ---- 会话状态 ---- */
+  { k:'tohum', cat:'session', name:'转人工',             type:'bool', scope:'-', unit:'', desc:'当前会话是否已转人工', off:'该是否型变量不是每日零点重置的当日标记，数天数没有业务含义' },
+  { k:'lastm', cat:'session', name:'最近客户消息时间',   type:'date', scope:'-', unit:'', desc:'距离客户最近一条消息的时间', off:'日期型会话属性不可作为统计口径' },
+
+  /* ---- 地区相关 ---- */
+  { k:'city',  cat:'region', name:'城市分线',  type:'str', scope:'-', unit:'', desc:'客户所在城市的分线层级', off:'字符串型会话属性不可作为统计口径' }
 ];
 
+var catNames = { all:'全部属性', custom:'自定义字段', base:'基础信息', session:'会话状态', region:'地区相关',
+                 activity:'活跃数据', cumulative:'累计学习', daily:'每日学情', pay:'付费意向' };
+var catDesc  = { custom:'运营手动新增的字段', base:'用户身份与销售归属相关字段', session:'当前会话服务状态与消息时距相关字段',
+                 region:'地区相关字段', activity:'活跃数据相关字段', cumulative:'累计学习相关字段',
+                 daily:'每日学情相关字段', pay:'付费历史与付费意向相关字段' };
+
+/* 已有字段：三个统计字段 + 一个普通自定义字段 */
+var seq = 13;
 var fields = [
-  { id: 1, cat: 'custom', stat: true, start: 0, end: 7, attr: 'video_dur_d',  key: '00000000000000000011', rules: 2 },
-  { id: 2, cat: 'custom', stat: true, start: 0, end: 7, attr: 'wrong_cnt_d',  key: '00000000000000000012', rules: 0 },
-  { id: 3, cat: 'custom', stat: false, name: '意向等级备注', type: '字符串', key: '00000000000000000009', desc: '坐席人工标注的意向等级说明', coze: '是', cozeUpd: '是' }
+  { id:1, stat:true, period:'d47',  metrics:['ho_d'],               key:'00000000000000000013', suffix:'APP活跃天数', rules:1 },
+  { id:2, stat:true, period:'d13',  metrics:['rv_d'],               key:'00000000000000000012', suffix:'看课时长',    rules:0 },
+  { id:3, stat:true, period:'d0',   metrics:['rv_d','rp_d','rt_d'], key:'00000000000000000011', suffix:'学习时长',    rules:2 },
+  { id:4, stat:false, name:'意向等级备注', type:'字符串', key:'00000000000000000009',
+    desc:'坐席人工标注的意向等级说明', coze:'是', cozeUpd:'是' }
 ];
-/* 不可作为统计对象的预置属性；可选的那些由 ATTRS 统一提供，保证两处口径一致 */
-var presetsExtra = {
-  base:     [ ['客户昵称','字符串','客户在企微中的展示昵称'], ['年级','字符串','客户所处年级'], ['学段','字符串','客户所处学段'], ['注册时间','日期','客户注册洋葱账号的时间'], ['加微时间','日期','客户与坐席建立好友关系的时间'] ],
-  session:  [ ['转人工','布尔','当前会话是否已转人工'], ['最近客户消息时间','数字','距离客户最近一条消息的分钟数'] ],
-  region:   [ ['城市分线','字符串','客户所在城市的分线层级'] ],
-  activity: [ ['近7日是否活跃','布尔','近 7 个自然日内是否有访问，滚动窗口口径'] ],
-  study:    [ ['最近错题明细','字符串','客户最近答错的题目明细'] ],
-  pay:      []
-};
-var presets = (function(){
-  var m = { base:[], session:[], region:[], activity:[], study:[], pay:[] };
-  ATTRS.forEach(function(a){ m[a.cat].push([a.name, a.agg === 'days' ? '布尔' : '数字', a.desc]); });
-  for (var c in presetsExtra) presetsExtra[c].forEach(function(r){ m[c].push(r); });
-  return m;
-})();
-var catNames = { all:'全部属性', custom:'自定义字段', base:'基础信息', session:'会话状态', region:'地区相关', activity:'活跃数据', study:'学情数据-累积', pay:'付费意向' };
+
 var curCat = 'all';
-var mode = 'create';      // create | edit
-var editingId = null;
-var origSig = null;
+var curPeriod = 'd0';
+var picked = [];       // 已勾选的变量 key 数组
 var dirty = false;
-var pendingSave = null;
-var picked = null;   // 当前选中的会话属性 key
 
 /* ========================= 工具 ========================= */
-function attrOf(k){ return ATTRS.filter(function(a){ return a.k === k; })[0] || null; }
-function sigOf(start, end, attr){ return start + '-' + end + '|' + (attr || ''); }
-
-function statName(f){
-  var a = attrOf(f.attr);
-  if (!a) return '';
-  var g = AGG[a.agg], w = '加微后' + f.start + '-' + f.end + '天';
-  return g.suffix ? (w + a.short + g.word) : (w + g.word + a.short);
-}
-function statDesc(f){
-  var a = attrOf(f.attr);
-  if (!a) return '';
-  return '统计客户加微当天起第 ' + f.start + ' 天至第 ' + f.end + ' 天（含两端）的「'
-       + a.name + '」，聚合方式为' + AGG[a.agg].text + '，单位' + a.unit;
-}
-function fName(f){ return f.stat ? statName(f) : f.name; }
-function fDesc(f){ return f.stat ? statDesc(f) : f.desc; }
-function fType(f){ return f.stat ? '数字' : f.type; }
+function varOf(k){ for (var i=0;i<VARS.length;i++) if (VARS[i].k===k) return VARS[i]; return null; }
+function periodOf(k){ for (var i=0;i<PERIODS.length;i++) if (PERIODS[i].k===k) return PERIODS[i]; return null; }
 function show(id){ document.getElementById(id).classList.add('show'); }
 function hide(id){ document.getElementById(id).classList.remove('show'); }
 function toast(kind, msg){
@@ -560,8 +600,31 @@ function toast(kind, msg){
   d.className = 'toast ' + kind;
   d.textContent = (kind === 'ok' ? '✓ ' : kind === 'err' ? '✕ ' : '! ') + msg;
   w.appendChild(d);
-  setTimeout(function(){ if (d.parentNode) d.parentNode.removeChild(d); }, 2600);
+  setTimeout(function(){ if (d.parentNode) d.parentNode.removeChild(d); }, 3000);
 }
+/* 勾选集合决定聚合方式：全是否型→天数；全当日数值→累计；全累计数值→新增 */
+function aggOf(keys){
+  if (!keys.length) return null;
+  var vs = keys.map(varOf);
+  if (vs[0].type === 'bool') return 'days';
+  return vs[0].scope === 'total' ? 'delta' : 'sum';
+}
+function unitOf(keys){
+  if (!keys.length) return '';
+  return aggOf(keys) === 'days' ? '天' : varOf(keys[0]).unit;
+}
+/* 口径签名：勾选集合与顺序无关 */
+function sigOf(period, keys){ return period + '|' + keys.slice().sort().join(','); }
+function statName(f){ return periodOf(f.period).pfx + f.suffix; }
+function statDesc(f){
+  var p = periodOf(f.period), keys = f.metrics, g = AGG[aggOf(keys)];
+  return '统计客户加微后' + p.name + '（' + p.range + '，含两端）的'
+       + keys.map(function(k){ return varOf(k).name; }).join('加')
+       + '，聚合方式为' + g.text + '，单位' + unitOf(keys);
+}
+function fName(f){ return f.stat ? statName(f) : f.name; }
+function fDesc(f){ return f.stat ? statDesc(f) : f.desc; }
+function fType(f){ return f.stat ? '数字' : f.type; }
 
 /* ========================= 页面切换 ========================= */
 function gotoPage(p){
@@ -583,28 +646,34 @@ function selectCat(c){
   for (var i = 0; i < items.length; i++) items[i].classList.toggle('active', items[i].getAttribute('data-cat') === c);
   renderAttr();
 }
-
 function customRows(kw){
-  return fields.filter(function(f){ return fName(f).indexOf(kw) >= 0; }).map(function(f){
+  return fields.filter(function(f){
+    return fName(f).indexOf(kw) >= 0 || fDesc(f).indexOf(kw) >= 0 || f.key.indexOf(kw) >= 0;
+  }).map(function(f){
     var nameHtml = '<span class="name-cell">' + fName(f) + '</span>' + (f.stat ? '<span class="tag blue">统计字段</span>' : '');
-    var ops = '<button class="link-btn" onclick="openEdit(' + f.id + ')">编辑</button>'
-            + (f.stat ? '' : '<button class="link-btn" onclick="toast(\'warn\',\'原型未实现：修改分类沿用现有交互\')">修改分类</button>')
-            + '<button class="link-btn danger" onclick="askDelete(' + f.id + ')">删除</button>';
+    var ops = f.stat
+      ? '<button class="link-btn danger" onclick="askDelete(' + f.id + ')">删除</button>'
+      : '<button class="link-btn" onclick="toast(\'warn\',\'原型未实现：普通自定义字段编辑沿用现有弹窗\')">编辑</button>'
+        + '<button class="link-btn" onclick="toast(\'warn\',\'原型未实现：修改分类沿用现有交互\')">修改分类</button>'
+        + '<button class="link-btn danger" onclick="askDelete(' + f.id + ')">删除</button>';
     return [ nameHtml, fType(f), f.key, fDesc(f), f.stat ? '否' : f.coze, f.stat ? '否' : f.cozeUpd, ops ];
   });
 }
 function presetRows(cat, kw){
-  return (presets[cat] || []).filter(function(r){ return r[0].indexOf(kw) >= 0; }).map(function(r){
-    return [ '<span class="name-cell">' + r[0] + '</span><span class="tag info">系统默认</span>', r[1], '—', r[2], '是', '否',
+  return VARS.filter(function(v){
+    return v.cat === cat && (v.name.indexOf(kw) >= 0 || v.desc.indexOf(kw) >= 0);
+  }).map(function(v){
+    var t = v.type === 'num' ? '数字' : v.type === 'bool' ? '布尔' : v.type === 'date' ? '日期' : '字符串';
+    return [ '<span class="name-cell">' + v.name + '</span><span class="tag info">系统默认</span>', t, '—', v.desc, '是', '否',
              '<button class="link-btn" disabled>编辑</button><button class="link-btn" disabled>删除</button>' ];
   });
 }
 function tableHtml(rows){
   var h = '<table class="el"><thead><tr>'
-        + '<th style="width:26%">属性名称</th><th style="width:8%">字段类型</th><th style="width:15%">字段标识</th>'
-        + '<th>描述</th><th style="width:9%">是否对接扣子</th><th style="width:9%">扣子是否更新</th><th style="width:15%">操作</th>'
+        + '<th style="width:26%">属性名称</th><th style="width:8%">字段类型</th><th style="width:14%">字段标识</th>'
+        + '<th>描述</th><th style="width:9%">是否对接扣子</th><th style="width:9%">扣子是否更新</th><th style="width:14%">操作</th>'
         + '</tr></thead><tbody>';
-  if (!rows.length) h += '<tr class="empty-row"><td colspan="7">暂无数据</td></tr>';
+  if (!rows.length) h += '<tr class="empty-row"><td colspan="7">暂无字段</td></tr>';
   rows.forEach(function(r){
     h += '<tr>';
     r.forEach(function(c, i){ h += '<td' + (i === 2 ? ' class="mono"' : '') + '>' + c + '</td>'; });
@@ -612,194 +681,202 @@ function tableHtml(rows){
   });
   return h + '</tbody></table>';
 }
-function block(title, rows){
-  return '<div class="group-block"><div class="group-hd">' + title + '<span class="num">共 ' + rows.length + ' 个</span></div>' + tableHtml(rows) + '</div>';
+function block(cat, rows){
+  var isCustom = cat === 'custom';
+  return '<div class="group-block"><div class="group-hd">' + catNames[cat]
+       + '<span class="tag ' + (isCustom ? 'warn' : 'info') + '">' + (isCustom ? '自定义' : '系统默认') + '</span>'
+       + '<span class="num">' + rows.length + ' 个字段</span>'
+       + '<span class="gdesc">' + (catDesc[cat] || '') + '</span></div>'
+       + tableHtml(rows) + '</div>';
 }
 function renderAttr(){
   var kw = document.getElementById('attrSearch').value.trim();
+  var order = ['custom','base','session','region','activity','cumulative','daily','pay'];
   var html = '';
   if (curCat === 'all') {
-    html += block('自定义字段', customRows(kw));
-    ['base','session','region','activity','study','pay'].forEach(function(c){ html += block(catNames[c], presetRows(c, kw)); });
-  } else if (curCat === 'custom') {
-    html += block('自定义字段', customRows(kw));
+    order.forEach(function(c){
+      var rows = c === 'custom' ? customRows(kw) : presetRows(c, kw);
+      if (rows.length) html += block(c, rows);
+    });
+    if (!html) html += '<div class="group-block"><div class="vp-empty">' + (kw ? '没有匹配的属性' : '暂无字段') + '</div></div>';
   } else {
-    html += block(catNames[curCat], presetRows(curCat, kw));
+    var rows = curCat === 'custom' ? customRows(kw) : presetRows(curCat, kw);
+    html += rows.length ? block(curCat, rows)
+      : '<div class="group-block"><div class="vp-empty">' + (kw ? '没有匹配的属性' : '暂无字段') + '</div></div>';
   }
   document.getElementById('attrGroups').innerHTML = html;
-  var total = fields.length; for (var k in presets) total += presets[k].length;
+
+  var total = fields.length + VARS.length;
   document.getElementById('cntAll').textContent = total;
-  document.getElementById('cntCustom').textContent = fields.length;
-  var capId = { base:'cntBase', session:'cntSession', region:'cntRegion', activity:'cntActivity', study:'cntStudy', pay:'cntPay' };
-  for (var c in capId) document.getElementById(capId[c]).textContent = presets[c].length;
+  document.getElementById('cntcustom').textContent = fields.length;
+  ['base','session','region','activity','cumulative','daily','pay'].forEach(function(c){
+    document.getElementById('cnt' + c).textContent = VARS.filter(function(v){ return v.cat === c; }).length;
+  });
 }
 
-/* ========================= 新建 / 编辑弹窗 ========================= */
-/* ---- 统计对象选择面板 ---- */
-var tpCat = 'study';
-function openTargetPanel(ev){
+/* ========================= 统计口径选择面板 ========================= */
+var mpCat = 'daily';
+function openMetricPanel(ev){
   ev.stopPropagation();
-  var p = document.getElementById('targetPanel');
-  if (p.classList.contains('show')) { hideTargetPanel(); return; }
-  var r = document.getElementById('targetPicker').getBoundingClientRect();
+  var p = document.getElementById('metricPanel');
+  if (p.classList.contains('show')) { hideMetricPanel(); return; }
+  var r = document.getElementById('metricPicker').getBoundingClientRect();
   p.style.left = (r.left + window.scrollX) + 'px';
   p.style.top  = (r.bottom + window.scrollY + 6) + 'px';
   p.classList.add('show');
-  renderTargetCats(); renderTargetList();
+  renderMetricCats(); renderMetricList();
 }
-function hideTargetPanel(){ document.getElementById('targetPanel').classList.remove('show'); }
+function hideMetricPanel(){ document.getElementById('metricPanel').classList.remove('show'); }
 document.addEventListener('click', function(e){
-  var p = document.getElementById('targetPanel');
-  if (p.classList.contains('show') && !p.contains(e.target)) hideTargetPanel();
+  var p = document.getElementById('metricPanel');
+  var picker = document.getElementById('metricPicker');
+  if (p.classList.contains('show') && !p.contains(e.target) && !picker.contains(e.target)) hideMetricPanel();
 });
-function renderTargetCats(){
-  var cats = ['study','activity','base','pay','custom'];
-  document.getElementById('tpCats').innerHTML = cats.map(function(c){
-    return '<div class="vp-cat' + (c === tpCat ? ' active' : '') + '" onclick="tpCat=\'' + c + '\';renderTargetCats();renderTargetList()">' + catNames[c] + '</div>';
+function renderMetricCats(){
+  var cats = ['daily','cumulative','activity','pay','base','session','region','custom'];
+  document.getElementById('mpCats').innerHTML = cats.map(function(c){
+    return '<div class="vp-cat' + (c === mpCat ? ' active' : '') + '" onclick="mpCat=\'' + c + '\';renderMetricCats();renderMetricList()">' + catNames[c] + '</div>';
   }).join('');
 }
-function renderTargetList(){
-  var kw = document.getElementById('tpSearch').value.trim();
-  var el = document.getElementById('tpList');
-  if (tpCat === 'custom') {
-    el.innerHTML = '<div class="vp-empty">自定义字段中暂无可作为统计对象的属性。<br/>统计字段本身不能再作为统计对象。</div>';
+/* 与已勾选项的冲突判定：类型、单位、口径三者必须一致 */
+function conflictOf(v){
+  if (v.off) return v.off;
+  if (!picked.length) return null;
+  var base = varOf(picked[0]);
+  if (base.type !== v.type) {
+    return v.type === 'bool'
+      ? '与已选变量的类型不一致（已选数值型），不能选在同一个字段里'
+      : '与已选变量的类型不一致（已选是否型），不能选在同一个字段里';
+  }
+  if (v.type === 'num' && base.unit !== v.unit) {
+    return '与已选变量的单位不一致（已选' + base.unit + '，本项' + v.unit + '），不能相加';
+  }
+  if (v.type === 'num' && base.scope !== v.scope) {
+    return '与已选变量的口径不一致（已选' + (base.scope === 'total' ? '累计' : '当日') + '口径），两者的聚合方式不同';
+  }
+  return null;
+}
+function renderMetricList(){
+  var kw = document.getElementById('mpSearch').value.trim();
+  var el = document.getElementById('mpList');
+  if (mpCat === 'custom') {
+    el.innerHTML = '<div class="vp-empty">自定义字段中暂无可作为统计口径的变量。<br/>统计字段本身不能再作为统计口径。</div>';
     return;
   }
-  var items = ATTRS.filter(function(a){ return a.cat === tpCat && a.name.indexOf(kw) >= 0; });
+  var items = VARS.filter(function(v){ return v.cat === mpCat && v.name.indexOf(kw) >= 0; });
   if (!items.length) { el.innerHTML = '<div class="vp-empty">没有匹配的会话属性</div>'; return; }
-  el.innerHTML = items.map(function(a){
-    return '<div class="vp-item' + (a.k === picked ? ' sel' : '') + '" onclick="pickTarget(\'' + a.k + '\')">'
-         + a.name
-         + '<div class="vp-desc">' + a.desc + '｜按窗口' + AGG[a.agg].label + '</div></div>';
+  el.innerHTML = items.map(function(v){
+    var on = picked.indexOf(v.k) >= 0;
+    var bad = on ? null : conflictOf(v);
+    var sub = bad ? bad : (v.desc + '｜按周期档' + AGG[v.type === 'bool' ? 'days' : (v.scope === 'total' ? 'delta' : 'sum')].label);
+    return '<div class="vp-item' + (on ? ' sel' : '') + (bad ? ' off' : '') + '"'
+         + (bad ? ' title="' + bad + '"' : ' onclick="toggleMetric(\'' + v.k + '\')"') + '>'
+         + '<span class="vp-box">' + (on ? '✓' : '') + '</span>'
+         + '<span><span>' + v.name + '</span><div class="vp-desc">' + sub + '</div></span>'
+         + '</div>';
+  }).join('');
+  document.getElementById('mpCount').textContent = '已选 ' + picked.length + ' 个';
+}
+function toggleMetric(k){
+  var i = picked.indexOf(k);
+  if (i >= 0) picked.splice(i, 1); else picked.push(k);
+  renderMetricCats(); renderMetricList(); renderPicked(); onFormChange();
+}
+function removeMetric(k, ev){
+  if (ev) ev.stopPropagation();
+  var i = picked.indexOf(k);
+  if (i >= 0) picked.splice(i, 1);
+  renderMetricList(); renderPicked(); onFormChange();
+}
+function renderPicked(){
+  document.getElementById('metricPh').style.display = picked.length ? 'none' : 'inline';
+  document.getElementById('metricChips').innerHTML = picked.map(function(k){
+    return '<span class="chip">' + varOf(k).name + '<i class="x" onclick="removeMetric(\'' + k + '\',event)">✕</i></span>';
+  }).join('');
+  var box = document.getElementById('aggBox');
+  box.classList.toggle('show', picked.length > 0);
+  if (picked.length) {
+    var g = AGG[aggOf(picked)];
+    box.innerHTML = '本字段将按<b>' + g.label + '</b>统计：' + g.text + '，单位' + unitOf(picked)
+      + '。<br/>聚合方式由所选变量的口径决定（' + g.why + '），不可手工更改。'
+      + (picked.length > 1 ? '<br/>已选 ' + picked.length + ' 个变量，各自算出结果后相加。' : '');
+  }
+}
+
+/* ========================= 周期档 ========================= */
+function renderPeriods(){
+  document.getElementById('periodGroup').innerHTML = PERIODS.map(function(p){
+    return '<div class="period-item' + (p.k === curPeriod ? ' on' : '') + '" onclick="pickPeriod(\'' + p.k + '\')">'
+         + '<div class="pname">' + p.name + '</div><div class="prange">' + p.range + '</div></div>';
   }).join('');
 }
-function pickTarget(k){
-  picked = k;
-  hideTargetPanel();
-  renderTargetPicked();
-  onFormChange();
-}
-function renderTargetPicked(){
-  var a = attrOf(picked);
-  var el = document.getElementById('targetPicker');
-  document.getElementById('targetPickerText').textContent = a ? a.name : '请选择会话属性';
-  el.classList.toggle('placeholder', !a);
-  var box = document.getElementById('aggBox');
-  box.classList.toggle('show', !!a);
-  if (a) {
-    box.innerHTML = '本字段将按<b>' + AGG[a.agg].label + '</b>统计：' + AGG[a.agg].text
-                  + '，单位' + a.unit + '。<br/>聚合方式由该属性的口径决定（' + AGG[a.agg].why + '），不可手工更改。';
-  }
-}
+function pickPeriod(k){ curPeriod = k; renderPeriods(); onFormChange(); }
 
+/* ========================= 新建弹窗 ========================= */
 function openCreate(){
-  mode = 'create'; editingId = null; origSig = null; dirty = false;
-  picked = null; tpCat = 'study';
-  document.getElementById('dlgFieldTitle').textContent = '新建统计字段';
-  document.getElementById('inStart').value = '0';
-  document.getElementById('inEnd').value = '7';
-  document.getElementById('tpSearch').value = '';
-  document.getElementById('editWarn').classList.remove('show');
-  renderTargetPicked(); onFormChange(); dirty = false;
+  curPeriod = 'd0'; picked = []; mpCat = 'daily'; dirty = false;
+  document.getElementById('inSuffix').value = '';
+  document.getElementById('mpSearch').value = '';
+  renderPeriods(); renderPicked(); onFormChange(); dirty = false;
   show('dlgField');
 }
-function openEdit(id){
-  var f = fields.filter(function(x){ return x.id === id; })[0];
-  if (!f) return;
-  if (!f.stat) { toast('warn', '原型未实现：普通自定义字段编辑沿用现有弹窗'); return; }
-  mode = 'edit'; editingId = id; origSig = sigOf(f.start, f.end, f.attr); dirty = false;
-  picked = f.attr; tpCat = (attrOf(f.attr) || {}).cat || 'study';
-  document.getElementById('dlgFieldTitle').textContent = '编辑统计字段';
-  document.getElementById('inStart').value = String(f.start);
-  document.getElementById('inEnd').value = String(f.end);
-  document.getElementById('tpSearch').value = '';
-  renderTargetPicked(); onFormChange(); dirty = false;
-  show('dlgField');
-}
-function tryCloseField(){ if (dirty) show('dlgDiscard'); else hide('dlgField'); }
+function tryCloseField(){ hideMetricPanel(); if (dirty) show('dlgDiscard'); else hide('dlgField'); }
 
-function isInt(s){ return /^-?\d+$/.test(String(s).trim()); }
-
-function readWin(){
-  return { s: document.getElementById('inStart').value.trim(), e: document.getElementById('inEnd').value.trim() };
-}
 function onFormChange(){
   dirty = true;
-  var w = readWin();
-  var okS = isInt(w.s) && +w.s >= 0 && +w.s <= 30;
-  var okE = isInt(w.e) && +w.e >= 0 && +w.e <= 30;
-  var okOrder = okS && okE && +w.e >= +w.s;
-  var okTarget = !!picked;
+  var p = periodOf(curPeriod);
+  var sfx = document.getElementById('inSuffix').value;
+  if (sfx.length > 20) { sfx = sfx.slice(0, 20); document.getElementById('inSuffix').value = sfx; }
 
-  var preview = (okOrder && okTarget) ? { start: +w.s, end: +w.e, attr: picked } : null;
+  var okMetric = picked.length > 0;
+  var sfxEmpty = sfx.trim() === '';
+  var sfxBad = !sfxEmpty && !/^[\u4e00-\u9fa5A-Za-z0-9]+$/.test(sfx);
 
-  var dup = null, clash = null;
-  if (preview) {
-    var sig = sigOf(preview.start, preview.end, picked);
-    dup = fields.filter(function(f){
-      return f.stat && f.id !== editingId && sigOf(f.start, f.end, f.attr) === sig;
-    })[0] || null;
-    // 不同属性可能生成同名（如当日与累计口径的同名指标），名称必须唯一
-    if (!dup) {
-      var nm = statName(preview);
-      clash = fields.filter(function(f){
-        return f.stat && f.id !== editingId && statName(f) === nm;
-      })[0] || null;
-    }
-  }
+  /* 组合重复：周期档与勾选集合同时相同 */
+  var sig = sigOf(curPeriod, picked);
+  var dup = okMetric ? fields.filter(function(f){ return f.stat && sigOf(f.period, f.metrics) === sig; })[0] : null;
+  /* 名称重复：前缀加后缀完全相同 */
+  var full = p.pfx + sfx;
+  var clash = (!sfxEmpty && !sfxBad && !dup) ? fields.filter(function(f){ return f.stat && statName(f) === full; })[0] : null;
 
-  document.getElementById('errStart').classList.toggle('show', w.s !== '' && !okS);
-  document.getElementById('errEnd').classList.toggle('show', w.e !== '' && !okE);
-  document.getElementById('errOrder').classList.toggle('show', okS && okE && !okOrder);
-  document.getElementById('errTarget').classList.toggle('show', !okTarget);
-  document.getElementById('targetPicker').classList.toggle('err', !okTarget);
+  document.getElementById('errMetric').classList.toggle('show', !okMetric);
+  document.getElementById('metricPicker').classList.toggle('err', !okMetric);
 
   var dupEl = document.getElementById('errDup');
   dupEl.classList.toggle('show', !!dup);
-  if (dup) dupEl.textContent = '该统计窗口与统计字段的组合已存在字段「' + statName(dup) + '」，请勿重复创建';
+  if (dup) dupEl.textContent = '该统计周期与统计口径的组合已存在字段「' + statName(dup) + '」，请勿重复创建';
 
+  document.getElementById('errSfxEmpty').classList.toggle('show', sfxEmpty);
+  document.getElementById('errSfxChar').classList.toggle('show', sfxBad);
+  document.getElementById('inSuffix').classList.toggle('err', sfxBad);
   var clashEl = document.getElementById('errName');
   clashEl.classList.toggle('show', !!clash);
-  if (clash) clashEl.textContent = '生成的名称「' + statName(clash) + '」已被占用，该字段统计的是「'
-    + attrOf(clash.attr).name + '」。请改选统计字段或调整统计窗口';
+  if (clash) clashEl.textContent = '字段名称「' + full + '」已存在，请修改名称后缀';
 
-  document.getElementById('inStart').classList.toggle('err', w.s !== '' && !okS);
-  document.getElementById('inEnd').classList.toggle('err', (w.e !== '' && !okE) || (okS && okE && !okOrder));
+  document.getElementById('sfxPfx').textContent = p.pfx;
+  document.getElementById('sfxCount').textContent = '已输入 ' + sfx.length + '/20 字'
+    + (sfx.length >= 20 ? '（已达上限）' : '');
 
-  document.getElementById('previewName').textContent = preview ? statName(preview) : '—';
-  document.getElementById('previewDesc').textContent = preview ? statDesc(preview) : '—';
+  document.getElementById('previewName').innerHTML = '<span class="pfx">' + p.pfx + '</span>'
+    + (sfxEmpty ? '<span class="ph">｛请填写名称后缀｝</span>' : sfx);
+  document.getElementById('previewDesc').textContent = okMetric
+    ? statDesc({ period: curPeriod, metrics: picked })
+    : '统计客户加微后' + p.name + '（' + p.range + '，含两端）的 —';
 
-  var changed = mode === 'edit' && okTarget && origSig !== sigOf(w.s, w.e, picked);
-  document.getElementById('editWarn').classList.toggle('show', changed);
-
-  var canSave = okS && okE && okOrder && okTarget && !dup && !clash && w.s !== '' && w.e !== '';
+  var ok = okMetric && !sfxEmpty && !sfxBad && !dup && !clash;
   var btn = document.getElementById('btnFieldOk');
-  btn.disabled = !canSave;
-  btn.title = canSave ? '' : '请先填写正确的统计窗口并选择统计字段';
+  btn.disabled = !ok;
+  btn.title = ok ? '' : '请先选择统计口径并填写名称后缀';
 }
 
 function submitField(){
-  var w = readWin();
-  if (mode === 'create') {
-    seq++;
-    fields.unshift({ id: Date.now(), cat: 'custom', stat: true, start: +w.s, end: +w.e, attr: picked,
-                     key: '000000000000000000' + String(seq).padStart(2, '0'), rules: 0 });
-    dirty = false; hide('dlgField');
-    curCat = 'custom'; selectCat('custom');
-    toast('ok', '统计字段创建成功');
-  } else {
-    if (origSig === sigOf(w.s, w.e, picked)) { dirty = false; hide('dlgField'); toast('ok', '修改成功'); return; }
-    pendingSave = { s: +w.s, e: +w.e, attr: picked };
-    show('dlgConfirmEdit');
-  }
-}
-function doConfirmEdit(){
-  var f = fields.filter(function(x){ return x.id === editingId; })[0];
-  if (f && pendingSave) { f.start = pendingSave.s; f.end = pendingSave.e; f.attr = pendingSave.attr; }
-  pendingSave = null; dirty = false;
-  hide('dlgConfirmEdit'); hide('dlgField');
-  renderAttr();
-  toast('ok', '修改成功，该字段已有取值已清空并按新口径重新统计');
+  seq++;
+  fields.unshift({ id: Date.now(), stat: true, period: curPeriod, metrics: picked.slice(),
+                   suffix: document.getElementById('inSuffix').value, rules: 0,
+                   key: '000000000000000000' + String(seq) });
+  dirty = false; hide('dlgField');
+  selectCat('custom');
+  toast('ok', '统计字段创建成功');
 }
 
 /* ========================= 删除 ========================= */
@@ -834,39 +911,40 @@ document.addEventListener('click', function(e){
   if (p.classList.contains('show') && !p.contains(e.target)) hideVarPanel();
 });
 function renderVarCats(){
-  var cats = ['custom','base','session','region','activity','study','pay'];
+  var cats = ['custom','base','session','region','activity','cumulative','daily','pay'];
   document.getElementById('vpCats').innerHTML = cats.map(function(c){
     return '<div class="vp-cat' + (c === vpCat ? ' active' : '') + '" onclick="vpCat=\'' + c + '\';renderVarCats();renderVarList()">' + catNames[c] + '</div>';
   }).join('');
 }
 function renderVarList(){
   var kw = document.getElementById('vpSearch').value.trim();
-  var items = [];
+  var items;
   if (vpCat === 'custom') {
     items = fields.map(function(f){
-      return { n: fName(f), d: fDesc(f), stat: f.stat, unit: f.stat ? (attrOf(f.attr) || {}).unit : '' };
+      return { n: fName(f), stat: f.stat, unit: f.stat ? unitOf(f.metrics) : '',
+               d: f.stat ? (periodOf(f.period).pfx + '｜按周期档' + AGG[aggOf(f.metrics)].label + '｜单位' + unitOf(f.metrics)) : f.desc };
     });
   } else {
-    items = (presets[vpCat] || []).map(function(r){ return { n: r[0], d: r[2], stat: false }; });
+    items = VARS.filter(function(v){ return v.cat === vpCat; }).map(function(v){ return { n: v.name, d: v.desc, stat: false }; });
   }
   items = items.filter(function(i){ return i.n.indexOf(kw) >= 0; });
   var el = document.getElementById('vpList');
   if (!items.length) { el.innerHTML = '<div class="vp-empty">没有匹配的变量</div>'; return; }
   el.innerHTML = items.map(function(i){
-    return '<div class="vp-item" onclick="pickVar(this)" data-stat="' + (i.stat ? 1 : 0) + '" data-unit="' + (i.unit || '') + '">'
-         + i.n + (i.stat ? '<span class="tag blue">统计字段</span>' : '')
-         + '<div class="vp-desc">' + i.d + '</div></div>';
+    return '<div class="vp-item" onclick="pickVar(this)" data-name="' + i.n + '" data-stat="' + (i.stat ? 1 : 0) + '" data-unit="' + (i.unit || '') + '">'
+         + '<span><span>' + i.n + '</span>' + (i.stat ? '<span class="tag blue">统计字段</span>' : '')
+         + '<div class="vp-desc">' + i.d + '</div></span></div>';
   }).join('');
 }
 function pickVar(el){
-  var name = el.childNodes[0].nodeValue;
+  var name = el.getAttribute('data-name');
   var isStat = el.getAttribute('data-stat') === '1';
   var unit = el.getAttribute('data-unit') || '';
   document.getElementById('varPickerText').textContent = name;
   document.getElementById('varPicker').classList.remove('placeholder');
   document.getElementById('condHint').textContent = isStat
-    ? '已选中统计字段，比较值单位为' + (unit || '该字段所选会话属性的单位')
-      + '。取值为空的客户（字段创建前已加微或尚未加微）数值比较一律判定为不成立。'
+    ? '已选中统计字段，比较值单位为' + (unit || '该字段统计口径的单位')
+      + '。周期档进行中按部分值判定，走完后按冻结值判定；取值为空的客户（字段创建前已加微、尚未加微或尚未进入该周期档）数值比较一律判定为不成立。'
     : '已选中系统默认字段。';
   hideVarPanel();
   validateVal();
@@ -885,6 +963,7 @@ function validateVal(){
 }
 
 /* ========================= init ========================= */
+renderPeriods();
 renderAttr();
 validateVal();
 </script>
