@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>会话属性 - 自定义变量标识更新</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;background:#f5f7fa;color:#303133;font:14px/1.5 Arial,"PingFang SC","Microsoft YaHei",sans-serif}
+    button,input,textarea,select{font:inherit}.app{min-height:100vh}.topbar{height:56px;background:#1f2d3d;color:#fff;display:flex;align-items:center;padding:0 24px;font-size:17px;font-weight:600}
+    .crumb{height:44px;display:flex;align-items:center;padding:0 24px;background:#fff;border-bottom:1px solid #e4e7ed;color:#909399}.crumb b{color:#303133;margin-left:8px}
+    .page{padding:20px}.card{background:#fff;border:1px solid #ebeef5;border-radius:6px;box-shadow:0 1px 2px rgba(0,0,0,.03)}.card-head{height:58px;padding:0 20px;border-bottom:1px solid #ebeef5;display:flex;align-items:center;justify-content:space-between}.card-head strong{font-size:16px}.primary{border:1px solid #409eff;background:#409eff;color:#fff;border-radius:4px;padding:8px 15px;cursor:pointer}.primary:hover{background:#66b1ff}.layout{display:flex;min-height:590px;padding:18px}
+    aside{width:205px;border-right:1px solid #ebeef5;padding-right:10px}.aside-title{font-size:12px;color:#909399;margin:4px 12px 7px}.aside-title.system{margin-top:22px}.aside-item{height:38px;padding:0 12px;margin-bottom:4px;border-radius:4px;display:flex;align-items:center;justify-content:space-between;color:#606266;cursor:pointer}.aside-item.active{background:#ecf5ff;color:#409eff;font-weight:500}.count{font-size:12px;color:#909399}
+    main{flex:1;min-width:0;padding-left:16px}.toolbar{display:flex;align-items:center;gap:16px;margin-bottom:12px}.search{width:320px;height:36px;border:1px solid #dcdfe6;border-radius:4px;padding:0 12px;outline:none}.search:focus{border-color:#409eff}.tip{font-size:12px;color:#909399}.group{border:1px solid #ebeef5;border-radius:5px;padding:16px}.group-title{display:flex;align-items:center;gap:8px;margin-bottom:12px;font-weight:600}.caret{color:#909399}.tag{font-size:12px;font-weight:400;border-radius:4px;padding:1px 7px;color:#e6a23c;border:1px solid #f3d19e;background:#fdf6ec}.desc{margin-left:auto;font-size:12px;color:#c0c4cc;font-weight:400}
+    table{width:100%;border-collapse:collapse;table-layout:fixed}th,td{border:1px solid #ebeef5;padding:11px 10px;text-align:left;vertical-align:middle}th{background:#f5f7fa;color:#606266;font-weight:600}tbody tr:nth-child(even){background:#fafafa}.key{font-family:Menlo,Consolas,monospace;color:#606266;word-break:break-all}.yes{color:#67c23a;background:#f0f9eb;border:1px solid #c2e7b0;border-radius:4px;padding:2px 7px}.link{color:#409eff;background:none;border:0;cursor:pointer;padding:0 5px}.danger{color:#f56c6c}.status{position:fixed;right:22px;bottom:22px;background:#303133;color:#fff;padding:10px 15px;border-radius:5px;box-shadow:0 4px 16px rgba(0,0,0,.2);display:none;z-index:8}
+    .mask{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:10}.modal{width:500px;background:#fff;border-radius:7px;box-shadow:0 12px 35px rgba(0,0,0,.22)}.modal-head{height:56px;padding:0 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #ebeef5;font-size:17px}.close{border:0;background:none;color:#909399;font-size:22px;cursor:pointer}.modal-body{padding:22px 28px}.field{display:flex;margin-bottom:19px}.label{width:105px;text-align:right;padding:8px 13px 0 0}.required:before{content:"*";color:#f56c6c;margin-right:4px}.control{flex:1}.control input,.control textarea,.control select{width:100%;border:1px solid #dcdfe6;border-radius:4px;padding:8px 10px;background:#fff}.control textarea{height:76px;resize:none}.readonly{background:#f5f7fa!important;color:#909399}.hint{font-size:12px;color:#909399;margin-top:6px}.modal-foot{padding:13px 20px;border-top:1px solid #ebeef5;text-align:right}.cancel{border:1px solid #dcdfe6;background:#fff;border-radius:4px;padding:8px 15px;margin-right:8px;cursor:pointer}
+    .scene-bar{display:flex;gap:8px;padding:10px 20px;background:#fff7e6;border-bottom:1px solid #ffe0a3;align-items:center}.scene-bar span{color:#8a5a00;font-size:13px;margin-right:4px}.scene{border:1px solid #d9d9d9;background:#fff;border-radius:4px;padding:5px 10px;cursor:pointer}.scene.active{border-color:#409eff;color:#409eff;background:#ecf5ff}.banner{display:none;margin-bottom:12px;padding:10px 14px;border-radius:4px}.banner.success{display:block;background:#f0f9eb;border:1px solid #c2e7b0;color:#529b2e}.banner.error{display:block;background:#fef0f0;border:1px solid #fbc4c4;color:#c45656}
+    @media(max-width:900px){aside{display:none}.page{padding:10px}.layout{padding:10px}main{padding-left:0}.toolbar{align-items:flex-start;flex-direction:column}.search{width:100%}.table-wrap{overflow:auto}table{min-width:900px}}
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">企微机器人管理后台</div>
+  <div class="crumb">企微机器人 <b>/ 会话属性</b></div>
+  <div class="scene-bar">
+    <span>原型场景：</span>
+    <button class="scene active" data-scene="default">正常列表</button>
+    <button class="scene" data-scene="migrated">存量迁移完成</button>
+    <button class="scene" data-scene="failure">名称生成失败</button>
+  </div>
+  <div class="page">
+    <section class="card">
+      <div class="card-head"><strong>会话属性</strong><button class="primary" id="addBtn">＋ 新增属性</button></div>
+      <div class="layout">
+        <aside>
+          <div class="aside-title">分类</div>
+          <div class="aside-item active"><span>全部属性</span><span class="count" id="allCount">5</span></div>
+          <div class="aside-item"><span>自定义字段</span><span class="count">3</span></div>
+          <div class="aside-title system">系统默认字段</div>
+          <div class="aside-item"><span>基础信息</span><span class="count">2</span></div>
+          <div class="aside-item"><span>会话状态</span><span class="count">0</span></div>
+          <div class="aside-item"><span>地区</span><span class="count">0</span></div>
+        </aside>
+        <main>
+          <div id="banner"></div>
+          <div class="toolbar"><input class="search" id="search" placeholder="搜索属性名称、描述、字段标识"><span class="tip">自定义字段在最上 · 系统默认按分组聚合 · 同分组内按创建时间倒序</span></div>
+          <div class="group">
+            <div class="group-title"><span class="caret">⌄</span><span>自定义字段</span><span class="tag">自定义</span><span class="count">3 个字段</span><span class="desc">运营手动新增的字段</span></div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th style="width:16%">属性名称</th><th style="width:11%">字段类型</th><th style="width:23%">字段标识</th><th style="width:19%">描述</th><th style="width:11%">是否对接扣子</th><th style="width:11%">扣子是否更新</th><th style="width:9%">操作</th></tr></thead>
+                <tbody id="rows">
+                  <tr data-text="最近咨询课程 家长最近咨询的课程 custom_000000000000000001">
+                    <td>最近咨询课程</td><td>字符串</td><td class="key">custom_000000000000000001</td><td>家长最近咨询的课程</td><td><span class="yes">是</span></td><td><span class="yes">是</span></td><td><button class="link edit">编辑</button><button class="link danger">删除</button></td>
+                  </tr>
+                  <tr data-text="意向等级 销售判断的当前意向程度 custom_000000000000000002">
+                    <td>意向等级</td><td>字符串</td><td class="key">custom_000000000000000002</td><td>销售判断的当前意向程度</td><td><span class="yes">是</span></td><td><span class="yes">是</span></td><td><button class="link edit">编辑</button><button class="link danger">删除</button></td>
+                  </tr>
+                  <tr data-text="试听反馈 最近一次试听后的反馈 custom_000000000000000003">
+                    <td>试听反馈</td><td>字符串</td><td class="key">custom_000000000000000003</td><td>最近一次试听后的反馈</td><td><span class="yes">是</span></td><td><span class="yes">否</span></td><td><button class="link edit">编辑</button><button class="link danger">删除</button></td>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </main>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div class="mask" id="mask">
+  <div class="modal">
+    <div class="modal-head"><span id="modalTitle">新增属性</span><button class="close" id="closeBtn">×</button></div>
+    <div class="modal-body">
+      <div class="field"><label class="label required">属性名称</label><div class="control"><input id="nameInput" maxlength="50" placeholder="请输入属性名称"></div></div>
+      <div class="field" id="keyField" style="display:none"><label class="label">字段标识</label><div class="control"><input id="keyInput" class="readonly" readonly><div class="hint">由系统生成，仅展示，不可修改</div></div></div>
+      <div class="field"><label class="label required">描述</label><div class="control"><textarea id="descInput" maxlength="200" placeholder="请输入描述"></textarea></div></div>
+      <div class="field"><label class="label required">分类</label><div class="control"><select><option>自定义字段</option><option>基础信息</option></select></div></div>
+      <div class="field"><label class="label required">是否对接扣子</label><div class="control"><select id="showSelect"><option>是</option><option>否</option></select></div></div>
+      <div class="field"><label class="label required">扣子是否更新</label><div class="control"><select><option>是</option><option>否</option></select></div></div>
+    </div>
+    <div class="modal-foot"><button class="cancel" id="cancelBtn">取消</button><button class="primary" id="submitBtn">确定</button></div>
+  </div>
+</div>
+<div class="status" id="toast"></div>
+<script>
+  const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+  const mask=$("#mask"), toast=$("#toast"), banner=$("#banner");
+  let scene="default", editing=false, next=4;
+  function showToast(text){toast.textContent=text;toast.style.display="block";setTimeout(()=>toast.style.display="none",1800)}
+  function openModal(edit=false,row=null){
+    editing=edit;$("#modalTitle").textContent=edit?"编辑属性":"新增属性";
+    $("#keyField").style.display=edit?"flex":"none";
+    $("#nameInput").value=edit?row.children[0].textContent:"";
+    $("#descInput").value=edit?row.children[3].textContent:"";
+    $("#keyInput").value=edit?row.children[2].textContent:"";
+    mask.style.display="flex";
+  }
+  function closeModal(){mask.style.display="none"}
+  $("#addBtn").onclick=()=>openModal(false);$("#closeBtn").onclick=closeModal;$("#cancelBtn").onclick=closeModal;
+  mask.onclick=e=>{if(e.target===mask)closeModal()};
+  document.addEventListener("click",e=>{if(e.target.classList.contains("edit"))openModal(true,e.target.closest("tr"))});
+  $("#submitBtn").onclick=()=>{
+    if(!$("#nameInput").value.trim()||!$("#descInput").value.trim()){showToast("请填写完整信息");return}
+    if(scene==="failure"){showToast("变量名称生成失败，请稍后重试");return}
+    if(editing){showToast("编辑成功");closeModal();return}
+    const key="custom_"+String(next++).padStart(18,"0");
+    const tr=document.createElement("tr");
+    tr.dataset.text=$("#nameInput").value+" "+$("#descInput").value+" "+key;
+    tr.innerHTML=`<td>${$("#nameInput").value}</td><td>字符串</td><td class="key">${key}</td><td>${$("#descInput").value}</td><td><span class="yes">是</span></td><td><span class="yes">是</span></td><td><button class="link edit">编辑</button><button class="link danger">删除</button></td>`;
+    $("#rows").prepend(tr);showToast("新增成功，变量名称已自动生成");closeModal();
+  };
+  $("#search").oninput=e=>{$$("#rows tr").forEach(r=>r.style.display=r.dataset.text.toLowerCase().includes(e.target.value.toLowerCase())?"":"none")};
+  $$(".scene").forEach(btn=>btn.onclick=()=>{
+    $$(".scene").forEach(x=>x.classList.remove("active"));btn.classList.add("active");scene=btn.dataset.scene;
+    banner.className="";banner.textContent="";
+    if(scene==="migrated"){banner.className="banner success";banner.textContent="存量自定义变量名称已完成更新，变量数据关联保持不变，可继续用于扣子引用。"}
+    if(scene==="failure"){banner.className="banner error";banner.textContent="变量名称生成服务异常：新增、复制与导入操作已阻断，现有变量不受影响，请稍后重试。"}
+  });
+</script>
+</body>
+</html>
