@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>异常消息回复失败直接转人工｜流程演示</title>
+  <style>
+    :root{--bg:#f5f7fa;--panel:#fff;--line:#e5e7eb;--text:#1f2937;--muted:#6b7280;--primary:#3370ff;--danger:#e5484d;--success:#16a34a;--warning:#d97706}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif}
+    button{font:inherit}.app{min-height:100vh}.topbar{height:56px;background:#1f2329;color:#fff;display:flex;align-items:center;padding:0 28px;font-size:16px;font-weight:600}
+    .layout{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 56px)}.sidebar{background:#fff;border-right:1px solid var(--line);padding:18px 12px}
+    .nav{padding:10px 14px;border-radius:8px;color:var(--muted);margin-bottom:6px}.nav.active{background:#eef3ff;color:var(--primary);font-weight:600}
+    main{padding:28px;max-width:1260px;width:100%;margin:0 auto}.title-row{display:flex;justify-content:space-between;gap:20px;align-items:flex-start}.title-row h1{font-size:24px;margin:0 0 6px}.sub{color:var(--muted)}
+    .badge{padding:5px 10px;border-radius:999px;background:#eaf8ef;color:var(--success);font-weight:600;white-space:nowrap}.grid{display:grid;grid-template-columns:1.2fr .8fr;gap:18px;margin-top:22px}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px;box-shadow:0 2px 8px rgba(31,35,41,.04)}.card h2{font-size:16px;margin:0 0 16px}
+    .conversation{border:1px solid var(--line);border-radius:10px;background:#fafafa;padding:18px;min-height:300px}.bubble{max-width:76%;padding:11px 14px;border-radius:12px;margin-bottom:14px}.user{margin-left:auto;background:#dbe7ff}.ai{background:#fff;border:1px solid var(--line)}
+    .failed{border-color:#f5b7b9;background:#fff5f5}.failed small{display:block;color:var(--danger);margin-top:5px}.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+    .btn{border:1px solid var(--line);background:#fff;border-radius:7px;padding:8px 14px;cursor:pointer}.btn:hover{border-color:var(--primary);color:var(--primary)}.btn.primary{background:var(--primary);border-color:var(--primary);color:#fff}.btn.danger{background:var(--danger);border-color:var(--danger);color:#fff}
+    .flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0 20px}.step{border:1px solid var(--line);background:#fafafa;border-radius:8px;padding:10px 12px;color:var(--muted)}.step.active{border-color:#91b4ff;background:#eef3ff;color:var(--primary);font-weight:600}.step.done{border-color:#9ed8ae;background:#effaf2;color:var(--success)}.step.error{border-color:#f5b7b9;background:#fff2f2;color:var(--danger)}.arrow{color:#9ca3af}
+    .details{display:grid;grid-template-columns:130px 1fr;border-top:1px solid var(--line)}.details div{padding:10px 8px;border-bottom:1px solid var(--line)}.details .label{color:var(--muted)}
+    .log{margin-top:18px;background:#111827;color:#d1d5db;border-radius:10px;padding:14px;min-height:138px}.log-line{margin:3px 0}.time{color:#6ee7b7}.warn{color:#fbbf24}.err{color:#fca5a5}.ok{color:#86efac}
+    .notice{display:none;margin-top:14px;border-radius:8px;padding:10px 12px}.notice.show{display:block}.notice.alert{background:#fff7ed;color:#9a3412;border:1px solid #fed7aa}.notice.success{background:#f0fdf4;color:#166534;border:1px solid #bbf7d0}
+    @media(max-width:900px){.layout{grid-template-columns:1fr}.sidebar{display:none}.grid{grid-template-columns:1fr}main{padding:18px}.title-row{display:block}.badge{display:inline-block;margin-top:10px}}
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">企微机器人 · 异常处置流程演示</div>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="nav">会话列表</div>
+      <div class="nav active">异常流程演示</div>
+      <div class="nav">转人工记录</div>
+      <div class="nav">报警记录</div>
+    </aside>
+    <main>
+      <div class="title-row">
+        <div><h1>异常消息回复失败直接转人工</h1><div class="sub">演示 AI 回复发送失败报警后的永久转人工结果，不代表新增后台页面。</div></div>
+        <span class="badge" id="userState">机器人服务中</span>
+      </div>
+      <div class="grid">
+        <section class="card">
+          <h2>会话模拟</h2>
+          <div class="conversation" id="conversation">
+            <div class="bubble user">用户：我想了解一下课程安排。</div>
+            <div class="bubble ai" id="aiBubble">AI：好的，我来为你介绍课程安排。</div>
+          </div>
+          <div class="actions">
+            <button class="btn primary" id="successBtn">模拟发送成功</button>
+            <button class="btn danger" id="failureBtn">模拟发送失败报警</button>
+            <button class="btn" id="handoffFailureBtn">模拟转人工首次失败</button>
+            <button class="btn" id="duplicateBtn">模拟重复失败报警</button>
+            <button class="btn" id="resetBtn">重置演示</button>
+          </div>
+          <div class="notice alert" id="alertNotice">消息发送失败报警已保留；系统开始永久转人工。</div>
+          <div class="notice success" id="successNotice">已永久转人工，后续会话沿用现有人工承接规则。</div>
+        </section>
+        <section class="card">
+          <h2>处置状态</h2>
+          <div class="flow">
+            <span class="step active" id="stepReply">AI 回复</span><span class="arrow">→</span>
+            <span class="step" id="stepAlarm">失败报警</span><span class="arrow">→</span>
+            <span class="step" id="stepHandoff">永久转人工</span><span class="arrow">→</span>
+            <span class="step" id="stepAgent">人工承接</span>
+          </div>
+          <div class="details">
+            <div class="label">适用范围</div><div>上线后新触发的全部 AI 回复发送失败报警</div>
+            <div class="label">转人工类型</div><div id="handoffType">—</div>
+            <div class="label">转人工原因</div><div id="handoffReason">—</div>
+            <div class="label">失败消息</div><div>不自动补发</div>
+            <div class="label">重复触发</div><div id="duplicateState">首次触发前</div>
+            <div class="label">用户提示</div><div>沿用现有转人工提示规则</div>
+          </div>
+        </section>
+      </div>
+      <section class="card" style="margin-top:18px">
+        <h2>业务过程记录</h2>
+        <div class="log" id="log"><div class="log-line"><span class="time">18:11:00</span> 等待模拟操作</div></div>
+      </section>
+    </main>
+  </div>
+</div>
+<script>
+  const $ = id => document.getElementById(id);
+  let handedOff = false;
+  function time(){return new Date().toLocaleTimeString('zh-CN',{hour12:false})}
+  function log(text, cls=''){ $('log').insertAdjacentHTML('beforeend',`<div class="log-line ${cls}"><span class="time">${time()}</span> ${text}</div>`)}
+  function resetSteps(){['stepReply','stepAlarm','stepHandoff','stepAgent'].forEach(id=>$(id).className='step');$('stepReply').classList.add('active')}
+  function completeHandoff(){
+    handedOff=true;$('stepHandoff').className='step done';$('stepAgent').className='step active';
+    $('userState').textContent='已永久转人工';$('userState').style.background='#fff1f2';$('userState').style.color='#e5484d';
+    $('handoffType').textContent='用户被动';$('handoffReason').textContent='异常协助-消息发送失败';
+    $('duplicateState').textContent='后续报警不重复转人工';$('successNotice').classList.add('show');log('永久转人工成功：类型“用户被动”，原因“异常协助-消息发送失败”','ok')
+  }
+  function triggerFailure(firstHandoffFails=false){
+    if(handedOff){log('再次收到发送失败报警：用户已永久转人工，本次不重复执行','warn');$('duplicateState').textContent='已拦截重复转人工';return}
+    $('aiBubble').className='bubble ai failed';$('aiBubble').innerHTML='AI：好的，我来为你介绍课程安排。<small>发送失败，用户未收到此消息</small>';
+    $('stepReply').className='step error';$('stepAlarm').className='step done';$('stepHandoff').className='step active';
+    $('alertNotice').classList.add('show');log('AI 回复发送失败，原有报警已触发','err');log('立即发起永久转人工','warn');
+    if(firstHandoffFails){$('stepHandoff').className='step error';log('永久转人工首次执行失败，已追加报警并进入重试','err');setTimeout(()=>{log('按现有机制重试永久转人工','warn');completeHandoff()},900)}
+    else completeHandoff()
+  }
+  $('successBtn').onclick=()=>{if(handedOff)return log('用户已永久转人工，不再进入机器人回复流程','warn');resetSteps();$('stepReply').className='step done';$('aiBubble').className='bubble ai';$('aiBubble').textContent='AI：好的，我来为你介绍课程安排。';log('AI 回复发送成功，流程结束','ok')}
+  $('failureBtn').onclick=()=>triggerFailure(false);
+  $('handoffFailureBtn').onclick=()=>triggerFailure(true);
+  $('duplicateBtn').onclick=()=>{if(!handedOff)triggerFailure(false);setTimeout(()=>triggerFailure(false),150)};
+  $('resetBtn').onclick=()=>{handedOff=false;resetSteps();$('userState').textContent='机器人服务中';$('userState').removeAttribute('style');$('handoffType').textContent='—';$('handoffReason').textContent='—';$('duplicateState').textContent='首次触发前';$('aiBubble').className='bubble ai';$('aiBubble').textContent='AI：好的，我来为你介绍课程安排。';$('alertNotice').classList.remove('show');$('successNotice').classList.remove('show');$('log').innerHTML=`<div class="log-line"><span class="time">${time()}</span> 演示已重置</div>`}
+</script>
+</body>
+</html>
