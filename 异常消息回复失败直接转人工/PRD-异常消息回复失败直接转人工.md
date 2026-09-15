@@ -50,7 +50,11 @@ flowchart TD
 
 ## 六、可交互原型
 
-可交互原型（内网，需飞连）：https://minio.yc345.tv/onionext/prototypes/ai-reply-failure-handoff/index.html
+可交互原型（公网，点击可直接操作）：https://leo-ai05.github.io/prototypes/%E5%BC%82%E5%B8%B8%E6%B6%88%E6%81%AF%E5%9B%9E%E5%A4%8D%E5%A4%B1%E8%B4%A5%E7%9B%B4%E6%8E%A5%E8%BD%AC%E4%BA%BA%E5%B7%A5/
+
+洋葱内网预览（需飞连）：https://minio.yc345.tv/onionext/prototypes/ai-reply-failure-handoff/index.html
+
+GitHub 预览（公网）：[点击查看](https://leo-ai05.github.io/prototypes/%E5%BC%82%E5%B8%B8%E6%B6%88%E6%81%AF%E5%9B%9E%E5%A4%8D%E5%A4%B1%E8%B4%A5%E7%9B%B4%E6%8E%A5%E8%BD%AC%E4%BA%BA%E5%B7%A5/)
 
 原型模式：html-wireframe（单文件可交互原型，无需登录、无需本地启动）
 
