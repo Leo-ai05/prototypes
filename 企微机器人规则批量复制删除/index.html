@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>企微机器人规则批量复制删除 - 可交互原型</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background: #f5f7fa; color: #303133; font-size: 14px; }
+.app { display: flex; min-height: 100vh; }
+.sidebar { width: 220px; background: #1d1e1f; color: #fff; flex-shrink: 0; }
+.sidebar-logo { padding: 20px 16px; font-size: 16px; font-weight: 600; border-bottom: 1px solid #333; }
+.sidebar-item { padding: 12px 20px; font-size: 14px; color: #bbb; }
+.sidebar-item.active { background: #409eff; color: #fff; }
+.sidebar-sub { padding-left: 40px; }
+.main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.header { height: 50px; background: #fff; border-bottom: 1px solid #e4e7ed; display: flex; align-items: center; padding: 0 20px; }
+.content { flex: 1; padding: 20px; overflow: auto; }
+.card { background: #fff; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,.08); padding: 20px; }
+.btn { display: inline-flex; align-items: center; gap: 4px; padding: 8px 15px; border-radius: 4px; border: 1px solid #dcdfe6; cursor: pointer; font-size: 14px; background: #fff; line-height: 1; }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.btn-primary { background: #409eff; color: #fff; border-color: #409eff; }
+.btn-primary:hover:not(:disabled) { background: #66b1ff; }
+.btn-danger { background: #fff; color: #f56c6c; border-color: #fbc4c4; }
+.btn-danger:hover:not(:disabled) { background: #f56c6c; color: #fff; }
+.btn-text { background: none; border: none; color: #409eff; padding: 0 8px; cursor: pointer; font-size: 14px; }
+.btn-text.danger { color: #f56c6c; }
+.toolbar { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
+.hint { font-size: 12px; color: #909399; margin-left: 8px; }
+.table { width: 100%; border-collapse: collapse; }
+.table th, .table td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #ebeef5; font-size: 13px; vertical-align: middle; }
+.table th { background: #fafafa; font-weight: 500; color: #909399; }
+.table tr:hover td { background: #f5f7fa; }
+.table tr.fallback-row td { background: #fffbe6; }
+.tag { display: inline-block; padding: 0 8px; height: 22px; line-height: 20px; border-radius: 4px; font-size: 12px; border: 1px solid; margin: 0 2px 2px 0; }
+.tag-success { background: #f0f9eb; color: #67c23a; border-color: #c2e7b0; }
+.tag-info { background: #f4f4f5; color: #909399; border-color: #d3d4d6; }
+.tag-primary { background: #ecf5ff; color: #409eff; border-color: #b3d8ff; }
+.tag-warning { background: #fdf6ec; color: #e6a23c; border-color: #f5dab1; }
+.tag-danger { background: #fef0f0; color: #f56c6c; border-color: #fbc4c4; }
+.tag-fallback { background: #fff7e6; color: #d48806; border-color: #ffe58f; }
+.switch { position: relative; width: 40px; height: 20px; background: #dcdfe6; border-radius: 10px; cursor: pointer; display: inline-block; vertical-align: middle; }
+.switch.on { background: #409eff; }
+.switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: #fff; border-radius: 50%; transition: .2s; }
+.switch.on::after { left: 22px; }
+.condition-display { background: #fffbe6; border: 1px solid #ffe58f; border-radius: 8px; padding: 16px; margin-bottom: 20px; }
+.page-head { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+.page-head .title { font-size: 18px; font-weight: 700; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+.modal { background: #fff; border-radius: 8px; width: 560px; max-height: 85vh; overflow: auto; box-shadow: 0 12px 32px rgba(0,0,0,.15); }
+.modal.confirm { width: 420px; }
+.modal-header { padding: 16px 20px; border-bottom: 1px solid #ebeef5; display: flex; justify-content: space-between; align-items: center; font-size: 16px; font-weight: 500; }
+.modal-body { padding: 20px; }
+.modal-footer { padding: 12px 20px; border-top: 1px solid #ebeef5; display: flex; justify-content: flex-end; gap: 8px; }
+.form-item { margin-bottom: 16px; }
+.form-label { display: block; margin-bottom: 6px; color: #606266; }
+.form-label .req { color: #f56c6c; margin-right: 4px; }
+.input, .select { width: 100%; padding: 8px 12px; border: 1px solid #dcdfe6; border-radius: 4px; font-size: 14px; }
+.input:focus, .select:focus { outline: none; border-color: #409eff; }
+.radio-row { display: flex; gap: 20px; align-items: center; }
+.preview { background: #f5f7fa; border-radius: 6px; padding: 10px 12px; font-size: 12px; color: #606266; line-height: 1.7; max-height: 140px; overflow: auto; }
+.toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #fff; border-radius: 4px; padding: 10px 16px; box-shadow: 0 4px 12px rgba(0,0,0,.15); z-index: 2000; display: none; font-size: 14px; }
+.toast.show { display: block; }
+.toast.warn { color: #e6a23c; }
+.toast.ok { color: #67c23a; }
+.toast.err { color: #f56c6c; }
+.demo-bar { background: #ecf5ff; border: 1px solid #b3d8ff; color: #409eff; padding: 8px 12px; border-radius: 4px; margin-bottom: 16px; font-size: 12px; }
+.hidden { display: none !important; }
+.name-link { color: #409eff; cursor: pointer; background: none; border: none; font-size: 14px; }
+.fallback-icon { margin-right: 4px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-logo">电销 CRM</div>
+    <div class="sidebar-item">客户池</div>
+    <div class="sidebar-item active">企微机器人</div>
+    <div class="sidebar-item sidebar-sub active">规则配置</div>
+    <div class="sidebar-item sidebar-sub">会话属性</div>
+    <div class="sidebar-item sidebar-sub">AI员工明细</div>
+  </aside>
+  <div class="main">
+    <div class="header">规则配置</div>
+    <div class="content">
+      <div class="demo-bar">演示说明：分组列表沿用现网。进入分组后可勾选规则，使用「批量复制」「批量删除」。无编辑权限态请点右上角切换。</div>
+      <div id="view-list">
+        <div class="card">
+          <div class="toolbar">
+            <button class="btn btn-primary" id="btn-new-group">+ 新建分组</button>
+            <label class="hint"><input type="checkbox" id="perm-toggle" checked> 具备规则配置编辑权限</label>
+          </div>
+          <table class="table" id="group-table"></table>
+        </div>
+      </div>
+      <div id="view-detail" class="hidden">
+        <div class="page-head">
+          <button class="btn" id="btn-back">← 返回分组列表</button>
+          <span class="title" id="detail-name"></span>
+          <span id="detail-tags"></span>
+        </div>
+        <div class="condition-display" id="detail-cond"></div>
+        <div class="card">
+          <div class="toolbar" id="rule-toolbar"></div>
+          <table class="table" id="rule-table"></table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal-overlay hidden" id="copy-modal">
+  <div class="modal">
+    <div class="modal-header">批量复制规则 <span style="cursor:pointer;color:#909399" id="copy-x">×</span></div>
+    <div class="modal-body">
+      <p style="margin-bottom:12px;color:#606266" id="copy-hint"></p>
+      <div class="form-item">
+        <label class="form-label"><span class="req">*</span>目标分组</label>
+        <select class="select" id="copy-group"></select>
+      </div>
+      <div class="form-item">
+        <label class="form-label"><span class="req">*</span>副本启用状态</label>
+        <div class="radio-row">
+          <label><input type="radio" name="copy-status" value="disabled"> 禁用</label>
+          <label><input type="radio" name="copy-status" value="enabled"> 启用</label>
+        </div>
+      </div>
+      <div class="form-item">
+        <label class="form-label">名称前缀（选填）</label>
+        <input class="input" id="copy-prefix" placeholder="拼在原规则名称前面，可空">
+      </div>
+      <div class="form-item">
+        <label class="form-label">名称后缀（选填）</label>
+        <input class="input" id="copy-suffix" placeholder="拼在原规则名称后面，可空">
+      </div>
+      <div class="form-item">
+        <label class="form-label">将生成的规则名称预览</label>
+        <div class="preview" id="copy-preview"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" id="copy-cancel">取消</button>
+      <button class="btn btn-primary" id="copy-ok">确定复制</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="del-modal">
+  <div class="modal confirm">
+    <div class="modal-header">提示</div>
+    <div class="modal-body" id="del-body"></div>
+    <div class="modal-footer">
+      <button class="btn" id="del-cancel">取消</button>
+      <button class="btn btn-danger" id="del-ok" style="background:#f56c6c;color:#fff;border-color:#f56c6c">确定删除</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const groups = [
+  { id: 1, name: '初中转化', desc: '初中进线用户', cond: '1 个条件组', rules: 5, updated: '2026-09-20 14:32:00', status: 'enabled', fallback: false },
+  { id: 2, name: '高中转化', desc: '高中进线用户', cond: '2 个条件组（组间且）', rules: 2, updated: '2026-09-18 09:10:00', status: 'enabled', fallback: false },
+  { id: 3, name: '周末静默', desc: '周末不触达', cond: '1 个条件组', rules: 1, updated: '2026-09-12 18:00:00', status: 'disabled', fallback: false },
+  { id: 4, name: '通用兜底分组', desc: '未命中任何普通分组时执行', cond: '兜底', rules: 1, updated: '2026-08-01 10:00:00', status: 'enabled', fallback: true }
+];
+
+let nextRuleId = 200;
+const rulesByGroup = {
+  1: [
+    { id: 11, name: '加微欢迎语', desc: '新好友欢迎', type: '用户信息变更', actions: ['发送企业微信消息'], created: '2026-08-01 10:00:00', updated: '2026-09-01 11:00:00', updater: '张三', status: 'enabled', official: false },
+    { id: 12, name: '次日学情推送', desc: '加微次日发送日报告', type: '定时任务', actions: ['学情报告'], created: '2026-08-02 10:00:00', updated: '2026-09-02 11:00:00', updater: '张三', status: 'disabled', official: false },
+    { id: 13, name: '高意向转人工', desc: '高意向标签转坐席', type: '用户信息变更', actions: ['转人工'], created: '2026-08-03 10:00:00', updated: '2026-09-03 11:00:00', updater: '李四', status: 'enabled', official: false },
+    { id: 14, name: '会员体验', desc: '发放 3 天会员', type: '定时任务', actions: ['发送会员'], created: '2026-08-04 10:00:00', updated: '2026-09-04 11:00:00', updater: '李四', status: 'disabled', official: false },
+    { id: 15, name: '课包推送', desc: '专属链接课包', type: '用户信息变更', actions: ['发送专属链接课包'], created: '2026-08-05 10:00:00', updated: '2026-09-05 11:00:00', updater: '王五', status: 'disabled', official: true }
+  ],
+  2: [
+    { id: 21, name: '高中欢迎语', desc: '高中进线欢迎', type: '用户信息变更', actions: ['发送企业微信消息'], created: '2026-08-10 10:00:00', updated: '2026-09-10 11:00:00', updater: '张三', status: 'enabled', official: false },
+    { id: 22, name: '晚间群发', desc: '官方群发', type: '定时任务', actions: ['发送企业微信消息'], created: '2026-08-11 10:00:00', updated: '2026-09-11 11:00:00', updater: '张三', status: 'disabled', official: true }
+  ],
+  3: [
+    { id: 31, name: '周末停触达标记', desc: '打静默标签', type: '定时任务', actions: ['更新企业微信标签'], created: '2026-08-12 10:00:00', updated: '2026-09-12 11:00:00', updater: '王五', status: 'disabled', official: false }
+  ],
+  4: [
+    { id: 41, name: '兜底转人工', desc: '未命中时转人工', type: '用户信息变更', actions: ['转人工'], created: '2026-08-01 10:00:00', updated: '2026-08-01 10:00:00', updater: '系统', status: 'enabled', official: false }
+  ]
+};
+
+let currentGroupId = null;
+let selected = new Set();
+let canEdit = true;
+
+function toast(msg, type) {
+  const el = document.getElementById('toast');
+  el.className = 'toast show ' + (type || 'ok');
+  el.textContent = msg;
+  setTimeout(() => el.classList.remove('show'), 2600);
+}
+
+function actionTag(a) {
+  const map = { '发送企业微信消息': 'primary', '学情报告': 'warning', '转人工': 'danger', '发送会员': 'success', '发送专属链接课包': 'danger', '更新企业微信标签': 'success' };
+  return '<span class="tag tag-' + (map[a] || 'info') + '">' + a + '</span>';
+}
+
+function hasEdit() { return canEdit; }
+
+function renderGroups() {
+  const rows = groups.map(g => {
+    const name = g.fallback
+      ? '<span class="fallback-icon">🛡️</span><button class="name-link" style="color:#fa8c16;font-weight:600" data-gid="' + g.id + '">' + g.name + '</button>'
+      : '<button class="name-link" data-gid="' + g.id + '">' + g.name + '</button>';
+    const cond = g.fallback ? '<span class="tag tag-fallback">兜底</span>' : g.cond;
+    const st = g.fallback
+      ? '<span class="tag ' + (g.status === 'enabled' ? 'tag-success' : 'tag-info') + '">' + (g.status === 'enabled' ? '已启用' : '已禁用') + '</span>'
+      : (hasEdit() ? '<span class="switch ' + (g.status === 'enabled' ? 'on' : '') + '"></span>' : '<span class="tag tag-info">' + (g.status === 'enabled' ? '已启用' : '已禁用') + '</span>');
+    const ops = hasEdit()
+      ? '<button class="btn-text" data-gid="' + g.id + '">查看规则</button><button class="btn-text">编辑</button>' + (g.fallback ? '' : '<button class="btn-text">复制</button>')
+      : '<button class="btn-text" data-gid="' + g.id + '">查看规则</button>';
+    return '<tr class="' + (g.fallback ? 'fallback-row' : '') + '"><td>' + name + '</td><td>' + g.desc + '</td><td>' + cond + '</td><td>' + (rulesByGroup[g.id] || []).length + '</td><td>' + g.updated + '</td><td>' + st + '</td><td>' + ops + '</td></tr>';
+  }).join('');
+  document.getElementById('group-table').innerHTML =
+    '<thead><tr><th>分组名称</th><th>分组描述</th><th>命中条件</th><th>规则数</th><th>更新时间</th><th>启用状态</th>' + (hasEdit() ? '<th>操作</th>' : '') + '</tr></thead><tbody>' + rows + '</tbody>';
+  document.getElementById('group-table').querySelectorAll('[data-gid]').forEach(el => {
+    el.onclick = () => openGroup(Number(el.getAttribute('data-gid')));
+  });
+  document.getElementById('btn-new-group').classList.toggle('hidden', !hasEdit());
+}
+
+function openGroup(id) {
+  currentGroupId = id;
+  selected = new Set();
+  document.getElementById('view-list').classList.add('hidden');
+  document.getElementById('view-detail').classList.remove('hidden');
+  renderDetail();
+}
+
+function renderDetail() {
+  const g = groups.find(x => x.id === currentGroupId);
+  document.getElementById('detail-name').textContent = g.name;
+  document.getElementById('detail-tags').innerHTML =
+    (g.fallback ? '<span class="tag tag-warning">兜底分组</span>' : '') +
+    '<span class="tag ' + (g.status === 'enabled' ? 'tag-success' : 'tag-info') + '">' + (g.status === 'enabled' ? '已启用' : '已禁用') + '</span>';
+  document.getElementById('detail-cond').innerHTML = g.fallback
+    ? '<div style="font-weight:500;margin-bottom:8px">兜底说明</div><div>兜底分组：当所有普通分组均未命中时，自动执行此分组下的规则</div>'
+    : '<div style="font-weight:500;margin-bottom:8px">命中条件</div><div style="background:#fff;border:1px solid #ffe58f;border-radius:6px;padding:8px 12px"><div style="font-size:12px;color:#999;margin-bottom:4px">条件组 1</div>年级 等于 <b>初中</b></div>';
+
+  const n = selected.size;
+  document.getElementById('rule-toolbar').innerHTML = hasEdit()
+    ? '<button class="btn btn-primary" id="btn-new-rule">+ 新建规则</button>' +
+      '<button class="btn" id="btn-batch-copy" ' + (n ? '' : 'disabled') + '>批量复制</button>' +
+      '<button class="btn btn-danger" id="btn-batch-del" ' + (n ? '' : 'disabled') + '>批量删除</button>' +
+      (n ? '<span class="hint">已选 ' + n + ' 条</span>' : '<span class="hint">请先勾选规则</span>')
+    : '<span class="hint">当前账号无编辑权限，仅可查看</span>';
+
+  if (hasEdit()) {
+    document.getElementById('btn-batch-copy').onclick = openCopy;
+    document.getElementById('btn-batch-del').onclick = tryDelete;
+    document.getElementById('btn-new-rule').onclick = () => toast('沿用现网新建规则弹窗，本次不改', 'ok');
+  }
+
+  const list = rulesByGroup[currentGroupId] || [];
+  const allChecked = list.length && list.every(r => selected.has(r.id));
+  const rows = list.map(r => {
+    const cb = hasEdit() ? '<input type="checkbox" class="row-cb" data-id="' + r.id + '" ' + (selected.has(r.id) ? 'checked' : '') + '>' : '';
+    return '<tr><td>' + cb + '</td><td>' + r.id + '</td><td>' + r.name + (r.official ? ' <span class="tag tag-warning">官方群发</span>' : '') + '</td><td>' + r.desc + '</td><td>' + r.type + '</td><td>' + r.actions.map(actionTag).join('') + '</td><td>' + r.created + '</td><td>' + r.updated + '</td><td>' + r.updater + '</td><td>' + (hasEdit() ? '<span class="switch ' + (r.status === 'enabled' ? 'on' : '') + '" data-toggle="' + r.id + '"></span>' : '<span class="tag ' + (r.status === 'enabled' ? 'tag-success' : 'tag-info') + '">' + (r.status === 'enabled' ? '已启用' : '已禁用') + '</span>') + '</td>' + (hasEdit() ? '<td><button class="btn-text">编辑</button><button class="btn-text danger" data-del="' + r.id + '">删除</button></td>' : '') + '</tr>';
+  }).join('');
+  document.getElementById('rule-table').innerHTML =
+    '<thead><tr>' + (hasEdit() ? '<th style="width:40px"><input type="checkbox" id="cb-all" ' + (allChecked ? 'checked' : '') + '></th>' : '<th style="width:40px"></th>') +
+    '<th>规则ID</th><th>规则名称</th><th>规则描述</th><th>触发类型</th><th>动作类型</th><th>创建时间</th><th>更新时间</th><th>最后更新人</th><th>启用状态</th>' + (hasEdit() ? '<th>操作</th>' : '') + '</tr></thead><tbody>' + (rows || '<tr><td colspan="12" style="text-align:center;color:#909399;padding:32px">暂无规则</td></tr>') + '</tbody>';
+
+  document.querySelectorAll('.row-cb').forEach(cb => {
+    cb.onchange = () => {
+      const id = Number(cb.getAttribute('data-id'));
+      if (cb.checked) selected.add(id); else selected.delete(id);
+      renderDetail();
+    };
+  });
+  const all = document.getElementById('cb-all');
+  if (all) {
+    all.onchange = () => {
+      if (all.checked) list.forEach(r => selected.add(r.id));
+      else selected.clear();
+      renderDetail();
+    };
+  }
+  document.querySelectorAll('[data-toggle]').forEach(sw => {
+    sw.onclick = () => {
+      const id = Number(sw.getAttribute('data-toggle'));
+      const r = list.find(x => x.id === id);
+      r.status = r.status === 'enabled' ? 'disabled' : 'enabled';
+      toast(r.status === 'enabled' ? '已启用' : '已禁用', 'ok');
+      renderDetail();
+    };
+  });
+  document.querySelectorAll('[data-del]').forEach(btn => {
+    btn.onclick = () => {
+      const id = Number(btn.getAttribute('data-del'));
+      const r = list.find(x => x.id === id);
+      if (confirm('确定要删除规则"' + r.name + '"吗？')) {
+        rulesByGroup[currentGroupId] = list.filter(x => x.id !== id);
+        selected.delete(id);
+        toast('删除成功', 'ok');
+        renderDetail();
+      }
+    };
+  });
+}
+
+function selectedRules() {
+  return (rulesByGroup[currentGroupId] || []).filter(r => selected.has(r.id));
+}
+
+function makeName(r) {
+  return (document.getElementById('copy-prefix').value || '') + r.name + (document.getElementById('copy-suffix').value || '');
+}
+
+function refreshPreview() {
+  const rs = selectedRules();
+  document.getElementById('copy-preview').innerHTML = rs.map(r => makeName(r) || '（名称为空，不允许）').join('<br>') || '请先勾选规则';
+}
+
+function openCopy() {
+  if (!selected.size) return;
+  const rs = selectedRules();
+  document.getElementById('copy-hint').textContent = '将复制 ' + rs.length + ' 条规则。触发类型、条件、时间、动作、官方群发设置一并带入；规则编号与时间重新生成。';
+  document.getElementById('copy-group').innerHTML = groups.map(g =>
+    '<option value="' + g.id + '"' + (g.id === currentGroupId ? ' selected' : '') + '>' +
+    g.name + (g.fallback ? '（兜底）' : '') + (g.status === 'disabled' ? '（已禁用）' : '') +
+    (g.id === currentGroupId ? '（当前）' : '') + '</option>'
+  ).join('');
+  document.querySelectorAll('input[name="copy-status"]').forEach(r => { r.checked = false; });
+  document.getElementById('copy-prefix').value = '';
+  document.getElementById('copy-suffix').value = '';
+  refreshPreview();
+  document.getElementById('copy-modal').classList.remove('hidden');
+}
+
+function closeCopy() { document.getElementById('copy-modal').classList.add('hidden'); }
+
+function submitCopy() {
+  const gid = Number(document.getElementById('copy-group').value);
+  const st = document.querySelector('input[name="copy-status"]:checked');
+  if (!gid) { toast('请选择目标分组', 'warn'); return; }
+  if (!st) { toast('请选择副本启用状态', 'warn'); return; }
+  const rs = selectedRules();
+  if (rs.some(r => !makeName(r))) { toast('规则名称不能为空，请填写前缀或保留原名称', 'warn'); return; }
+  const target = groups.find(g => g.id === gid);
+  const now = '2026-09-22 14:40:00';
+  rs.forEach(r => {
+    rulesByGroup[gid].push({
+      ...JSON.parse(JSON.stringify(r)),
+      id: nextRuleId++,
+      name: makeName(r),
+      status: st.value,
+      created: now,
+      updated: now,
+      updater: '当前账号'
+    });
+  });
+  closeCopy();
+  selected.clear();
+  toast('已复制 ' + rs.length + ' 条规则到「' + target.name + '」', 'ok');
+  renderDetail();
+}
+
+function tryDelete() {
+  if (!selected.size) return;
+  const rs = selectedRules();
+  const enabled = rs.filter(r => r.status === 'enabled');
+  if (enabled.length) {
+    toast('选中规则含 ' + enabled.length + ' 条已启用，请先全部禁用后再批量删除', 'warn');
+    return;
+  }
+  document.getElementById('del-body').innerHTML = '<p>确定删除已选的 <b>' + rs.length + '</b> 条规则吗？删除后不可恢复。</p><p style="color:#909399;margin-top:8px;font-size:12px">' + rs.map(r => r.name).join('、') + '</p>';
+  document.getElementById('del-modal').classList.remove('hidden');
+}
+
+function confirmDelete() {
+  const ids = new Set(selected);
+  rulesByGroup[currentGroupId] = (rulesByGroup[currentGroupId] || []).filter(r => !ids.has(r.id));
+  selected.clear();
+  document.getElementById('del-modal').classList.add('hidden');
+  toast('删除成功', 'ok');
+  renderDetail();
+}
+
+document.getElementById('btn-back').onclick = () => {
+  currentGroupId = null;
+  document.getElementById('view-detail').classList.add('hidden');
+  document.getElementById('view-list').classList.remove('hidden');
+  renderGroups();
+};
+document.getElementById('perm-toggle').onchange = e => {
+  canEdit = e.target.checked;
+  selected.clear();
+  if (currentGroupId) renderDetail(); else renderGroups();
+};
+document.getElementById('copy-x').onclick = closeCopy;
+document.getElementById('copy-cancel').onclick = closeCopy;
+document.getElementById('copy-ok').onclick = submitCopy;
+document.getElementById('copy-prefix').oninput = refreshPreview;
+document.getElementById('copy-suffix').oninput = refreshPreview;
+document.getElementById('del-cancel').onclick = () => document.getElementById('del-modal').classList.add('hidden');
+document.getElementById('del-ok').onclick = confirmDelete;
+
+renderGroups();
+</script>
+</body>
+</html>
