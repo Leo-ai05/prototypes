@@ -20,6 +20,7 @@ main{padding:20px}
 .btn{border:1px solid var(--line);background:#fff;border-radius:4px;padding:7px 14px;cursor:pointer;font:inherit}
 .btn.primary{background:var(--primary);border-color:var(--primary);color:#fff}
 .btn.danger{color:var(--danger);border-color:#fbc4c4}
+.btn.ghost{background:transparent}
 .btn[disabled]{opacity:.45;cursor:not-allowed}
 h1{font-size:18px;margin:0 8px 0 0;display:inline}
 .tag{display:inline-block;padding:0 8px;border-radius:4px;font-size:12px;background:#f0f2f5;color:#606266;margin-right:6px}
@@ -33,7 +34,7 @@ th{background:#fafafa;color:#606266;font-weight:600}
 .sw{width:36px;height:18px;background:#dcdfe6;border-radius:999px;position:relative;display:inline-block;vertical-align:middle;cursor:pointer}
 .sw.on{background:var(--ok)}.sw::after{content:"";position:absolute;top:1px;left:1px;width:16px;height:16px;background:#fff;border-radius:50%}
 .sw.on::after{left:19px}
-select,input[type=text]{border:1px solid #dcdfe6;border-radius:4px;padding:6px 10px;font:inherit;min-width:180px}
+select,input[type=text]{border:1px solid #dcdfe6;border-radius:4px;padding:6px 10px;font:inherit;min-width:160px}
 .err{color:var(--danger);font-size:12px;margin-top:4px}
 .modal-mask{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);align-items:center;justify-content:center;z-index:20}
 .modal-mask.is-open{display:flex}
@@ -50,6 +51,20 @@ select,input[type=text]{border:1px solid #dcdfe6;border-radius:4px;padding:6px 1
 .req::before{content:"*";color:var(--danger);margin-right:4px}
 .form-row{margin-bottom:14px}
 .form-row label{display:block;margin-bottom:6px}
+/* 组内：分类侧边栏 + 规则列表 */
+.rule-split{display:grid;grid-template-columns:220px 1fr;gap:0;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#fff;min-height:420px}
+.cat-rail{background:#fafbfc;border-right:1px solid var(--line);padding:12px 8px;display:flex;flex-direction:column}
+.cat-rail__head{display:flex;align-items:center;justify-content:space-between;padding:4px 8px 10px;font-weight:600;font-size:13px;color:#606266}
+.cat-rail__list{flex:1;overflow:auto}
+.cat-item{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px;border-radius:6px;cursor:pointer;color:#606266;margin-bottom:2px;user-select:none}
+.cat-item:hover{background:#f0f2f5}
+.cat-item.on{background:#ecf2ff;color:var(--primary);font-weight:600}
+.cat-item .cnt{font-size:12px;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:999px;min-width:22px;height:20px;display:inline-flex;align-items:center;justify-content:center;padding:0 6px}
+.cat-item.on .cnt{border-color:#c6d7ff;color:var(--primary);background:#fff}
+.cat-item .name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rule-pane{padding:14px 16px;display:flex;flex-direction:column;min-width:0}
+.rule-pane__title{font-size:13px;color:var(--muted);margin-bottom:10px}
+@media(max-width:900px){.rule-split{grid-template-columns:1fr}.cat-rail{border-right:none;border-bottom:1px solid var(--line)}}
 </style>
 </head>
 <body>
@@ -87,24 +102,34 @@ select,input[type=text]{border:1px solid #dcdfe6;border-radius:4px;padding:6px 1
         <div style="font-weight:600;margin-bottom:6px">命中条件</div>
         <div>年级 等于 初一　且　加微天数 大于等于 3</div>
       </div>
-      <div class="card">
-        <div class="toolbar" id="ruleToolbar"></div>
-        <table>
-          <thead>
-            <tr>
-              <th>规则ID</th>
-              <th>规则名称</th>
-              <th>分类</th>
-              <th>规则描述</th>
-              <th>触发类型</th>
-              <th>动作类型</th>
-              <th>启用状态</th>
-              <th id="opHead">操作</th>
-            </tr>
-          </thead>
-          <tbody id="ruleBody"></tbody>
-        </table>
-        <div class="empty" id="ruleEmpty" style="display:none">当前分类下没有规则</div>
+      <div class="toolbar" id="ruleToolbar"></div>
+      <div class="rule-split" id="ruleSplit">
+        <aside class="cat-rail" id="catRail" data-diff-page="规则列表">
+          <div class="cat-rail__head">
+            <span>规则分类</span>
+            <button class="btn ghost" id="openCatBtn" style="padding:2px 8px;font-size:12px;display:none">管理</button>
+          </div>
+          <div class="cat-rail__list" id="catRailList"></div>
+        </aside>
+        <div class="rule-pane">
+          <div class="rule-pane__title" id="rulePaneTitle">全部规则</div>
+          <table>
+            <thead>
+              <tr>
+                <th>规则ID</th>
+                <th>规则名称</th>
+                <th>分类</th>
+                <th>规则描述</th>
+                <th>触发类型</th>
+                <th>动作类型</th>
+                <th>启用状态</th>
+                <th id="opHead">操作</th>
+              </tr>
+            </thead>
+            <tbody id="ruleBody"></tbody>
+          </table>
+          <div class="empty" id="ruleEmpty" style="display:none">当前分类下没有规则</div>
+        </div>
       </div>
     </div>
   </main>
@@ -155,6 +180,7 @@ const SYSTEM_UNCAT = {id:'uncat', name:'未分类', system:true};
 let canEdit = true;
 let page = 'groups';
 let currentGroupId = 1;
+let activeCat = 'all';
 let editingRuleId = null;
 let cats = [];
 let rules = [];
@@ -168,7 +194,8 @@ function toast(t){const el=document.getElementById('toast');el.textContent=t;el.
 function openModal(id){document.getElementById(id).classList.add('is-open')}
 function closeModal(id){document.getElementById(id).classList.remove('is-open')}
 function catById(id){return cats.find(c=>c.id===id)}
-function ruleCount(catId){return rules.filter(r=>r.groupId===currentGroupId && r.catId===catId).length}
+function groupRuleCount(gid){return rules.filter(r=>r.groupId===gid).length}
+function catCountInGroup(catId){return rules.filter(r=>r.groupId===currentGroupId && r.catId===catId).length}
 function resetData(){
   cats = [
     {...SYSTEM_UNCAT},
@@ -184,37 +211,55 @@ function resetData(){
     {id:201, groupId:2, name:'意向确认', desc:'确认购买意向', type:'用户消息', action:'转人工', catId:'c2', on:true},
     {id:301, groupId:3, name:'兜底话术', desc:'未命中时回复', type:'用户消息', action:'发送文本', catId:'uncat', on:true}
   ];
+  activeCat = 'all';
 }
 
 function renderGroups(){
   document.getElementById('pageGroupList').style.display = page==='groups'?'block':'none';
   document.getElementById('pageRuleList').style.display = page==='rules'?'block':'none';
-  document.getElementById('groupToolbar').innerHTML = canEdit ? '<button class="btn primary" disabled>新建分组</button><span style="color:#909399">分组页本次不改</span>' : '<span style="color:#909399">只读：无新建</span>';
+  document.getElementById('groupToolbar').innerHTML = canEdit
+    ? '<button class="btn primary" disabled>新建分组</button><span style="color:#909399">分组页本次不改</span>'
+    : '<span style="color:#909399">只读：无新建</span>';
   document.getElementById('groupBody').innerHTML = groups.map(g=>`
     <tr>
       <td><a class="link" data-open-group="${g.id}">${g.fallback?'🛡️ ':''}${g.name}</a></td>
       <td>${g.desc}</td>
       <td>${g.fallback?'<span class="tag warn">兜底</span>':g.cond}</td>
-      <td>${rules.filter(r=>r.groupId===g.id).length}</td>
+      <td>${groupRuleCount(g.id)}</td>
       <td>${g.on?'已启用':'已禁用'}</td>
       <td><a class="link" data-open-group="${g.id}">查看规则</a>${canEdit?'<a class="link">编辑</a>':''}</td>
     </tr>`).join('');
+}
+
+function renderCatRail(){
+  const total = rules.filter(r=>r.groupId===currentGroupId).length;
+  const items = [
+    {id:'all', name:'全部', count:total},
+    ...cats.map(c=>({id:c.id, name:c.name, count:catCountInGroup(c.id)}))
+  ];
+  if(!items.some(i=>i.id===activeCat)) activeCat = 'all';
+  document.getElementById('catRailList').innerHTML = items.map(it=>`
+    <div class="cat-item ${activeCat===it.id?'on':''}" data-cat="${it.id}">
+      <span class="name">${it.name}</span>
+      <span class="cnt">${it.count}</span>
+    </div>`).join('');
+  const openBtn = document.getElementById('openCatBtn');
+  openBtn.style.display = canEdit ? 'inline-block' : 'none';
 }
 
 function renderRules(){
   const g = groups.find(x=>x.id===currentGroupId);
   document.getElementById('groupTitle').textContent = g.name;
   document.getElementById('groupNameCrumb').textContent = g.name;
-  const filter = document.getElementById('catFilter')?.value || 'all';
-  const list = rules.filter(r=>r.groupId===currentGroupId && (filter==='all'||r.catId===filter));
-  document.getElementById('ruleToolbar').innerHTML = `
-    ${canEdit?'<button class="btn primary" id="newRuleBtn">新建规则</button><button class="btn" id="openCatBtn">分类管理</button>':''}
-    <label>分类筛选
-      <select id="catFilter">
-        <option value="all">全部</option>
-        ${cats.map(c=>`<option value="${c.id}" ${filter===c.id?'selected':''}>${c.name}</option>`).join('')}
-      </select>
-    </label>`;
+  document.getElementById('ruleToolbar').innerHTML = canEdit
+    ? '<button class="btn primary" id="newRuleBtn">新建规则</button>'
+    : '<span style="color:#909399">只读：可切换左侧分类查看</span>';
+  renderCatRail();
+  const catName = activeCat==='all' ? '全部' : (catById(activeCat)?.name || '未分类');
+  document.getElementById('rulePaneTitle').textContent = activeCat==='all'
+    ? `全部规则（${rules.filter(r=>r.groupId===currentGroupId).length}）`
+    : `${catName}（${catCountInGroup(activeCat)}）`;
+  const list = rules.filter(r=>r.groupId===currentGroupId && (activeCat==='all'||r.catId===activeCat));
   document.getElementById('opHead').style.display = canEdit?'table-cell':'none';
   document.getElementById('ruleBody').innerHTML = list.map(r=>`
     <tr>
@@ -228,9 +273,7 @@ function renderRules(){
       ${canEdit?`<td><a class="link" data-edit="${r.id}">编辑</a><a class="link" data-copy="${r.id}">复制</a><a class="link danger" data-del="${r.id}">删除</a></td>`:''}
     </tr>`).join('');
   document.getElementById('ruleEmpty').style.display = list.length?'none':'block';
-  document.getElementById('catFilter').onchange = renderRules;
   document.getElementById('newRuleBtn')?.addEventListener('click', ()=>openRule(null));
-  document.getElementById('openCatBtn')?.addEventListener('click', openCats);
 }
 
 function renderAll(){
@@ -272,7 +315,10 @@ function openRule(id){
   document.getElementById('ruleName').value = r?.name||'';
   document.getElementById('ruleDesc').value = r?.desc||'';
   document.getElementById('ruleCatErr').textContent='';
-  document.getElementById('ruleCat').innerHTML = `<option value="">请选择</option>` + cats.map(c=>`<option value="${c.id}" ${r?.catId===c.id?'selected':''}>${c.name}</option>`).join('');
+  const prefer = r?.catId || (activeCat!=='all'?activeCat:'');
+  document.getElementById('ruleCat').innerHTML =
+    `<option value="">请选择</option>` +
+    cats.map(c=>`<option value="${c.id}" ${prefer===c.id?'selected':''}>${c.name}</option>`).join('');
   openModal('ruleMask');
 }
 
@@ -281,7 +327,10 @@ document.body.addEventListener('click', e=>{
   if(close) closeModal(close);
   if(e.target.id==='catMask'||e.target.id==='ruleMask') closeModal(e.target.id);
   const gid = e.target.dataset.openGroup;
-  if(gid){ currentGroupId=+gid; page='rules'; renderAll(); }
+  if(gid){ currentGroupId=+gid; page='rules'; activeCat='all'; renderAll(); }
+  const cat = e.target.closest('[data-cat]');
+  if(cat){ activeCat = cat.dataset.cat; renderRules(); }
+  if(e.target.id==='openCatBtn') openCats();
   if(e.target.dataset.toggle){
     const r=rules.find(x=>x.id==+e.target.dataset.toggle); if(r&&canEdit){r.on=!r.on; renderAll();}
   }
@@ -307,7 +356,9 @@ document.body.addEventListener('click', e=>{
   if(e.target.dataset.delCat){
     const id=e.target.dataset.delCat;
     if(rules.some(r=>r.catId===id)){ document.getElementById('catFormErr').textContent='该分类下仍有规则，请先将规则改到其他分类后再删除'; return; }
-    cats=cats.filter(c=>c.id!==id); toast('分类已删除'); openCats(); renderAll();
+    cats=cats.filter(c=>c.id!==id);
+    if(activeCat===id) activeCat='all';
+    toast('分类已删除'); openCats(); renderAll();
   }
 });
 
@@ -331,6 +382,7 @@ document.getElementById('saveRuleBtn').onclick=()=>{
   }else{
     rules.push({id:Math.max(...rules.map(r=>r.id))+1, groupId:currentGroupId, name, desc:document.getElementById('ruleDesc').value.trim(), type:'用户消息', action:'发送文本', catId, on:true});
   }
+  activeCat = catId;
   closeModal('ruleMask'); toast('保存成功'); renderAll();
 };
 document.getElementById('backBtn').onclick=()=>{page='groups'; renderAll();};
@@ -338,10 +390,14 @@ document.getElementById('permBtn').onclick=()=>{canEdit=!canEdit; closeModal('ca
 document.getElementById('resetBtn').onclick=()=>{resetData(); page='groups'; canEdit=true; renderAll(); toast('演示已重置');};
 document.addEventListener('keydown', e=>{ if(e.key==='Escape'){closeModal('catMask'); closeModal('ruleMask');}});
 resetData(); renderAll();
-window.__proto = {openGroup(){currentGroupId=1;page='rules';renderAll();}, openCats, openRule};
+window.__proto = {
+  openGroup(){currentGroupId=1;page='rules';activeCat='all';renderAll();},
+  selectCat(id){activeCat=id;page='rules';renderAll();},
+  openCats, openRule
+};
 window.DIFF_HOOKS = {
   locate(change){
-    if(change.page==='规则列表' || change.module==='规则列表工具栏' || change.module==='规则列表'){ currentGroupId=1; page='rules'; renderAll(); }
+    if(change.page==='规则列表' || change.module==='分类侧边栏' || change.module==='规则列表'){ currentGroupId=1; page='rules'; activeCat='all'; renderAll(); }
     if(change.module==='分类管理'){ currentGroupId=1; page='rules'; renderAll(); openCats(); }
     if(change.module==='新建编辑规则'){ currentGroupId=1; page='rules'; renderAll(); openRule(101); }
     if(change.page==='分组列表'){ page='groups'; renderAll(); }
@@ -350,17 +406,17 @@ window.DIFF_HOOKS = {
 window.DIFF_CHANGESET = {
   meta:{
     sddTitle:'SDD · 企微机器人规则分类管理',
-    sddUrl:'',
+    sddUrl:'https://guanghe.feishu.cn/docx/ZRBidHonEoyVC3xg1ZvcAlwHnAd',
     sddType:'feishu',
     demoControls:[
       {id:'perm', label:'权限', default:'edit', options:[{value:'edit',label:'可编辑'},{value:'view',label:'只读'}]}
     ]
   },
   changes:[
-    {id:'chg-1',level:'module',page:'规则列表',module:'规则列表工具栏',target:'#ruleToolbar',type:'new',title:'增加分类筛选与分类管理',desc:'组内规则列表增加分类筛选和分类管理入口，只读权限不展示写操作。',before:'无此模块（仅有新建规则）',after:'可筛选分类，可编辑时显示分类管理',sdd:{section:'功能点一：组内规则列表分类'}},
-    {id:'chg-2',level:'field',page:'规则列表',module:'规则列表',target:'#ruleBody',type:'new',title:'增加分类列',desc:'每条规则展示唯一分类；存量未打标的显示未分类。',before:'无此字段',after:'规则名称后展示分类',sdd:{section:'功能点一：组内规则列表分类'}},
-    {id:'chg-3',level:'module',page:'规则列表',module:'分类管理',target:'#catMask',type:'new',title:'分类字典可增改删',desc:'未分类不可改名删除；有规则的分类禁止删除。',before:'无此模块',after:'弹窗维护分类名称，最长 20 字且不可重名',examples:[{case:'删除有规则分类',input:'课包转化下仍有规则',result:'按钮禁用并提示先改走规则'}],sdd:{section:'功能点二：分类管理'}},
-    {id:'chg-4',level:'field',page:'规则列表',module:'新建编辑规则',target:'#ruleCat',type:'new',title:'规则必须选择一个分类',desc:'新建和编辑保存时未选分类则阻断。',before:'无此字段',after:'必选一个分类，含未分类',examples:[{case:'未选分类保存',input:'分类=请选择',result:'请选择规则分类'}],sdd:{section:'功能点三：规则选择分类'}},
+    {id:'chg-1',level:'module',page:'规则列表',module:'分类侧边栏',target:'#catRail',type:'new',title:'左侧分类侧边栏一键切换',desc:'组内规则页左侧固定分类栏，点分类即可切换右侧列表；每项显示当前组内规则数。',before:'无此模块（仅顶部下拉筛选）',after:'左侧「全部 + 各分类」侧边栏，点击即切换',examples:[{case:'切到课包转化',input:'点击侧边栏「课包转化」',result:'右侧只显示该分类规则'}],sdd:{section:'功能点一：组内规则列表分类'}},
+    {id:'chg-2',level:'field',page:'规则列表',module:'规则列表',target:'#ruleBody',type:'new',title:'增加分类列',desc:'每条规则展示唯一分类；存量未打标的显示未分类。',before:'无此字段',after:'规则列表展示分类列',sdd:{section:'功能点一：组内规则列表分类'}},
+    {id:'chg-3',level:'module',page:'规则列表',module:'分类管理',target:'#catMask',type:'new',title:'分类字典可增改删',desc:'侧边栏顶部「管理」打开弹窗；未分类不可改名删除；有规则的分类禁止删除。',before:'无此模块',after:'弹窗维护分类，最长 20 字且不可重名',examples:[{case:'删除有规则分类',input:'课包转化下仍有规则',result:'按钮禁用并提示先改走规则'}],sdd:{section:'功能点二：分类管理'}},
+    {id:'chg-4',level:'field',page:'规则列表',module:'新建编辑规则',target:'#ruleCat',type:'new',title:'规则必须选择一个分类',desc:'新建和编辑保存时未选分类则阻断；若当前侧边栏已选某分类，新建时默认带上。',before:'无此字段',after:'必选一个分类，含未分类',examples:[{case:'未选分类保存',input:'分类=请选择',result:'请选择规则分类'}],sdd:{section:'功能点三：规则选择分类'}},
     {id:'chg-5',level:'logic',page:'规则列表',module:'新建编辑规则',target:null,type:'logic',title:'复制保留分类',desc:'复制规则或复制分组时，规则带着原来的分类。',before:'无分类字段',after:'副本分类与来源相同',sdd:{section:'功能点三：规则选择分类'}}
   ]
 };
