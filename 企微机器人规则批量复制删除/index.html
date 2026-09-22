@@ -83,13 +83,10 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helv
   <div class="main">
     <div class="header">规则配置</div>
     <div class="content">
-      <div class="demo-bar">演示说明：分组列表沿用现网。进入分组后可勾选规则，使用「批量复制」「批量删除」。无编辑权限态请点右上角切换。</div>
+      <div class="demo-bar">演示说明：分组列表可多选后批量启用/禁用（兜底分组不可勾选）。组内规则可批量复制/删除/启停，行内保留单条复制。无编辑权限请取消右上角勾选。</div>
       <div id="view-list">
         <div class="card">
-          <div class="toolbar">
-            <button class="btn btn-primary" id="btn-new-group">+ 新建分组</button>
-            <label class="hint"><input type="checkbox" id="perm-toggle" checked> 具备规则配置编辑权限</label>
-          </div>
+          <div class="toolbar" id="group-toolbar"></div>
           <table class="table" id="group-table"></table>
         </div>
       </div>
@@ -113,7 +110,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helv
 
 <div class="modal-overlay hidden" id="copy-modal">
   <div class="modal">
-    <div class="modal-header">批量复制规则 <span style="cursor:pointer;color:#909399" id="copy-x">×</span></div>
+    <div class="modal-header"><span id="copy-title">批量复制规则</span> <span style="cursor:pointer;color:#909399" id="copy-x">×</span></div>
     <div class="modal-body">
       <p style="margin-bottom:12px;color:#606266" id="copy-hint"></p>
       <div class="form-item">
@@ -189,6 +186,8 @@ const rulesByGroup = {
 
 let currentGroupId = null;
 let selected = new Set();
+let selectedGroups = new Set();
+let copyTargets = [];
 let canEdit = true;
 
 function toast(msg, type) {
@@ -205,26 +204,104 @@ function actionTag(a) {
 
 function hasEdit() { return canEdit; }
 
+function selectableGroups() {
+  return groups.filter(g => !g.fallback);
+}
+
+function renderGroupToolbar() {
+  const n = selectedGroups.size;
+  document.getElementById('group-toolbar').innerHTML = hasEdit()
+    ? '<button class="btn btn-primary" id="btn-new-group">+ 新建分组</button>' +
+      '<button class="btn" id="btn-g-on" ' + (n ? '' : 'disabled') + '>批量启用</button>' +
+      '<button class="btn" id="btn-g-off" ' + (n ? '' : 'disabled') + '>批量禁用</button>' +
+      (n ? '<span class="hint">已选 ' + n + ' 个分组</span>' : '<span class="hint">请先勾选普通分组</span>') +
+      '<label class="hint"><input type="checkbox" id="perm-toggle" checked> 具备规则配置编辑权限</label>'
+    : '<label class="hint"><input type="checkbox" id="perm-toggle"> 具备规则配置编辑权限</label><span class="hint">当前账号无编辑权限，仅可查看</span>';
+  const perm = document.getElementById('perm-toggle');
+  perm.checked = canEdit;
+  perm.onchange = e => {
+    canEdit = e.target.checked;
+    selectedGroups.clear();
+    selected.clear();
+    if (currentGroupId) renderDetail(); else renderGroups();
+  };
+  if (hasEdit()) {
+    document.getElementById('btn-new-group').onclick = () => toast('沿用现网新建分组，本次不改', 'ok');
+    document.getElementById('btn-g-on').onclick = () => batchToggleGroups('enabled');
+    document.getElementById('btn-g-off').onclick = () => batchToggleGroups('disabled');
+  }
+}
+
+function batchToggleGroups(status) {
+  const list = groups.filter(g => selectedGroups.has(g.id));
+  if (!list.length) return;
+  const word = status === 'enabled' ? '启用' : '禁用';
+  const need = list.filter(g => g.status !== status);
+  if (!need.length) {
+    toast('所选分组均已' + word, 'warn');
+    return;
+  }
+  if (!confirm('确定' + word + '已选的 ' + list.length + ' 个分组吗？')) return;
+  need.forEach(g => { g.status = status; });
+  selectedGroups.clear();
+  toast('已' + word + ' ' + need.length + ' 个分组', 'ok');
+  renderGroups();
+}
+
 function renderGroups() {
+  renderGroupToolbar();
+  const pickable = selectableGroups();
+  const allChecked = pickable.length && pickable.every(g => selectedGroups.has(g.id));
   const rows = groups.map(g => {
+    const cb = hasEdit()
+      ? (g.fallback
+        ? '<input type="checkbox" disabled title="兜底分组不支持批量启停">'
+        : '<input type="checkbox" class="g-cb" data-gid="' + g.id + '" ' + (selectedGroups.has(g.id) ? 'checked' : '') + '>')
+      : '';
     const name = g.fallback
-      ? '<span class="fallback-icon">🛡️</span><button class="name-link" style="color:#fa8c16;font-weight:600" data-gid="' + g.id + '">' + g.name + '</button>'
-      : '<button class="name-link" data-gid="' + g.id + '">' + g.name + '</button>';
+      ? '<span class="fallback-icon">🛡️</span><button class="name-link" style="color:#fa8c16;font-weight:600" data-open="' + g.id + '">' + g.name + '</button>'
+      : '<button class="name-link" data-open="' + g.id + '">' + g.name + '</button>';
     const cond = g.fallback ? '<span class="tag tag-fallback">兜底</span>' : g.cond;
     const st = g.fallback
       ? '<span class="tag ' + (g.status === 'enabled' ? 'tag-success' : 'tag-info') + '">' + (g.status === 'enabled' ? '已启用' : '已禁用') + '</span>'
-      : (hasEdit() ? '<span class="switch ' + (g.status === 'enabled' ? 'on' : '') + '"></span>' : '<span class="tag tag-info">' + (g.status === 'enabled' ? '已启用' : '已禁用') + '</span>');
+      : (hasEdit() ? '<span class="switch ' + (g.status === 'enabled' ? 'on' : '') + '" data-gtoggle="' + g.id + '"></span>' : '<span class="tag tag-info">' + (g.status === 'enabled' ? '已启用' : '已禁用') + '</span>');
     const ops = hasEdit()
-      ? '<button class="btn-text" data-gid="' + g.id + '">查看规则</button><button class="btn-text">编辑</button>' + (g.fallback ? '' : '<button class="btn-text">复制</button>')
-      : '<button class="btn-text" data-gid="' + g.id + '">查看规则</button>';
-    return '<tr class="' + (g.fallback ? 'fallback-row' : '') + '"><td>' + name + '</td><td>' + g.desc + '</td><td>' + cond + '</td><td>' + (rulesByGroup[g.id] || []).length + '</td><td>' + g.updated + '</td><td>' + st + '</td><td>' + ops + '</td></tr>';
+      ? '<button class="btn-text" data-open="' + g.id + '">查看规则</button><button class="btn-text">编辑</button>' + (g.fallback ? '' : '<button class="btn-text" data-gcopy="' + g.id + '">复制</button>')
+      : '<button class="btn-text" data-open="' + g.id + '">查看规则</button>';
+    return '<tr class="' + (g.fallback ? 'fallback-row' : '') + '"><td>' + cb + '</td><td>' + name + '</td><td>' + g.desc + '</td><td>' + cond + '</td><td>' + (rulesByGroup[g.id] || []).length + '</td><td>' + g.updated + '</td><td>' + st + '</td>' + (hasEdit() ? '<td>' + ops + '</td>' : '') + '</tr>';
   }).join('');
   document.getElementById('group-table').innerHTML =
-    '<thead><tr><th>分组名称</th><th>分组描述</th><th>命中条件</th><th>规则数</th><th>更新时间</th><th>启用状态</th>' + (hasEdit() ? '<th>操作</th>' : '') + '</tr></thead><tbody>' + rows + '</tbody>';
-  document.getElementById('group-table').querySelectorAll('[data-gid]').forEach(el => {
-    el.onclick = () => openGroup(Number(el.getAttribute('data-gid')));
+    '<thead><tr>' + (hasEdit() ? '<th style="width:40px"><input type="checkbox" id="g-all" ' + (allChecked ? 'checked' : '') + '></th>' : '') +
+    '<th>分组名称</th><th>分组描述</th><th>命中条件</th><th>规则数</th><th>更新时间</th><th>启用状态</th>' + (hasEdit() ? '<th>操作</th>' : '') + '</tr></thead><tbody>' + rows + '</tbody>';
+  document.querySelectorAll('[data-open]').forEach(el => {
+    el.onclick = () => openGroup(Number(el.getAttribute('data-open')));
   });
-  document.getElementById('btn-new-group').classList.toggle('hidden', !hasEdit());
+  document.querySelectorAll('.g-cb').forEach(cb => {
+    cb.onchange = () => {
+      const id = Number(cb.getAttribute('data-gid'));
+      if (cb.checked) selectedGroups.add(id); else selectedGroups.delete(id);
+      renderGroups();
+    };
+  });
+  const gall = document.getElementById('g-all');
+  if (gall) {
+    gall.onchange = () => {
+      if (gall.checked) pickable.forEach(g => selectedGroups.add(g.id));
+      else selectedGroups.clear();
+      renderGroups();
+    };
+  }
+  document.querySelectorAll('[data-gtoggle]').forEach(sw => {
+    sw.onclick = () => {
+      const g = groups.find(x => x.id === Number(sw.getAttribute('data-gtoggle')));
+      g.status = g.status === 'enabled' ? 'disabled' : 'enabled';
+      toast(g.status === 'enabled' ? '已启用' : '已禁用', 'ok');
+      renderGroups();
+    };
+  });
+  document.querySelectorAll('[data-gcopy]').forEach(btn => {
+    btn.onclick = () => toast('沿用现网复制分组弹窗，本次不改', 'ok');
+  });
 }
 
 function openGroup(id) {
@@ -249,13 +326,17 @@ function renderDetail() {
   document.getElementById('rule-toolbar').innerHTML = hasEdit()
     ? '<button class="btn btn-primary" id="btn-new-rule">+ 新建规则</button>' +
       '<button class="btn" id="btn-batch-copy" ' + (n ? '' : 'disabled') + '>批量复制</button>' +
+      '<button class="btn" id="btn-r-on" ' + (n ? '' : 'disabled') + '>批量启用</button>' +
+      '<button class="btn" id="btn-r-off" ' + (n ? '' : 'disabled') + '>批量禁用</button>' +
       '<button class="btn btn-danger" id="btn-batch-del" ' + (n ? '' : 'disabled') + '>批量删除</button>' +
       (n ? '<span class="hint">已选 ' + n + ' 条</span>' : '<span class="hint">请先勾选规则</span>')
     : '<span class="hint">当前账号无编辑权限，仅可查看</span>';
 
   if (hasEdit()) {
-    document.getElementById('btn-batch-copy').onclick = openCopy;
+    document.getElementById('btn-batch-copy').onclick = () => openCopy(selectedRules());
     document.getElementById('btn-batch-del').onclick = tryDelete;
+    document.getElementById('btn-r-on').onclick = () => batchToggleRules('enabled');
+    document.getElementById('btn-r-off').onclick = () => batchToggleRules('disabled');
     document.getElementById('btn-new-rule').onclick = () => toast('沿用现网新建规则弹窗，本次不改', 'ok');
   }
 
@@ -263,7 +344,7 @@ function renderDetail() {
   const allChecked = list.length && list.every(r => selected.has(r.id));
   const rows = list.map(r => {
     const cb = hasEdit() ? '<input type="checkbox" class="row-cb" data-id="' + r.id + '" ' + (selected.has(r.id) ? 'checked' : '') + '>' : '';
-    return '<tr><td>' + cb + '</td><td>' + r.id + '</td><td>' + r.name + (r.official ? ' <span class="tag tag-warning">官方群发</span>' : '') + '</td><td>' + r.desc + '</td><td>' + r.type + '</td><td>' + r.actions.map(actionTag).join('') + '</td><td>' + r.created + '</td><td>' + r.updated + '</td><td>' + r.updater + '</td><td>' + (hasEdit() ? '<span class="switch ' + (r.status === 'enabled' ? 'on' : '') + '" data-toggle="' + r.id + '"></span>' : '<span class="tag ' + (r.status === 'enabled' ? 'tag-success' : 'tag-info') + '">' + (r.status === 'enabled' ? '已启用' : '已禁用') + '</span>') + '</td>' + (hasEdit() ? '<td><button class="btn-text">编辑</button><button class="btn-text danger" data-del="' + r.id + '">删除</button></td>' : '') + '</tr>';
+    return '<tr><td>' + cb + '</td><td>' + r.id + '</td><td>' + r.name + (r.official ? ' <span class="tag tag-warning">官方群发</span>' : '') + '</td><td>' + r.desc + '</td><td>' + r.type + '</td><td>' + r.actions.map(actionTag).join('') + '</td><td>' + r.created + '</td><td>' + r.updated + '</td><td>' + r.updater + '</td><td>' + (hasEdit() ? '<span class="switch ' + (r.status === 'enabled' ? 'on' : '') + '" data-toggle="' + r.id + '"></span>' : '<span class="tag ' + (r.status === 'enabled' ? 'tag-success' : 'tag-info') + '">' + (r.status === 'enabled' ? '已启用' : '已禁用') + '</span>') + '</td>' + (hasEdit() ? '<td><button class="btn-text" data-copy="' + r.id + '">复制</button><button class="btn-text">编辑</button><button class="btn-text danger" data-del="' + r.id + '">删除</button></td>' : '') + '</tr>';
   }).join('');
   document.getElementById('rule-table').innerHTML =
     '<thead><tr>' + (hasEdit() ? '<th style="width:40px"><input type="checkbox" id="cb-all" ' + (allChecked ? 'checked' : '') + '></th>' : '<th style="width:40px"></th>') +
@@ -293,6 +374,12 @@ function renderDetail() {
       renderDetail();
     };
   });
+  document.querySelectorAll('[data-copy]').forEach(btn => {
+    btn.onclick = () => {
+      const r = list.find(x => x.id === Number(btn.getAttribute('data-copy')));
+      openCopy([r]);
+    };
+  });
   document.querySelectorAll('[data-del]').forEach(btn => {
     btn.onclick = () => {
       const id = Number(btn.getAttribute('data-del'));
@@ -311,19 +398,35 @@ function selectedRules() {
   return (rulesByGroup[currentGroupId] || []).filter(r => selected.has(r.id));
 }
 
+function batchToggleRules(status) {
+  const rs = selectedRules();
+  if (!rs.length) return;
+  const word = status === 'enabled' ? '启用' : '禁用';
+  const need = rs.filter(r => r.status !== status);
+  if (!need.length) {
+    toast('所选规则均已' + word, 'warn');
+    return;
+  }
+  if (!confirm('确定' + word + '已选的 ' + rs.length + ' 条规则吗？')) return;
+  need.forEach(r => { r.status = status; });
+  selected.clear();
+  toast('已' + word + ' ' + need.length + ' 条规则', 'ok');
+  renderDetail();
+}
+
 function makeName(r) {
   return (document.getElementById('copy-prefix').value || '') + r.name + (document.getElementById('copy-suffix').value || '');
 }
 
 function refreshPreview() {
-  const rs = selectedRules();
-  document.getElementById('copy-preview').innerHTML = rs.map(r => makeName(r) || '（名称为空，不允许）').join('<br>') || '请先勾选规则';
+  document.getElementById('copy-preview').innerHTML = copyTargets.map(r => makeName(r) || '（名称为空，不允许）').join('<br>') || '请选择要复制的规则';
 }
 
-function openCopy() {
-  if (!selected.size) return;
-  const rs = selectedRules();
-  document.getElementById('copy-hint').textContent = '将复制 ' + rs.length + ' 条规则。触发类型、条件、时间、动作、官方群发设置一并带入；规则编号与时间重新生成。';
+function openCopy(list) {
+  if (!list || !list.length) return;
+  copyTargets = list;
+  document.getElementById('copy-title').textContent = list.length === 1 ? '复制规则' : '批量复制规则';
+  document.getElementById('copy-hint').textContent = '将复制 ' + list.length + ' 条规则。触发类型、条件、时间、动作、官方群发设置一并带入；规则编号与时间重新生成。';
   document.getElementById('copy-group').innerHTML = groups.map(g =>
     '<option value="' + g.id + '"' + (g.id === currentGroupId ? ' selected' : '') + '>' +
     g.name + (g.fallback ? '（兜底）' : '') + (g.status === 'disabled' ? '（已禁用）' : '') +
@@ -343,7 +446,7 @@ function submitCopy() {
   const st = document.querySelector('input[name="copy-status"]:checked');
   if (!gid) { toast('请选择目标分组', 'warn'); return; }
   if (!st) { toast('请选择副本启用状态', 'warn'); return; }
-  const rs = selectedRules();
+  const rs = copyTargets;
   if (rs.some(r => !makeName(r))) { toast('规则名称不能为空，请填写前缀或保留原名称', 'warn'); return; }
   const target = groups.find(g => g.id === gid);
   const now = '2026-09-22 14:40:00';
@@ -387,14 +490,10 @@ function confirmDelete() {
 
 document.getElementById('btn-back').onclick = () => {
   currentGroupId = null;
+  selected.clear();
   document.getElementById('view-detail').classList.add('hidden');
   document.getElementById('view-list').classList.remove('hidden');
   renderGroups();
-};
-document.getElementById('perm-toggle').onchange = e => {
-  canEdit = e.target.checked;
-  selected.clear();
-  if (currentGroupId) renderDetail(); else renderGroups();
 };
 document.getElementById('copy-x').onclick = closeCopy;
 document.getElementById('copy-cancel').onclick = closeCopy;
