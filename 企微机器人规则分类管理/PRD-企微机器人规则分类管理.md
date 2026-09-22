@@ -55,7 +55,11 @@ flowchart TD
 
 ## 六、可交互原型
 
-可交互原型：生成中（步骤 5 发布后回填链接）
+可交互原型（公网，点击可直接操作）：https://leo-ai05.github.io/prototypes/%E4%BC%81%E5%BE%AE%E6%9C%BA%E5%99%A8%E4%BA%BA%E8%A7%84%E5%88%99%E5%88%86%E7%B1%BB%E7%AE%A1%E7%90%86/
+
+内网预览（需飞连）：https://pages.yc345.tv/prototypes-720e80/wework-bot-rule-category-proto/
+
+GitHub 预览（公网）：[点击查看](https://leo-ai05.github.io/prototypes/%E4%BC%81%E5%BE%AE%E6%9C%BA%E5%99%A8%E4%BA%BA%E8%A7%84%E5%88%99%E5%88%86%E7%B1%BB%E7%AE%A1%E7%90%86/)
 
 原型模式：html-wireframe（单文件可交互原型，无需登录、无需本地启动）
 
