@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f3ece4">
+<meta name="format-detection" content="telephone=no">
+<meta name="description" content="周末见面吗">
+<meta property="og:title" content="周末见面吗">
+<meta property="og:description" content="选一个">
+<title>周末见面吗</title>
+<style>
+  :root {
+    --bg: #f3ece4;
+    --ink: #1b140f;
+    --muted: #8d7d72;
+    --line: rgba(27, 20, 15, 0.22);
+    --safe-b: max(20px, env(safe-area-inset-bottom));
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+  body {
+    position: fixed;
+    inset: 0;
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+    background:
+      radial-gradient(90% 60% at 50% -8%, #f8e3da 0%, transparent 58%),
+      radial-gradient(70% 46% at 110% 100%, #eadccb 0%, transparent 52%),
+      var(--bg);
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    user-select: none;
+    touch-action: manipulation;
+  }
+  main, .done {
+    min-height: calc(var(--vh, 1vh) * 100);
+  }
+  main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+    padding: 28px 24px calc(var(--safe-b) + 72px);
+    transition: opacity .35s ease, transform .35s ease;
+  }
+  h1, .done h2 {
+    margin: 0;
+    font-family: "Songti SC", "STSong", "Noto Serif SC", "Source Han Serif SC", PMingLiU, serif;
+    font-weight: 600;
+    font-size: clamp(52px, 16vw, 78px);
+    line-height: 1.14;
+    letter-spacing: 0.08em;
+    text-align: center;
+  }
+  .choice {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    width: min(100%, 340px);
+  }
+  .actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+  }
+  button {
+    appearance: none;
+    font-family: inherit;
+    border: 0;
+    background: transparent;
+    color: inherit;
+  }
+  .btn {
+    flex: 1 1 0;
+    max-width: 156px;
+    height: 52px;
+    border-radius: 999px;
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-indent: 0.18em;
+    white-space: nowrap;
+  }
+  #yes {
+    position: relative;
+    z-index: 4;
+    background: var(--ink);
+    color: #f6f0e8;
+  }
+  #yes:active { transform: scale(0.98); }
+  #no {
+    color: var(--ink);
+    box-shadow: inset 0 0 0 1.5px var(--line);
+    background: rgba(243, 236, 228, 0.72);
+  }
+  #no.is-loose {
+    position: fixed;
+    z-index: 3;
+    flex: none;
+    margin: 0;
+  }
+  #no.is-ready {
+    transition:
+      left .34s cubic-bezier(.17, .86, .28, 1),
+      top .34s cubic-bezier(.17, .86, .28, 1),
+      transform .34s ease;
+  }
+  .status {
+    margin: 0;
+    min-height: 1.2em;
+    text-align: center;
+    font-size: 13px;
+    letter-spacing: 0.14em;
+    color: var(--muted);
+    pointer-events: none;
+  }
+  .done {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    padding: 24px;
+  }
+  .done p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+    letter-spacing: 0.28em;
+    text-indent: 0.28em;
+  }
+  body.is-done main {
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+  }
+  body.is-done .done {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition: opacity .45s ease .08s;
+  }
+  body.is-done .done h2 {
+    animation: rise .55s cubic-bezier(.2, .8, .2, 1) .05s both;
+  }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #no.is-ready,
+    main,
+    body.is-done .done,
+    body.is-done .done h2 {
+      transition: none;
+      animation: none;
+    }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>周末<br>见面吗</h1>
+  <div class="choice">
+    <div class="actions">
+      <button type="button" class="btn" id="yes">见面</button>
+      <button type="button" class="btn" id="no">不见面</button>
+    </div>
+    <p class="status" id="status" aria-live="polite"></p>
+  </div>
+</main>
+<section class="done" id="done" aria-hidden="true">
+  <p>说定了</p>
+  <h2>周末见</h2>
+</section>
+<script>
+(function () {
+  var noBtn = document.getElementById("no");
+  var yesBtn = document.getElementById("yes");
+  var statusEl = document.getElementById("status");
+  var loose = false;
+  var lockUntil = 0;
+  var tries = 0;
+  var roamTimer = 0;
+  var lastTry = 0;
+  var lines = {
+    1: "跑了",
+    2: "还在跑",
+    3: "抓不住",
+    5: "拒绝不了",
+    8: "见面一直都在"
+  };
+
+  function setVH() {
+    var h = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    document.documentElement.style.setProperty("--vh", (h * 0.01) + "px");
+  }
+  setVH();
+  window.addEventListener("resize", setVH);
+  if (window.visualViewport) window.visualViewport.addEventListener("resize", setVH);
+
+  function vw() {
+    return window.visualViewport ? window.visualViewport.width : window.innerWidth;
+  }
+  function vh() {
+    return window.visualViewport ? window.visualViewport.height : window.innerHeight;
+  }
+  function pointOf(e) {
+    if (e.touches && e.touches[0]) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    if (e.changedTouches && e.changedTouches[0]) return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
+    return { x: e.clientX, y: e.clientY };
+  }
+  function overlapsBox(x, y, w, h, el, pad) {
+    var r = el.getBoundingClientRect();
+    return x < r.right + pad && x + w > r.left - pad && y < r.bottom + pad && y + h > r.top - pad;
+  }
+  function blocked(x, y, w, h) {
+    return overlapsBox(x, y, w, h, yesBtn, 16) || overlapsBox(x, y, w, h, document.querySelector("h1"), 14);
+  }
+  function detach() {
+    if (loose) return;
+    var r = noBtn.getBoundingClientRect();
+    noBtn.classList.add("is-loose");
+    noBtn.style.width = r.width + "px";
+    noBtn.style.height = r.height + "px";
+    noBtn.style.left = r.left + "px";
+    noBtn.style.top = r.top + "px";
+    loose = true;
+    requestAnimationFrame(function () { noBtn.classList.add("is-ready"); });
+  }
+  function relocate(fromX, fromY, force) {
+    if (document.body.classList.contains("is-done")) return;
+    var now = Date.now();
+    if (!force && now < lockUntil) return;
+    detach();
+    var w = noBtn.offsetWidth;
+    var h = noBtn.offsetHeight;
+    var padX = 12;
+    var padTop = 16;
+    var padBottom = 28;
+    var maxX = Math.max(padX, vw() - w - padX);
+    var maxY = Math.max(padTop, vh() - h - padBottom);
+    var far = [];
+    var fallback = null;
+    var fallbackD = -1;
+    var i;
+    for (i = 0; i < 48; i++) {
+      var x = padX + Math.random() * (maxX - padX);
+      var y = padTop + Math.random() * (maxY - padTop);
+      if (blocked(x, y, w, h)) continue;
+      var cx = x + w / 2;
+      var cy = y + h / 2;
+      var dx = cx - fromX;
+      var dy = cy - fromY;
+      var d = dx * dx + dy * dy;
+      if (d > fallbackD) {
+        fallbackD = d;
+        fallback = { x: x, y: y };
+      }
+      if (d > 220 * 220) far.push({ x: x, y: y });
+    }
+    var best = far.length ? far[Math.floor(Math.random() * far.length)] : fallback;
+    if (!best) best = { x: padX, y: padTop };
+    var tilt = (Math.random() * 16 - 8).toFixed(1);
+    noBtn.style.transform = "rotate(" + tilt + "deg)";
+    noBtn.style.left = best.x + "px";
+    noBtn.style.top = best.y + "px";
+    lockUntil = now + 320;
+  }
+  function startRoaming() {
+    if (roamTimer) return;
+    roamTimer = setInterval(function () {
+      if (document.body.classList.contains("is-done")) {
+        clearInterval(roamTimer);
+        return;
+      }
+      var r = noBtn.getBoundingClientRect();
+      relocate(r.left + r.width / 2, r.top + r.height / 2, false);
+    }, 760);
+  }
+  function onUserTry(x, y) {
+    var now = Date.now();
+    if (now - lastTry < 280) return;
+    lastTry = now;
+    tries += 1;
+    if (lines[tries]) statusEl.textContent = lines[tries];
+    relocate(x, y, true);
+    startRoaming();
+  }
+  function attack(e) {
+    if (e.cancelable) e.preventDefault();
+    e.stopPropagation();
+    var p = pointOf(e);
+    onUserTry(p.x, p.y);
+  }
+  noBtn.addEventListener("pointerdown", attack);
+  noBtn.addEventListener("touchstart", attack, { passive: false });
+  noBtn.addEventListener("mousedown", function (e) { e.preventDefault(); });
+  noBtn.addEventListener("click", function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    attack(e);
+  });
+  noBtn.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+  noBtn.addEventListener("keydown", function (e) {
+    if (e.key !== "Enter" && e.key !== " ") return;
+    e.preventDefault();
+    var r = noBtn.getBoundingClientRect();
+    onUserTry(r.left + r.width / 2, r.top + r.height / 2);
+  });
+  document.addEventListener("pointermove", function (e) {
+    if (document.body.classList.contains("is-done")) return;
+    var mouseHover = e.pointerType === "mouse" && e.buttons === 0;
+    var pressing = e.pointerType !== "mouse" || e.buttons > 0;
+    if (!mouseHover && !pressing) return;
+    var r = noBtn.getBoundingClientRect();
+    var cx = r.left + r.width / 2;
+    var cy = r.top + r.height / 2;
+    var dx = e.clientX - cx;
+    var dy = e.clientY - cy;
+    var reach = mouseHover ? 72 : 56;
+    if (dx * dx + dy * dy < reach * reach) onUserTry(e.clientX, e.clientY);
+  }, { passive: true });
+  document.addEventListener("touchmove", function (e) {
+    if (e.cancelable) e.preventDefault();
+  }, { passive: false });
+  yesBtn.addEventListener("click", function () {
+    document.body.classList.add("is-done");
+    document.getElementById("done").setAttribute("aria-hidden", "false");
+    if (roamTimer) clearInterval(roamTimer);
+    statusEl.textContent = "";
+  });
+  window.addEventListener("resize", function () {
+    if (!loose || document.body.classList.contains("is-done")) return;
+    var r = noBtn.getBoundingClientRect();
+    var maxX = Math.max(12, vw() - noBtn.offsetWidth - 12);
+    var maxY = Math.max(16, vh() - noBtn.offsetHeight - 28);
+    noBtn.style.left = Math.min(Math.max(12, r.left), maxX) + "px";
+    noBtn.style.top = Math.min(Math.max(16, r.top), maxY) + "px";
+  });
+})();
+</script>
+</body>
+</html>
