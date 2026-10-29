@@ -1,0 +1,1956 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>体验营 · 企微机器人后台</title>
+<link rel="stylesheet" href="./element-plus.css">
+<style>
+  html, body, #app { height: 100%; margin: 0; }
+  body { font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Microsoft YaHei", Arial, sans-serif; background: #f0f2f5; color: #303133; }
+  .shell { height: 100vh; }
+  .shell > .el-container { flex-direction: column; min-width: 0; }
+  .header, .main { width: 100%; box-sizing: border-box; }
+  .aside { width: 210px; background: #304156; display: flex; flex-direction: column; }
+  .brand { height: 50px; display: flex; align-items: center; padding: 0 16px; color: #fff; font-weight: 600; font-size: 15px; background: #2b3a4b; }
+  .aside .el-menu { border-right: none; flex: 1; }
+  .header { height: 50px; background: #fff; border-bottom: 1px solid #e6e6e6; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; }
+  .crumb { color: #97a8be; font-size: 14px; }
+  .user-btn { display: flex; align-items: center; gap: 8px; cursor: pointer; color: #606266; }
+  .avatar { width: 28px; height: 28px; border-radius: 50%; background: #409eff; color: #fff; display: grid; place-items: center; font-size: 13px; }
+  .main { height: calc(100vh - 50px); overflow: auto; background: #f0f2f5; }
+  .pad { padding: 20px; }
+  .section-title { font-size: 15px; font-weight: 600; color: #303133; }
+  .section-bar { width: 3px; height: 16px; background: #409eff; border-radius: 2px; margin-right: 8px; }
+  .config-section { background: #fff; border: 1px solid #ebeef5; border-radius: 4px; padding: 20px; margin-bottom: 16px; }
+  .desc { color: #909399; font-size: 13px; line-height: 1.7; }
+  .tip-on { background: #f0f9eb; color: #67c23a; padding: 10px 12px; border-radius: 4px; font-size: 13px; }
+  .tip-off { background: #f4f4f5; color: #909399; padding: 10px 12px; border-radius: 4px; font-size: 13px; }
+  .fallback-row td { background: #fffbe6 !important; }
+  .fallback-name { color: #fa8c16; font-weight: 600; }
+  .cond-box { background: #fafbfc; border: 1px solid #ebeef5; border-radius: 8px; padding: 14px 16px; margin-bottom: 16px; }
+  .cond-item { font-size: 13px; margin: 4px 0; }
+  .logic { color: #909399; font-size: 12px; margin: 6px 0; }
+  .rule-split { display: grid; grid-template-columns: 200px 1fr; border: 1px solid #ebeef5; border-radius: 4px; overflow: hidden; background: #fff; min-height: 460px; }
+  .cat-rail { background: #fafbfc; border-right: 1px solid #ebeef5; padding: 12px 8px; }
+  .cat-item { display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; border-radius: 4px; cursor: pointer; color: #606266; margin-bottom: 2px; }
+  .cat-item.on { background: #ecf5ff; color: #409eff; font-weight: 600; }
+  .cat-item .cnt { font-size: 12px; color: #909399; }
+  .cat-item.on .cnt { color: #409eff; }
+  .rule-pane { padding: 16px; min-width: 0; }
+  .sa-layout { display: flex; gap: 16px; min-height: 480px; }
+  .sa-aside { width: 200px; flex: none; border-right: 1px solid #ebeef5; padding-right: 8px; }
+  .aside-label { padding: 0 12px; margin: 12px 0 6px; font-size: 12px; color: #909399; }
+  .aside-item { display: flex; justify-content: space-between; height: 38px; align-items: center; padding: 0 12px; border-radius: 4px; cursor: pointer; color: #606266; }
+  .aside-item.on { background: #ecf5ff; color: #409eff; font-weight: 500; }
+  .emp { display: flex; height: calc(100vh - 50px); background: #f5f5f5; }
+  .org { width: 220px; background: #fff; border-right: 1px solid #e5e5e5; display: flex; flex-direction: column; }
+  .col-emp { width: 280px; background: #fff; border-right: 1px solid #e5e5e5; display: flex; flex-direction: column; }
+  .col-sess { width: 320px; background: #fff; border-right: 1px solid #e5e5e5; display: flex; flex-direction: column; }
+  .col-chat { flex: 1; background: #fff; min-width: 0; display: flex; flex-direction: column; }
+  .emp-item, .sess-item { display: flex; gap: 12px; padding: 12px; cursor: pointer; }
+  .emp-item.on, .sess-item.on { background: #e6f7ff; }
+  .emp-item:hover, .sess-item:hover { background: #f5f5f5; }
+  .dot { position: absolute; right: 0; bottom: 0; width: 10px; height: 10px; border-radius: 50%; border: 2px solid #fff; }
+  .dot.on { background: #52c41a; }
+  .dot.off { background: #d9d9d9; }
+  .tabs-mini { display: flex; border-bottom: 1px solid #e5e5e5; }
+  .tabs-mini div { flex: 1; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #666; }
+  .tabs-mini div.on { color: #1890ff; border-bottom: 2px solid #1890ff; font-weight: 500; }
+  .badge { margin-left: 6px; font-size: 12px; padding: 0 6px; border-radius: 8px; background: #f0f2f5; color: #909399; }
+  .badge.ai { background: #e6f7ff; color: #1890ff; }
+  .badge.human { background: #fff7e6; color: #fa8c16; }
+  .bubble-wrap { padding: 16px; overflow: auto; flex: 1; background: #f5f5f5; }
+  .bubble { max-width: 70%; margin-bottom: 12px; padding: 8px 12px; border-radius: 6px; font-size: 14px; line-height: 1.6; }
+  .bubble.user { background: #fff; }
+  .bubble.bot { background: #e8f3ff; margin-left: auto; }
+  .bubble.staff { background: #f6ffed; margin-left: auto; }
+  .who { font-size: 12px; color: #909399; margin-bottom: 2px; }
+  .qr { width: 180px; height: 180px; margin: 16px auto; background:
+    linear-gradient(#303133 2px, transparent 2px) 0 0 / 12px 12px,
+    linear-gradient(90deg, #303133 2px, transparent 2px) 0 0 / 12px 12px,
+    #fff; border: 1px solid #ebeef5; }
+  .block-h { font-size: 16px; font-weight: 500; margin: 8px 0 16px; padding-left: 10px; border-left: 4px solid #1890ff; }
+  .new-badge { color: #f56c6c; font-size: 10px; margin-left: 4px; font-weight: 700; }
+  .highlight { color: #e6a23c; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script src="./vue.global.prod.js"></script>
+<script src="./element-plus.full.min.js"></script>
+<script>
+const { createApp, reactive, computed, ref, nextTick } = Vue;
+const { ElMessage, ElMessageBox } = ElementPlus;
+
+const ACTIONS = [
+  { label: "发送企业微信消息", value: "sendWechatMessage" },
+  { label: "更新变量", value: "updateVariable" },
+  { label: "发送会员", value: "sendMembership" },
+  { label: "学情报告", value: "sendStudyReport" },
+  { label: "学情话术解析", value: "sendStudyAnalysis" },
+  { label: "转人工", value: "transferToHuman" },
+  { label: "发送小程序", value: "sendMiniProgram" },
+  { label: "更新企业微信标签", value: "updateWwTag" },
+  { label: "跳转APP", value: "jumpToApp" },
+  { label: "AI话术生成", value: "aiScriptGenerate" }
+];
+const BLOCKED_WHEN_BROADCAST = ["sendStudyReport", "sendStudyAnalysis", "jumpToApp", "aiScriptGenerate"];
+const CATS = ["进线接待", "学情跟进", "转人工", "未分类"];
+let seq = 100;
+
+const store = reactive({
+  page: "employee",
+  ruleView: "list",
+  groupId: 12,
+  ruleCat: "全部",
+  selectedRuleIds: [],
+  groupDialog: false,
+  groupMode: "create",
+  editingGroupId: null,
+  groupForm: { name: "", description: "", field: "用户年级", op: "等于", value: "" },
+  copyDialog: false,
+  copyForm: { name: "", description: "", field: "渠道ID", op: "等于", value: "" },
+  ruleDialog: false,
+  editingRuleId: null,
+  ruleForm: { name: "", description: "", triggerType: "user_change", category: "未分类", useOfficialBroadcast: false, action: "sendWechatMessage", content: "" },
+  batchDialog: false,
+  batchCat: "进线接待",
+  copySourceIds: [],
+  batchCopyDialog: false,
+  batchCopyForm: { groupId: null, copyStatus: "", prefix: "", suffix: "" },
+  sessionCat: "all",
+  sessionKw: "",
+  attrDialog: false,
+  tplKw: "",
+  tplDialog: false,
+  promptDrawer: false,
+  promptCode: "A1",
+  promptDraft: "",
+  promptModel: "",
+  channelCatalog: [
+    { id: "8801", name: "初中数学体验营", status: "启用" },
+    { id: "8802", name: "小学英语体验营", status: "启用" },
+    { id: "8803", name: "高中物理体验营", status: "停用" },
+    { id: "8804", name: "初中语文体验营", status: "启用" }
+  ],
+  channels: ["8801", "8802"],
+  botToken: "expcamp-coze-bot-token-8801-primary-space-000000000000000000",
+  disableOnHuman: true,
+  delayOn: true,
+  noSendStart: "22:00:00",
+  noSendEnd: "08:00:00",
+  delaySend: "08:30:00",
+  concurrent: 3,
+  rotationBatch: 20,
+  collab: true,
+  idleMinutes: 30,
+  orgKw: "",
+  checkedOrgs: ["junior"],
+  empKw: "",
+  selectedEmpId: 1,
+  sessTab: 2,
+  globalKw: "",
+  sessKw: "",
+  selectedSessId: "s1",
+  chatTab: "chat",
+  transferDialog: false,
+  exportDialog: false,
+  loginDialog: false,
+  loginAccountId: 1,
+  loginState: "0",
+  verifyCode: "",
+  groups: [
+    { id: 12, name: "初中体验营进线", description: "年级为初中，且从已托管渠道进线", conditions: "2 个条件组（组间且）", isFallback: false, status: true, updatedAt: "2026-10-27 18:20:11", rules: [
+      { id: 201, name: "进线欢迎语", description: "加好友后发送欢迎语", triggerType: "用户信息变更", actions: ["发送企业微信消息"], category: "进线接待", status: true, official: false, createdAt: "2026-10-20 10:00:00", updatedAt: "2026-10-27 18:20:11", updater: "林晓" },
+      { id: 202, name: "开营通知", description: "定时发送开营静态通知", triggerType: "定时任务", actions: ["发送企业微信消息"], category: "进线接待", status: true, official: true, createdAt: "2026-10-21 11:12:00", updatedAt: "2026-10-26 09:18:22", updater: "林晓" },
+      { id: 203, name: "首日学情", description: "首日学习后发送学情报告", triggerType: "定时任务", actions: ["学情报告"], category: "学情跟进", status: true, official: false, createdAt: "2026-10-22 14:03:00", updatedAt: "2026-10-25 16:40:08", updater: "周宁" },
+      { id: 204, name: "购买意向转人工", description: "用户表达报名意向后转人工", triggerType: "用户信息变更", actions: ["转人工"], category: "转人工", status: false, official: false, createdAt: "2026-10-23 09:30:00", updatedAt: "2026-10-24 12:00:00", updater: "周宁" }
+    ]},
+    { id: 8, name: "小学体验营进线", description: "年级为小学的进线用户", conditions: "1 个条件组", isFallback: false, status: true, updatedAt: "2026-10-26 15:02:44", rules: [
+      { id: 301, name: "小学欢迎语", description: "小学年级欢迎语", triggerType: "用户信息变更", actions: ["发送企业微信消息"], category: "进线接待", status: true, official: false, createdAt: "2026-10-18 09:00:00", updatedAt: "2026-10-26 15:02:44", updater: "陈可" }
+    ]},
+    { id: 1, name: "兜底分组", description: "未命中其他分组时执行", conditions: "兜底", isFallback: true, status: true, updatedAt: "2026-10-20 08:00:00", rules: [
+      { id: 401, name: "兜底问候", description: "未命中分组时的问候", triggerType: "用户信息变更", actions: ["发送企业微信消息"], category: "未分类", status: true, official: false, createdAt: "2026-10-01 08:00:00", updatedAt: "2026-10-20 08:00:00", updater: "林晓" }
+    ]}
+  ],
+  attrs: [
+    { name: "体验营备注", key: "camp_note", type: "字符串", typeTag: "", desc: "运营手工补充的备注", category: "custom", preset: false, show: true, update: false, changed: false },
+    { name: "渠道ID", key: "channel_id", type: "字符串", typeTag: "", desc: "用户进线的体验营渠道ID", category: "base_info", preset: true, show: true, update: false, changed: false },
+    { name: "用户年级", key: "user_grade", type: "字符串", typeTag: "", desc: "用户所在年级", category: "base_info", preset: true, show: true, update: true, changed: false },
+    { name: "用户号码", key: "user_phone", type: "字符串", typeTag: "", desc: "用户手机号", category: "base_info", preset: true, show: false, update: false, changed: false },
+    { name: "销售姓名", key: "sales_name", type: "字符串", typeTag: "", desc: "体验营组织架构中的负责人员", category: "base_info", preset: true, show: true, update: false, changed: false },
+    { name: "转人工", key: "is_transferred_manual", type: "布尔", typeTag: "warning", desc: "是否已转人工", category: "session_status", preset: true, show: true, update: true, changed: false },
+    { name: "转人工原因分类", key: "transfer_reason_category", type: "字符串", typeTag: "", desc: "最近一次转人工的原因分类", category: "session_status", preset: true, show: true, update: false, changed: false },
+    { name: "累计看课时长", key: "cumulative_watch_time", type: "数字", typeTag: "success", desc: "累计观看课程时长（分钟）", category: "study_cumulative", preset: true, show: true, update: true, changed: false },
+    { name: "添加企微后是否付费", key: "is_paid_after_wecom_add", type: "布尔", typeTag: "warning", desc: "添加企业微信后付费金额大于 0 时为是", category: "pay_intent", preset: true, show: true, update: true, changed: false }
+  ],
+  templates: [
+    { id: 1, name: "初中数学三日规划", description: "按年级和看课时长生成三日规划话术", vars: ["用户年级", "累计看课时长"], ref: 1, status: true, updatedAt: "2026-10-26 11:20:00" },
+    { id: 2, name: "小学英语开营话术", description: "开营第一天的学习规划", vars: ["用户年级"], ref: 0, status: true, updatedAt: "2026-10-22 17:06:33" }
+  ],
+  prompts: [
+    { code: "A1", name: "用户摘要", model: "Doubao-1.5-pro", updatedBy: "林晓", updatedAt: "2026-10-27 10:12:08", content: "请根据 {{channel_id}}、{{user_grade}} 概括该体验营用户。" },
+    { code: "A2", name: "学情周报", model: "Doubao-1.5-pro", updatedBy: "周宁", updatedAt: "2026-10-25 16:40:08", content: "结合 {{cumulative_watch_time}} 生成本周学情摘要。" },
+    { code: "A3", name: "通话洞察", model: "Doubao-1.5-pro", updatedBy: "林晓", updatedAt: "2026-10-20 09:00:00", content: "总结本次沟通中的家长关注点。" },
+    { code: "A4", name: "对话摘要", model: "Doubao-1.5-pro", updatedBy: "陈可", updatedAt: "2026-10-18 14:22:10", content: "用三句话总结当前企微对话。" },
+    { code: "A5", name: "AI 用户标签", model: "Doubao-1.5-pro", updatedBy: "林晓", updatedAt: "2026-10-16 11:08:45", content: "根据对话判断家长身份类型。" }
+  ],
+  accounts: [
+    { id: 1, name: "体验营企微-周宁", userId: "ZhouNing", deviceId: "yd-10021", online: false },
+    { id: 2, name: "体验营企微-陈可", userId: "ChenKe", deviceId: "yd-10022", online: true }
+  ]
+});
+
+const orgTree = [
+  { id: "root", name: "体验营", children: [
+    { id: "central", name: "华中", children: [{ id: "junior", name: "初中组" }] },
+    { id: "east", name: "华东", children: [{ id: "primary", name: "小学组" }] }
+  ]}
+];
+const employees = [
+  { id: 1, name: "周宁", email: "zhou.ning@exp.local", org: "junior", orgPath: "体验营 / 华中 / 初中组", online: true, last: "10-28 14:21", corp: "体验营企微" },
+  { id: 2, name: "陈可", email: "chen.ke@exp.local", org: "primary", orgPath: "体验营 / 华东 / 小学组", online: false, last: "10-27 19:02", corp: "体验营企微" }
+];
+const sessions = {
+  1: [
+    { id: "s1", name: "林女士", remark: "林女士-初中数学", tab: 2, last: "想问初中数学怎么学", time: "14:21", deleted: false },
+    { id: "s2", name: "小周家长", remark: "小周家长", tab: 1, last: "已经转给老师了", time: "11:06", deleted: false }
+  ],
+  2: [
+    { id: "s3", name: "王爸爸", remark: "王爸爸-小学英语", tab: 2, last: "英语开营在什么时候", time: "昨天", deleted: false }
+  ]
+};
+const messages = {
+  s1: [
+    { who: "林女士", side: "user", text: "老师，初中数学怎么学？" },
+    { who: "机器人", side: "bot", text: "我先根据孩子的年级和看课时长，整理一份三日学习规划。" },
+    { who: "机器人", side: "bot", text: "今日学习提醒：完成一节数学同步课。", official: true },
+    { who: "周宁", side: "staff", text: "林女士您好，我是周宁，规划发您之后有问题直接说。" }
+  ],
+  s2: [
+    { who: "小周家长", side: "user", text: "我们想报名这个体验营。" },
+    { who: "机器人", side: "bot", text: "已为您转接人工，周宁会继续跟进。" }
+  ],
+  s3: [
+    { who: "王爸爸", side: "user", text: "英语开营在什么时候？" },
+    { who: "机器人", side: "bot", text: "小学英语开营是这周五晚上 19:30。" }
+  ]
+};
+
+const currentGroup = computed(() => store.groups.find(g => g.id === store.groupId));
+const copyPreview = computed(() => {
+  const g = currentGroup.value;
+  if (!g) return [];
+  return g.rules.filter(r => store.copySourceIds.includes(r.id));
+});
+function groupOptionLabel(g) {
+  const tags = [];
+  if (currentGroup.value && g.id === currentGroup.value.id) tags.push("当前");
+  if (g.isFallback) tags.push("兜底");
+  if (!g.status) tags.push("已禁用");
+  return tags.length ? `${g.name}（${tags.join("、")}）` : g.name;
+}
+const visibleRules = computed(() => {
+  const g = currentGroup.value;
+  if (!g) return [];
+  if (store.ruleCat === "全部") return g.rules;
+  return g.rules.filter(r => r.category === store.ruleCat);
+});
+const catCount = (name) => {
+  const g = currentGroup.value;
+  if (!g) return 0;
+  if (name === "全部") return g.rules.length;
+  return g.rules.filter(r => r.category === name).length;
+};
+const filteredEmps = computed(() => employees.filter(e => {
+  if (store.checkedOrgs.length && !store.checkedOrgs.includes(e.org)) return false;
+  const kw = store.empKw.trim();
+  if (!kw) return true;
+  return e.name.includes(kw) || e.email.includes(kw);
+}));
+const onlineCount = computed(() => filteredEmps.value.filter(e => e.online).length);
+const selectedEmp = computed(() => employees.find(e => e.id === store.selectedEmpId) || null);
+const visibleSessions = computed(() => {
+  const list = sessions[store.selectedEmpId] || [];
+  return list.filter(s => s.tab === store.sessTab && (
+    !store.sessKw.trim() || s.name.includes(store.sessKw.trim()) || s.remark.includes(store.sessKw.trim())
+  ));
+});
+const selectedSess = computed(() => {
+  const all = Object.values(sessions).flat();
+  return all.find(s => s.id === store.selectedSessId) || null;
+});
+const chatMessages = computed(() => messages[store.selectedSessId] || []);
+const sessionGroups = computed(() => {
+  const meta = [
+    { key: "custom", label: "自定义字段", desc: "运营手动新增的字段", custom: true },
+    { key: "base_info", label: "基础信息", desc: "用户身份与人员归属相关字段", custom: false },
+    { key: "session_status", label: "会话状态", desc: "当前会话服务状态与消息时距相关字段", custom: false },
+    { key: "study_cumulative", label: "学情数据-累积", desc: "累计学习相关字段", custom: false },
+    { key: "pay_intent", label: "付费历史与付费意向", desc: "付费历史与付费意向相关字段", custom: false }
+  ];
+  const kw = store.sessionKw.trim();
+  return meta.map(m => ({
+    ...m,
+    list: store.attrs.filter(a => a.category === m.key && (!kw || a.name.includes(kw) || a.desc.includes(kw) || a.key.includes(kw)))
+  })).filter(m => (store.sessionCat === "all" || store.sessionCat === m.key) && m.list.length);
+});
+const attrCount = (key) => key === "all" ? store.attrs.length : store.attrs.filter(a => a.category === key).length;
+const filteredTpls = computed(() => store.templates.filter(t => !store.tplKw.trim() || t.name.includes(store.tplKw.trim()) || t.description.includes(store.tplKw.trim())));
+const editingPrompt = computed(() => store.prompts.find(p => p.code === store.promptCode));
+const loginAccount = computed(() => store.accounts.find(a => a.id === store.loginAccountId));
+const loginText = computed(() => ({
+  "0": "请扫描下方二维码进行登录",
+  "1": "已扫码，等待扫码端点击登录按钮",
+  "10": "请输入验证码验证登录",
+  "3": "二维码过期"
+}[store.loginState] || "请扫描下方二维码进行登录"));
+const rotationPreview = computed(() => `同时 ${store.concurrent} 个销售发送，每人连续 ${store.rotationBatch} 个用户后切换下一位。`);
+const broadcastBlocked = computed(() => store.ruleForm.useOfficialBroadcast);
+const crumbs = {
+  rule: "企微机器人 / 规则配置",
+  session: "企微机器人 / 会话属性",
+  template: "企微机器人 / 学习规划模版",
+  global: "企微机器人 / 全局配置",
+  employee: "企微机器人 / AI员工明细",
+  prompt: "企微机器人 / Prompt管理",
+  person: "个人信息 / 关联企业微信"
+};
+
+function go(page) {
+  store.page = page;
+  closeDialogs();
+}
+function closeDialogs() {
+  store.groupDialog = false;
+  store.copyDialog = false;
+  store.ruleDialog = false;
+  store.batchDialog = false;
+  store.attrDialog = false;
+  store.tplDialog = false;
+  store.promptDrawer = false;
+  store.transferDialog = false;
+  store.exportDialog = false;
+  store.loginDialog = false;
+}
+function openGroup(id) {
+  store.groupId = id;
+  store.ruleView = "detail";
+  store.ruleCat = "全部";
+  store.selectedRuleIds = [];
+}
+function toastOk(text) { ElMessage.success(text); }
+function toastWarn(text) { ElMessage.warning(text); }
+
+function saveGroup() {
+  const f = store.groupForm;
+  if (!f.name.trim()) return toastWarn(store.groupMode === "fallback" ? "请输入兜底分组名称" : "请输入分组名称");
+  if (f.name.trim().length > 30) return toastWarn("分组名称不能超过30个字符");
+  if (store.groupMode !== "fallback" && !f.value.trim()) return toastWarn("条件 1：请输入条件值");
+  if (store.groupMode === "create") {
+    store.groups.unshift({
+      id: ++seq, name: f.name.trim(), description: f.description.trim(),
+      conditions: "1 个条件组", isFallback: false, status: false, updatedAt: "2026-10-28 15:40:00", rules: []
+    });
+    toastOk("创建成功");
+  } else {
+    const g = store.groups.find(i => i.id === store.editingGroupId);
+    if (g) {
+      g.name = f.name.trim();
+      g.description = f.description.trim();
+      if (!g.isFallback) g.conditions = "1 个条件组";
+      g.updatedAt = "2026-10-28 15:40:00";
+    }
+    toastOk("更新成功");
+  }
+  store.groupDialog = false;
+}
+function openCreateGroup() {
+  store.groupMode = "create";
+  store.groupForm = { name: "", description: "", field: "用户年级", op: "等于", value: "" };
+  store.groupDialog = true;
+}
+function openEditGroup(g) {
+  store.groupMode = g.isFallback ? "fallback" : "edit";
+  store.editingGroupId = g.id;
+  store.groupForm = { name: g.name, description: g.description, field: "用户年级", op: "等于", value: g.isFallback ? "" : "初中" };
+  store.groupDialog = true;
+}
+function openCopy(g) {
+  store.copyForm = { name: g.name + "-副本", description: g.description, field: "渠道ID", op: "等于", value: "" };
+  store.editingGroupId = g.id;
+  store.copyDialog = true;
+}
+function saveCopy() {
+  const f = store.copyForm;
+  if (!f.name.trim()) return toastWarn("请输入分组名称");
+  if (!f.value.trim()) return toastWarn("条件 1：请输入条件值");
+  const src = store.groups.find(g => g.id === store.editingGroupId);
+  store.groups.unshift({
+    id: ++seq, name: f.name.trim(), description: f.description.trim(), conditions: "1 个条件组",
+    isFallback: false, status: false, updatedAt: "2026-10-28 15:40:00",
+    rules: (src?.rules || []).map(r => ({ ...r, id: ++seq, status: false, name: r.name }))
+  });
+  toastOk("创建成功");
+  store.copyDialog = false;
+}
+function toggleGroup(g, val) {
+  g.status = val;
+  toastOk(val ? "已启用" : "已禁用");
+}
+function onRuleSelect(rows) { store.selectedRuleIds = rows.map(r => r.id); }
+function switchRuleCat(name) { store.ruleCat = name; store.selectedRuleIds = []; }
+function openBatch() {
+  if (!store.selectedRuleIds.length) return toastWarn("请先勾选规则");
+  store.batchCat = "进线接待";
+  store.batchDialog = true;
+}
+function saveBatch() {
+  const g = currentGroup.value;
+  let n = 0;
+  g.rules.forEach(r => {
+    if (store.selectedRuleIds.includes(r.id) && r.category !== store.batchCat) {
+      r.category = store.batchCat;
+      n += 1;
+    }
+  });
+  toastOk(n ? `已将 ${n} 条规则改为「${store.batchCat}」` : "所选规则已是该分类");
+  store.batchDialog = false;
+  store.selectedRuleIds = [];
+}
+function openBatchCopy(ids) {
+  if (!ids.length) return toastWarn("请先勾选规则");
+  const g = currentGroup.value;
+  store.copySourceIds = ids.slice();
+  store.batchCopyForm = { groupId: g.id, copyStatus: "", prefix: "", suffix: "" };
+  store.batchCopyDialog = true;
+}
+function batchCopy() { openBatchCopy(store.selectedRuleIds.slice()); }
+function copyRule(row) { openBatchCopy([row.id]); }
+function confirmBatchCopy() {
+  const f = store.batchCopyForm;
+  if (!f.groupId) return toastWarn("请选择目标分组");
+  if (!f.copyStatus) return toastWarn("请选择副本启用状态");
+  const picked = copyPreview.value;
+  if (!picked.length) return toastWarn("请先勾选规则");
+  const names = picked.map(r => `${f.prefix || ""}${r.name}${f.suffix || ""}`.trim());
+  if (names.some(n => !n)) return toastWarn("规则名称不能为空");
+  const target = store.groups.find(g => g.id === f.groupId);
+  picked.forEach((r, i) => {
+    target.rules.push({
+      ...r, id: ++seq, name: names[i], status: f.copyStatus === "enabled",
+      updatedAt: "2026-10-28 19:10:00", updater: "林晓"
+    });
+  });
+  target.updatedAt = "2026-10-28 19:10:00";
+  toastOk(`已复制 ${picked.length} 条规则到「${target.name}」`);
+  store.batchCopyDialog = false;
+  store.selectedRuleIds = [];
+  store.copySourceIds = [];
+}
+function batchToggle(enabled) {
+  const g = currentGroup.value;
+  const picked = g.rules.filter(r => store.selectedRuleIds.includes(r.id));
+  if (!picked.length) return toastWarn("请先勾选规则");
+  const word = enabled ? "启用" : "禁用";
+  const need = picked.filter(r => r.status !== enabled);
+  if (!need.length) return toastWarn(`所选规则均已${word}`);
+  ElMessageBox.confirm(`确定${word}已选的 ${picked.length} 条规则吗？`, "提示", { type: "warning" }).then(() => {
+    need.forEach(r => { r.status = enabled; });
+    store.selectedRuleIds = [];
+    toastOk(`已${word} ${need.length} 条规则`);
+  }).catch(() => {});
+}
+function batchDelete() {
+  const g = currentGroup.value;
+  const picked = g.rules.filter(r => store.selectedRuleIds.includes(r.id));
+  if (!picked.length) return toastWarn("请先勾选规则");
+  const enabledCount = picked.filter(r => r.status).length;
+  if (enabledCount) return toastWarn(`选中规则含 ${enabledCount} 条已启用，请先全部禁用后再批量删除`);
+  const names = picked.map(r => r.name).join("、");
+  ElMessageBox.confirm(`确定删除已选的 ${picked.length} 条规则吗？删除后不可恢复。\n${names}`, "提示", { type: "warning", confirmButtonText: "确定删除" }).then(() => {
+    g.rules = g.rules.filter(r => !store.selectedRuleIds.includes(r.id));
+    store.selectedRuleIds = [];
+    toastOk("删除成功");
+  }).catch(() => {});
+}
+function openRule(row) {
+  store.editingRuleId = row ? row.id : null;
+  store.ruleForm = row ? {
+    name: row.name, description: row.description,
+    triggerType: row.triggerType === "定时任务" ? "scheduled" : "user_change",
+    category: row.category, useOfficialBroadcast: row.official,
+    action: ACTIONS.find(a => a.label === row.actions[0])?.value || "sendWechatMessage",
+    content: row.official ? "今日学习提醒：完成一节数学同步课。" : "您好，欢迎加入体验营。"
+  } : { name: "", description: "", triggerType: "user_change", category: store.ruleCat === "全部" ? "未分类" : store.ruleCat, useOfficialBroadcast: false, action: "sendWechatMessage", content: "" };
+  store.ruleDialog = true;
+}
+function onTriggerChange() {
+  if (store.ruleForm.triggerType !== "scheduled") {
+    store.ruleForm.useOfficialBroadcast = false;
+  }
+}
+function saveRule() {
+  if (!store.ruleForm.name.trim()) return toastWarn("请输入规则名称");
+  if (store.ruleForm.useOfficialBroadcast && BLOCKED_WHEN_BROADCAST.includes(store.ruleForm.action)) {
+    return toastWarn("启用官方群发后不允许包含学情类、跳转 APP 或 AI 话术生成动作");
+  }
+  const g = currentGroup.value;
+  const label = ACTIONS.find(a => a.value === store.ruleForm.action).label;
+  if (store.editingRuleId) {
+    const r = g.rules.find(i => i.id === store.editingRuleId);
+    Object.assign(r, {
+      name: store.ruleForm.name.trim(), description: store.ruleForm.description.trim(),
+      triggerType: store.ruleForm.triggerType === "scheduled" ? "定时任务" : "用户信息变更",
+      category: store.ruleForm.category, official: store.ruleForm.useOfficialBroadcast,
+      actions: [label], updatedAt: "2026-10-28 15:44:00", updater: "林晓"
+    });
+    toastOk("更新成功");
+  } else {
+    g.rules.unshift({
+      id: ++seq, name: store.ruleForm.name.trim(), description: store.ruleForm.description.trim(),
+      triggerType: store.ruleForm.triggerType === "scheduled" ? "定时任务" : "用户信息变更",
+      actions: [label], category: store.ruleForm.category, status: false,
+      official: store.ruleForm.useOfficialBroadcast, createdAt: "2026-10-28 15:44:00", updatedAt: "2026-10-28 15:44:00", updater: "林晓"
+    });
+    toastOk("创建成功");
+  }
+  store.ruleDialog = false;
+}
+function deleteRule(row) {
+  ElMessageBox.confirm(`确定要删除规则"${row.name}"吗？`, "提示", { type: "warning" }).then(() => {
+    const g = currentGroup.value;
+    g.rules = g.rules.filter(r => r.id !== row.id);
+    toastOk("删除成功");
+  }).catch(() => {});
+}
+function toggleHost(row, checked) {
+  if (checked) {
+    if (!store.channels.includes(row.id)) store.channels.push(row.id);
+    return;
+  }
+  if (store.channels.length <= 1) return toastWarn("至少需要保留一个体验营渠道");
+  store.channels = store.channels.filter(id => id !== row.id);
+}
+function channelLabel(id) {
+  const row = store.channelCatalog.find(c => c.id === id);
+  return row ? row.name + "（" + id + "）" : id;
+}
+function saveGlobal() {
+  if (!store.channels.length) return toastWarn("至少需要保留一个体验营渠道");
+  if (store.concurrent < 1 || store.rotationBatch < 1) return toastWarn("请填写轮询人数");
+  toastOk("保存成功");
+}
+function openPrompt(row) {
+  store.promptCode = row.code;
+  store.promptDraft = row.content;
+  store.promptModel = row.model;
+  store.promptDrawer = true;
+}
+function savePrompt() {
+  if (!store.promptDraft.trim()) return toastWarn("请输入 Prompt");
+  const row = store.prompts.find(p => p.code === store.promptCode);
+  row.content = store.promptDraft;
+  row.model = store.promptModel;
+  row.updatedBy = "林晓";
+  row.updatedAt = "2026-10-28 15:46:00";
+  toastOk("保存成功");
+  store.promptDrawer = false;
+}
+function insertVar(key) {
+  store.promptDraft += `{{${key}}}`;
+}
+function openLogin(row) {
+  store.loginAccountId = row.id;
+  store.loginState = "0";
+  store.verifyCode = "";
+  store.loginDialog = true;
+}
+function simScan() { store.loginState = "1"; }
+function simNeedCode() { store.loginState = "10"; }
+function confirmCode() {
+  if (store.verifyCode.trim() === "246810") {
+    const acc = loginAccount.value;
+    acc.online = true;
+    store.loginDialog = false;
+    toastOk("登录成功");
+  } else {
+    toastWarn("验证码不正确");
+  }
+}
+function logout(row) {
+  ElMessageBox.confirm("确认下线？", "提示", { type: "warning" }).then(() => {
+    row.online = false;
+    toastOk("下线成功");
+  }).catch(() => {});
+}
+function pickEmp(emp) {
+  store.selectedEmpId = emp.id;
+  const list = sessions[emp.id] || [];
+  store.selectedSessId = (list.find(s => s.tab === store.sessTab) || list[0] || {}).id || "";
+  store.chatTab = "chat";
+}
+function pickSess(s) { store.selectedSessId = s.id; store.chatTab = "chat"; }
+function globalSearch() {
+  const kw = store.globalKw.trim();
+  if (!kw) return;
+  for (const emp of employees) {
+    const hit = (sessions[emp.id] || []).find(s => s.name.includes(kw) || s.remark.includes(kw));
+    if (hit) {
+      store.checkedOrgs = [emp.org];
+      store.selectedEmpId = emp.id;
+      store.sessTab = hit.tab;
+      store.selectedSessId = hit.id;
+      toastOk(`已定位到 ${emp.name} 的会话「${hit.remark}」`);
+      return;
+    }
+  }
+  toastWarn("未找到匹配的昵称或备注");
+}
+function deleteTpl(row) {
+  const tip = row.ref > 0 ? `模版「${row.name}」仍被 ${row.ref} 个规则引用，删除后相关规则将无法生成话术，确定删除？` : `确定要删除模版「${row.name}」吗？`;
+  ElMessageBox.confirm(tip, "提示", { type: "warning", confirmButtonText: row.ref > 0 ? "强制删除" : "确定" }).then(() => {
+    store.templates = store.templates.filter(t => t.id !== row.id);
+    toastOk("删除成功");
+  }).catch(() => {});
+}
+function saveTpl() { toastOk("保存成功"); store.tplDialog = false; }
+function saveAttr() { toastOk("保存成功"); store.attrDialog = false; }
+function resetChat() {
+  ElMessageBox.confirm("确认重置该用户的会话数据？", "提示", { type: "warning" }).then(() => toastOk("已重置")).catch(() => {});
+}
+function submitExport() { store.exportDialog = false; toastOk("已提交导出，文件生成后将自动下载"); }
+
+function actionDisabled(value) {
+  return broadcastBlocked.value && BLOCKED_WHEN_BROADCAST.includes(value);
+}
+
+window.DIFF_HOOKS = {
+  locate(pageId) {
+    closeDialogs();
+    const pageOf = {
+      "page-shell": "employee", "page-rule": "rule", "page-session": "session", "page-template": "template",
+      "page-global": "global", "page-employee": "employee", "page-prompt": "prompt", "page-person": "person",
+      ruleDialog: "rule", groupDialog: "rule", batchDialog: "rule", loginDialog: "person", promptDrawer: "prompt", transferDialog: "employee"
+    };
+    store.page = pageOf[pageId] || "employee";
+    if (pageId === "page-rule" || pageId === "ruleDialog" || pageId === "batchDialog") {
+      store.ruleView = "detail";
+      store.groupId = 12;
+    }
+    if (pageId === "groupDialog") store.ruleView = "list";
+    if (pageId === "page-session") store.sessionCat = "base_info";
+    if (pageId === "page-employee" || pageId === "transferDialog") {
+      store.selectedEmpId = 1;
+      store.sessTab = 2;
+      store.selectedSessId = "s1";
+    }
+    nextTick(() => {
+      if (pageId === "ruleDialog") openRule(null);
+      if (pageId === "groupDialog") openCreateGroup();
+      if (pageId === "batchDialog") { store.selectedRuleIds = [201]; store.batchDialog = true; }
+      if (pageId === "loginDialog") openLogin(store.accounts[0]);
+      if (pageId === "promptDrawer") openPrompt(store.prompts[0]);
+      if (pageId === "transferDialog") store.transferDialog = true;
+    });
+  },
+  setDemoState(id, value) {
+    if (id !== "loginState" || !value) return;
+    store.page = "person";
+    if (value === "online") {
+      store.accounts[0].online = true;
+      store.loginDialog = false;
+      return;
+    }
+    openLogin(store.accounts[0]);
+    store.loginState = value === "code" ? "10" : "0";
+  }
+};
+
+const app = createApp({
+  setup() {
+    return {
+      store, ACTIONS, CATS, orgTree, crumbs, currentGroup, visibleRules, catCount, filteredEmps, onlineCount,
+      selectedEmp, visibleSessions, selectedSess, chatMessages, sessionGroups, attrCount, filteredTpls,
+      editingPrompt, loginAccount, loginText, rotationPreview, go, openGroup, saveGroup, openCreateGroup,
+      openEditGroup, openCopy, saveCopy, toggleGroup, onRuleSelect, switchRuleCat, openBatch, saveBatch,
+      batchCopy, copyRule, confirmBatchCopy, batchToggle, batchDelete, openRule, onTriggerChange, saveRule, deleteRule, toggleHost, channelLabel, groupOptionLabel, copyPreview,
+      saveGlobal, openPrompt, savePrompt, insertVar, openLogin, simScan, simNeedCode, confirmCode, logout,
+      pickEmp, pickSess, globalSearch, deleteTpl, saveTpl, saveAttr, resetChat, submitExport, actionDisabled
+    };
+  },
+  template: `
+  <el-container class="shell">
+    <el-aside class="aside" width="210px">
+      <div class="brand">体验营</div>
+      <el-menu id="bot-menu" data-diff-page="菜单" :default-active="store.page" :default-openeds="['bot']" :key="store.page" background-color="#304156" text-color="#bfcbd9" active-text-color="#409eff" @select="go">
+        <el-sub-menu index="bot">
+          <template #title>企微机器人</template>
+          <el-menu-item index="rule">规则配置</el-menu-item>
+          <el-menu-item index="session">会话属性</el-menu-item>
+          <el-menu-item index="template">学习规划模版</el-menu-item>
+          <el-menu-item index="global">全局配置</el-menu-item>
+          <el-menu-item index="employee">AI员工明细</el-menu-item>
+          <el-menu-item index="prompt">Prompt管理</el-menu-item>
+        </el-sub-menu>
+      </el-menu>
+    </el-aside>
+    <el-container direction="vertical">
+      <header class="header">
+        <div class="crumb">{{ crumbs[store.page] }}</div>
+        <el-dropdown trigger="click" @command="go">
+          <span class="user-btn"><span class="avatar">林</span>林晓</span>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="person">个人信息</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+      </header>
+      <main class="main">
+        <section v-show="store.page==='rule'" id="page-rule" data-diff-page="规则配置">
+          <div class="pad" v-show="store.ruleView==='list'">
+            <el-card>
+              <el-button type="primary" @click="openCreateGroup">新建分组</el-button>
+              <el-table :data="store.groups" style="width:100%;margin-top:16px" :row-class-name="({row}) => row.isFallback ? 'fallback-row' : ''">
+                <el-table-column label="分组名称" min-width="160">
+                  <template #default="{ row }">
+                    <span v-if="row.isFallback">🛡️</span>
+                    <el-button link type="primary" :class="{ 'fallback-name': row.isFallback }" @click="openGroup(row.id)">{{ row.name }}</el-button>
+                  </template>
+                </el-table-column>
+                <el-table-column prop="description" label="分组描述" min-width="220" show-overflow-tooltip />
+                <el-table-column label="命中条件" width="180">
+                  <template #default="{ row }">
+                    <el-tag v-if="row.isFallback" effect="light" style="color:#fa8c16;border-color:#ffbb96;background:#fff2e8">兜底</el-tag>
+                    <span v-else>{{ row.conditions }}</span>
+                  </template>
+                </el-table-column>
+                <el-table-column label="规则数" width="90"><template #default="{ row }">{{ row.rules.length }}</template></el-table-column>
+                <el-table-column prop="updatedAt" label="更新时间" width="170" />
+                <el-table-column label="启用状态" width="100">
+                  <template #default="{ row }">
+                    <el-tag v-if="row.isFallback" :type="row.status ? 'success' : 'info'">{{ row.status ? '已启用' : '已禁用' }}</el-tag>
+                    <el-switch v-else :model-value="row.status" @change="(v) => toggleGroup(row, v)" />
+                  </template>
+                </el-table-column>
+                <el-table-column label="操作" width="200" fixed="right">
+                  <template #default="{ row }">
+                    <el-button link type="primary" @click="openGroup(row.id)">查看规则</el-button>
+                    <el-button link type="primary" @click="openEditGroup(row)">编辑</el-button>
+                    <el-button v-if="!row.isFallback" link type="primary" @click="openCopy(row)">复制</el-button>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </el-card>
+          </div>
+          <div class="pad" v-show="store.ruleView==='detail'" v-if="currentGroup">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+              <el-button @click="store.ruleView='list'">返回分组列表</el-button>
+              <span style="font-size:18px;font-weight:700">{{ currentGroup.name }}</span>
+              <el-tag v-if="currentGroup.isFallback" type="warning" effect="light">兜底分组</el-tag>
+              <el-tag :type="currentGroup.status ? 'success' : 'info'">{{ currentGroup.status ? '已启用' : '已禁用' }}</el-tag>
+            </div>
+            <div class="cond-box">
+              <template v-if="currentGroup.isFallback">
+                <div style="font-weight:500;margin-bottom:8px">兜底说明</div>
+                <div class="desc">兜底分组：当所有普通分组均未命中时，自动执行此分组下的规则</div>
+              </template>
+              <template v-else-if="currentGroup.id===12">
+                <div style="font-weight:500;margin-bottom:8px">命中条件</div>
+                <div class="desc">条件组 1</div>
+                <div class="cond-item">用户年级 <span style="color:#999">等于</span> <b>初中</b></div>
+                <div class="logic">且</div>
+                <div class="desc">条件组 2</div>
+                <div class="cond-item">渠道ID <span style="color:#999">等于</span> <b>8801</b></div>
+              </template>
+              <template v-else>
+                <div style="font-weight:500;margin-bottom:8px">命中条件</div>
+                <div class="desc">条件组 1</div>
+                <div class="cond-item">用户年级 <span style="color:#999">等于</span> <b>小学</b></div>
+              </template>
+            </div>
+            <div class="rule-split">
+              <aside class="cat-rail">
+                <div class="cat-item" :class="{ on: store.ruleCat==='全部' }" @click="switchRuleCat('全部')"><span>全部</span><span class="cnt">{{ catCount('全部') }}</span></div>
+                <div v-for="c in CATS" :key="c" class="cat-item" :class="{ on: store.ruleCat===c }" @click="switchRuleCat(c)"><span>{{ c }}</span><span class="cnt">{{ catCount(c) }}</span></div>
+              </aside>
+              <div class="rule-pane">
+                <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
+                  <el-button type="primary" @click="openRule(null)">新建规则</el-button>
+                  <el-button :disabled="!store.selectedRuleIds.length" @click="batchCopy">批量复制</el-button>
+                  <el-button :disabled="!store.selectedRuleIds.length" @click="batchToggle(true)">批量启用</el-button>
+                  <el-button :disabled="!store.selectedRuleIds.length" @click="batchToggle(false)">批量禁用</el-button>
+                  <el-button :disabled="!store.selectedRuleIds.length" type="danger" plain @click="batchDelete">批量删除</el-button>
+                  <el-button :disabled="!store.selectedRuleIds.length" @click="openBatch">批量修改分类</el-button>
+                  <span class="desc">{{ store.selectedRuleIds.length ? '已选 ' + store.selectedRuleIds.length + ' 条' : '请先勾选规则' }}</span>
+                </div>
+                <el-table :data="visibleRules" :key="store.ruleCat + '-' + store.groupId" row-key="id" @selection-change="onRuleSelect">
+                  <el-table-column type="selection" width="48" />
+                  <el-table-column prop="id" label="规则ID" width="90" />
+                  <el-table-column label="规则名称" min-width="180">
+                    <template #default="{ row }">{{ row.name }} <el-tag v-if="row.official" type="warning" size="small" effect="light">官方群发</el-tag></template>
+                  </el-table-column>
+                  <el-table-column prop="description" label="规则描述" min-width="180" show-overflow-tooltip />
+                  <el-table-column prop="category" label="分类" width="110" />
+                  <el-table-column prop="triggerType" label="触发类型" width="120" />
+                  <el-table-column label="动作类型" min-width="160">
+                    <template #default="{ row }"><el-tag v-for="a in row.actions" :key="a" size="small" effect="light" style="margin-right:4px">{{ a }}</el-tag></template>
+                  </el-table-column>
+                  <el-table-column prop="updatedAt" label="更新时间" width="170" />
+                  <el-table-column prop="updater" label="最后更新人" width="110" />
+                  <el-table-column label="启用状态" width="100">
+                    <template #default="{ row }"><el-switch v-model="row.status" @change="(v) => toastOk(v ? '已启用' : '已禁用')" /></template>
+                  </el-table-column>
+                  <el-table-column label="操作" width="180" fixed="right">
+                    <template #default="{ row }">
+                      <el-button link type="primary" @click="copyRule(row)">复制</el-button>
+                      <el-button link type="primary" @click="openRule(row)">编辑</el-button>
+                      <el-button link type="danger" @click="deleteRule(row)">删除</el-button>
+                    </template>
+                  </el-table-column>
+                </el-table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section v-show="store.page==='session'" id="page-session" data-diff-page="会话属性" class="pad">
+          <el-card>
+            <template #header>
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <b>会话属性</b>
+                <el-button type="primary" @click="store.attrDialog=true">新增属性</el-button>
+              </div>
+            </template>
+            <div class="sa-layout">
+              <aside class="sa-aside" id="session-aside">
+                <div class="aside-label">分类</div>
+                <div class="aside-item" :class="{ on: store.sessionCat==='all' }" @click="store.sessionCat='all'"><span>全部属性</span><span>{{ attrCount('all') }}</span></div>
+                <div class="aside-item" :class="{ on: store.sessionCat==='custom' }" @click="store.sessionCat='custom'"><span>自定义字段</span><span>{{ attrCount('custom') }}</span></div>
+                <div class="aside-label">系统默认字段</div>
+                <div class="aside-item" :class="{ on: store.sessionCat==='base_info' }" @click="store.sessionCat='base_info'"><span>基础信息</span><span>{{ attrCount('base_info') }}</span></div>
+                <div class="aside-item" :class="{ on: store.sessionCat==='session_status' }" @click="store.sessionCat='session_status'"><span>会话状态</span><span>{{ attrCount('session_status') }}</span></div>
+                <div class="aside-item" :class="{ on: store.sessionCat==='study_cumulative' }" @click="store.sessionCat='study_cumulative'"><span>学情数据-累积</span><span>{{ attrCount('study_cumulative') }}</span></div>
+                <div class="aside-item" :class="{ on: store.sessionCat==='pay_intent' }" @click="store.sessionCat='pay_intent'"><span>付费历史与付费意向</span><span>{{ attrCount('pay_intent') }}</span></div>
+              </aside>
+              <div style="flex:1;min-width:0" id="session-list">
+                <div style="display:flex;gap:16px;align-items:center;margin-bottom:12px">
+                  <el-input v-model="store.sessionKw" placeholder="搜索属性名称、描述、字段标识" clearable style="width:320px" />
+                  <span class="desc">自定义字段在最上 · 系统默认按分组聚合 · 同分组内按创建时间倒序</span>
+                </div>
+                <el-empty v-if="!sessionGroups.length" description="没有匹配的属性" />
+                <el-card v-for="g in sessionGroups" :key="g.key" shadow="never" style="margin-bottom:12px">
+                  <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+                    <b>{{ g.label }}</b>
+                    <el-tag size="small" :type="g.custom ? 'warning' : 'info'" effect="plain">{{ g.custom ? '自定义' : '系统默认' }}</el-tag>
+                    <span class="desc">{{ g.list.length }} 个字段</span>
+                    <span class="desc">{{ g.desc }}</span>
+                  </div>
+                  <el-table :data="g.list" border stripe>
+                    <el-table-column label="属性名称" min-width="180">
+                      <template #default="{ row }">
+                        <span :id="row.key==='channel_id' ? 'field-channel' : null">{{ row.name }}</span>
+                        <el-tag v-if="row.preset" size="small" type="info" style="margin-left:6px">系统默认</el-tag>
+                      </template>
+                    </el-table-column>
+                    <el-table-column label="字段类型" width="100"><template #default="{ row }"><el-tag size="small" :type="row.typeTag">{{ row.type }}</el-tag></template></el-table-column>
+                    <el-table-column prop="key" label="字段标识" min-width="180" />
+                    <el-table-column prop="desc" label="描述" min-width="220" show-overflow-tooltip />
+                    <el-table-column label="是否对接扣子" width="120" align="center"><template #default="{ row }"><el-tag size="small" :type="row.show?'success':'info'">{{ row.show?'是':'否' }}</el-tag></template></el-table-column>
+                    <el-table-column label="扣子是否更新" width="120" align="center"><template #default="{ row }"><el-tag size="small" :type="row.update?'success':'info'">{{ row.update?'是':'否' }}</el-tag></template></el-table-column>
+                    <el-table-column label="操作" width="160">
+                      <template #default="{ row }">
+                        <el-button link type="primary" @click="store.attrDialog=true">编辑</el-button>
+                        <el-button link type="primary">修改分类</el-button>
+                        <el-button v-if="!row.preset" link type="danger">删除</el-button>
+                      </template>
+                    </el-table-column>
+                  </el-table>
+                </el-card>
+              </div>
+            </div>
+          </el-card>
+        </section>
+
+        <section v-show="store.page==='template'" id="page-template" data-diff-page="学习规划模版" class="pad">
+          <el-card>
+            <template #header>
+              <div style="display:flex;justify-content:space-between"><b>学习规划模版</b><el-button type="primary" @click="store.tplDialog=true">新建模版</el-button></div>
+            </template>
+            <el-input v-model="store.tplKw" placeholder="搜索模版名称、描述" clearable style="width:320px;margin-bottom:12px" />
+            <el-table :data="filteredTpls" border stripe>
+              <el-table-column prop="name" label="模版名称" min-width="160" />
+              <el-table-column prop="description" label="模版描述" min-width="220" />
+              <el-table-column label="参考变量" min-width="200">
+                <template #default="{ row }"><el-tag v-for="v in row.vars" :key="v" size="small" effect="plain" style="margin-right:4px">{{ v }}</el-tag></template>
+              </el-table-column>
+              <el-table-column prop="ref" label="关联规则数" width="110" align="center" />
+              <el-table-column prop="updatedAt" label="更新时间" width="170" />
+              <el-table-column label="启用状态" width="100"><template #default="{ row }"><el-switch v-model="row.status" /></template></el-table-column>
+              <el-table-column label="操作" width="140">
+                <template #default="{ row }">
+                  <el-button link type="primary" @click="store.tplDialog=true">编辑</el-button>
+                  <el-button link type="danger" @click="deleteTpl(row)">删除</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </el-card>
+        </section>
+
+        <section v-show="store.page==='global'" id="page-global" data-diff-page="全局配置" class="pad">
+          <div class="config-section">
+            <div style="display:flex;align-items:center;margin-bottom:12px"><i class="section-bar"></i><span class="section-title">机器人Token</span></div>
+            <div class="desc" style="margin-bottom:12px">体验营独立扣子空间中的机器人 Token，保存后用于本套机器人调用。</div>
+            <el-input v-model="store.botToken" maxlength="68" show-word-limit style="width:520px" placeholder="请输入机器人Token（68位）" />
+          </div>
+          <div class="config-section" id="channel-section">
+            <div style="display:flex;align-items:center;margin-bottom:12px"><i class="section-bar"></i><span class="section-title">体验营托管渠道</span></div>
+            <div class="desc" style="margin-bottom:12px">从体验营已有渠道中勾选需要托管的渠道，不在这里新建渠道。未勾选的渠道，新进线用户不会创建机器人会话；已经创建会话的用户，仍支持 AI 接待和转人工。</div>
+            <el-table :data="store.channelCatalog" border style="width:720px;max-width:100%">
+              <el-table-column label="托管" width="70" align="center">
+                <template #default="{ row }">
+                  <el-checkbox :model-value="store.channels.includes(row.id)" @change="(v) => toggleHost(row, v)" />
+                </template>
+              </el-table-column>
+              <el-table-column prop="name" label="渠道名称" min-width="180" />
+              <el-table-column prop="id" label="渠道ID" width="120" />
+              <el-table-column label="状态" width="100">
+                <template #default="{ row }">
+                  <el-tag :type="row.status === '启用' ? 'success' : 'info'" size="small">{{ row.status }}</el-tag>
+                </template>
+              </el-table-column>
+            </el-table>
+            <div style="margin-top:12px">
+              <span class="desc">已托管：</span>
+              <el-tag v-for="id in store.channels" :key="id" style="margin:0 8px 8px 0">{{ channelLabel(id) }}</el-tag>
+            </div>
+          </div>
+          <div class="config-section">
+            <div style="display:flex;align-items:center;margin-bottom:12px"><i class="section-bar"></i><span class="section-title">转人工禁用规则配置</span></div>
+            <div class="desc">当会话处于「转人工」状态时，控制规则引擎对该会话的处理方式。</div>
+            <div style="margin:12px 0">转人工状态禁用规则 <el-switch v-model="store.disableOnHuman" style="margin-left:12px" /></div>
+            <div v-if="store.disableOnHuman" class="tip-on">已开启：当会话的「转人工」状态为转人工时，该会话的用户信息变更触发和定时触发将被跳过。切回 AI 托管后，规则自动恢复。</div>
+            <div v-else class="tip-off">未开启：规则引擎不区分会话状态，所有会话均按规则条件正常触发。</div>
+          </div>
+          <div class="config-section">
+            <div style="display:flex;align-items:center;margin-bottom:12px"><i class="section-bar"></i><span class="section-title">触发器全局规则</span></div>
+            <div style="margin-bottom:12px">延迟发送开关 <el-switch v-model="store.delayOn" active-text="开启" inactive-text="关闭" style="margin-left:12px" /></div>
+            <div class="desc" style="margin-bottom:8px">触发时间:</div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <span>若触发器命中时间范围为</span>
+              <el-time-picker v-model="store.noSendStart" value-format="HH:mm:ss" :disabled="!store.delayOn" />
+              <span>-</span>
+              <el-time-picker v-model="store.noSendEnd" value-format="HH:mm:ss" :disabled="!store.delayOn" />
+              <span>顺延至</span>
+              <el-time-picker v-model="store.delaySend" value-format="HH:mm:ss" :disabled="!store.delayOn" />
+              <span>触发</span>
+            </div>
+          </div>
+          <div class="config-section" id="rotation-section">
+            <div style="display:flex;align-items:center;margin-bottom:12px"><i class="section-bar"></i><span class="section-title">群发销售轮询规则</span></div>
+            <div class="desc" style="margin-bottom:12px">规则引擎触发官方群发时，系统按销售队列轮询发送，避免单个销售短时间发送量过大。该规则默认启用。</div>
+            <div style="margin-bottom:8px">并发销售量级 <el-input-number v-model="store.concurrent" :min="1" :max="50" /> 个销售同时进行消息发送</div>
+            <div style="margin-bottom:12px">每个销售连续发送 <el-input-number v-model="store.rotationBatch" :min="1" :max="500" /> 个用户后，自动切换下一个销售继续群发</div>
+            <div class="tip-off">轮询效果预览：{{ rotationPreview }}</div>
+          </div>
+          <div class="config-section">
+            <div style="display:flex;align-items:center;margin-bottom:12px"><i class="section-bar"></i><span class="section-title">人机协同</span></div>
+            <div style="margin-bottom:12px">人机协同开关 <el-switch v-model="store.collab" active-text="开启" inactive-text="关闭" style="margin-left:12px" /></div>
+            <div v-if="store.collab" style="margin-bottom:12px">人工接待后 <el-input-number v-model="store.idleMinutes" :min="1" :max="1440" /> 分钟无对话，自动转接为机器人接待（永久人工接待除外）</div>
+            <div class="desc">
+              <div>开启后，企业微信侧边栏的人工接待与机器人接待可自动或手动切换。</div>
+              <div>销售在侧边栏点击「永久人工接待」后，会话不再自动转机器人，可手动转给机器人接待。</div>
+              <div>付费转人工类型的用户默认为永久人工接待，同样支持手动转给机器人接待。</div>
+              <div class="highlight">销售主动沟通用户场景，生效该配置自动转机器人接待。</div>
+              <div>其他场景转人工，默认统一永久转人工，不会自动转机器人接待。</div>
+            </div>
+          </div>
+          <el-button type="primary" @click="saveGlobal">保存配置</el-button>
+        </section>
+
+        <section v-show="store.page==='employee'" id="page-employee" data-diff-page="AI员工明细">
+          <div class="emp">
+            <aside class="org" id="org-panel">
+              <div style="padding:12px;font-weight:600;display:flex;justify-content:space-between">组织架构 <span class="desc">体验营</span></div>
+              <div style="padding:0 12px 8px"><el-input v-model="store.orgKw" placeholder="搜索部门" clearable size="small" /></div>
+              <el-tree :data="orgTree" node-key="id" show-checkbox default-expand-all :default-checked-keys="store.checkedOrgs" :props="{ label: 'name', children: 'children' }" :filter-node-method="(v, d) => !v || d.name.includes(v)" @check="(n, ctx) => { store.checkedOrgs = ctx.checkedKeys.filter(k => k==='junior' || k==='primary'); }" />
+            </aside>
+            <div class="col-emp">
+              <div id="employee-head" style="padding:12px;border-bottom:1px solid #e5e5e5">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+                  <b>AI员工</b>
+                  <el-button size="small" type="primary" @click="store.exportDialog=true">导出客户明细</el-button>
+                </div>
+                <el-input v-model="store.empKw" placeholder="按姓名/邮箱搜索" clearable />
+                <div class="desc" style="margin-top:8px">在线 <span style="color:#52c41a">{{ onlineCount }}</span> · 离线 <span>{{ filteredEmps.length - onlineCount }}</span></div>
+              </div>
+              <div style="overflow:auto;flex:1">
+                <div v-for="emp in filteredEmps" :key="emp.id" class="emp-item" :class="{ on: store.selectedEmpId===emp.id }" @click="pickEmp(emp)">
+                  <div style="position:relative">
+                    <el-avatar :size="48">{{ emp.name.slice(0,1) }}</el-avatar>
+                    <i class="dot" :class="emp.online ? 'on' : 'off'"></i>
+                  </div>
+                  <div style="flex:1;min-width:0">
+                    <div style="display:flex;justify-content:space-between"><b>{{ emp.name }}</b><span class="desc">{{ emp.last }}</span></div>
+                    <div class="desc">{{ emp.corp }}</div>
+                    <div class="desc">{{ emp.orgPath }}</div>
+                  </div>
+                </div>
+                <el-empty v-if="!filteredEmps.length" description="所选部门下暂无员工" />
+              </div>
+            </div>
+            <div class="col-sess">
+              <div style="padding:12px;border-bottom:1px solid #e5e5e5;display:flex;gap:8px">
+                <el-input v-model="store.globalKw" placeholder="输入昵称/备注搜索全部会话" clearable @keyup.enter="globalSearch" />
+                <el-button @click="globalSearch">搜索</el-button>
+              </div>
+              <div class="tabs-mini">
+                <div :class="{ on: store.sessTab===1 }" @click="store.sessTab=1">转人工</div>
+                <div :class="{ on: store.sessTab===2 }" @click="store.sessTab=2">AI托管</div>
+              </div>
+              <div style="padding:12px;border-bottom:1px solid #e5e5e5">
+                <el-input v-model="store.sessKw" placeholder="请输入昵称/备注搜索" clearable :disabled="!selectedEmp" />
+              </div>
+              <div style="overflow:auto;flex:1">
+                <div v-for="s in visibleSessions" :key="s.id" class="sess-item" :class="{ on: store.selectedSessId===s.id }" @click="pickSess(s)">
+                  <el-avatar :size="48">{{ s.name.slice(0,1) }}</el-avatar>
+                  <div style="flex:1;min-width:0">
+                    <div style="display:flex;justify-content:space-between">
+                      <span><b>{{ s.remark }}</b><span class="badge" :class="s.tab===2?'ai':'human'">{{ s.tab===2?'AI接待':'转人工' }}</span></span>
+                      <span class="desc">{{ s.time }}</span>
+                    </div>
+                    <div class="desc">{{ s.last }}</div>
+                  </div>
+                </div>
+                <el-empty v-if="selectedEmp && !visibleSessions.length" description="暂无会话" />
+              </div>
+            </div>
+            <div class="col-chat">
+              <div style="padding:12px 16px;border-bottom:1px solid #e5e5e5;display:flex;justify-content:space-between;align-items:center">
+                <div>
+                  <div><b>{{ selectedSess ? selectedSess.remark : '请选择会话' }}</b></div>
+                  <div class="desc" v-if="selectedEmp">所属销售：{{ selectedEmp.name }} · {{ selectedEmp.orgPath }}</div>
+                </div>
+                <el-button type="primary" :disabled="!selectedSess" @click="store.transferDialog=true">转人工明细</el-button>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding-right:16px;border-bottom:1px solid #e5e5e5">
+                <el-tabs v-model="store.chatTab">
+                  <el-tab-pane label="聊天记录" name="chat" />
+                  <el-tab-pane label="会话变量" name="vars" />
+                  <el-tab-pane name="task"><template #label>任务执行明细<span class="new-badge">NEW</span></template></el-tab-pane>
+                </el-tabs>
+                <el-button type="primary" :disabled="!selectedSess" @click="resetChat">数据重置</el-button>
+              </div>
+              <div class="bubble-wrap" v-if="selectedSess && store.chatTab==='chat'">
+                <div v-for="(m, i) in chatMessages" :key="i" class="bubble" :class="m.side" :id="m.official ? 'official-broadcast-msg' : null">
+                  <div class="who">{{ m.who }} <el-tag v-if="m.official" size="small" type="warning" effect="light">官方群发</el-tag></div>
+                  {{ m.text }}
+                </div>
+              </div>
+              <div v-else-if="selectedSess && store.chatTab==='vars'" class="pad">
+                <el-descriptions :column="1" border>
+                  <el-descriptions-item label="渠道ID">8801</el-descriptions-item>
+                  <el-descriptions-item label="用户年级">初中</el-descriptions-item>
+                  <el-descriptions-item label="销售姓名">周宁</el-descriptions-item>
+                  <el-descriptions-item label="转人工">否</el-descriptions-item>
+                  <el-descriptions-item label="累计看课时长">36</el-descriptions-item>
+                </el-descriptions>
+              </div>
+              <div v-else-if="selectedSess && store.chatTab==='task'" class="pad">
+                <el-table :data="[{ name:'进线欢迎语', time:'2026-10-28 14:18:02', status:'成功', action:'发送企业微信消息' }, { name:'开营通知', time:'2026-10-28 09:00:00', status:'成功', action:'官方群发' }]" border>
+                  <el-table-column prop="name" label="规则名称" />
+                  <el-table-column prop="time" label="触发时间" width="180" />
+                  <el-table-column prop="action" label="动作" />
+                  <el-table-column prop="status" label="执行状态" width="100" />
+                </el-table>
+              </div>
+              <el-empty v-else description="请选择会话" />
+            </div>
+          </div>
+        </section>
+
+        <section v-show="store.page==='prompt'" id="page-prompt" data-diff-page="Prompt管理" class="pad">
+          <el-card>
+            <template #header><b>Prompt 管理</b></template>
+            <el-table :data="store.prompts" border>
+              <el-table-column prop="code" label="编号" width="90" />
+              <el-table-column prop="name" label="名称 / 用途" min-width="160" />
+              <el-table-column prop="model" label="模型" min-width="160" />
+              <el-table-column prop="updatedBy" label="最后修改人" width="120" />
+              <el-table-column prop="updatedAt" label="最后修改时间" width="180" />
+              <el-table-column label="操作" width="100"><template #default="{ row }"><el-button link type="primary" @click="openPrompt(row)">编辑</el-button></template></el-table-column>
+            </el-table>
+            <div id="prompt-tip" class="desc" style="margin-top:16px">
+              <div>① Prompt 中可用变量统一来自「会话属性」（按字段名引用，例如「渠道ID」「年级」「手机号」）；</div>
+              <div>② 模型选项来自公司内部模型列表；</div>
+              <div>③ 保存即生效，不提供草稿、灰度、历史版本、回滚和测试运行。</div>
+            </div>
+          </el-card>
+        </section>
+
+        <section v-show="store.page==='person'" id="page-person" data-diff-page="个人信息" class="pad">
+          <el-card>
+            <template #header><b>关联企业微信</b></template>
+            <el-table :data="store.accounts" border id="person-ops">
+              <el-table-column prop="name" label="企微账号名称" min-width="160" />
+              <el-table-column prop="userId" label="绑定账号" min-width="140" />
+              <el-table-column prop="deviceId" label="云设备ID" min-width="140" />
+              <el-table-column label="登录状态" width="120">
+                <template #default="{ row }"><el-tag :type="row.online ? 'success' : 'danger'">{{ row.online ? '在线' : '离线' }}</el-tag></template>
+              </el-table-column>
+              <el-table-column label="操作" width="160">
+                <template #default="{ row }">
+                  <el-button v-if="!row.online" link type="primary" @click="openLogin(row)">登录</el-button>
+                  <el-button v-else link type="primary" @click="logout(row)">下线</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </el-card>
+        </section>
+      </main>
+    </el-container>
+  </el-container>
+
+  <el-dialog id="groupDialog" data-diff-page="分组弹窗" v-model="store.groupDialog" :title="store.groupMode==='create' ? '新建分组' : (store.groupMode==='fallback' ? '编辑兜底分组' : '编辑分组')" width="700px">
+    <el-alert v-if="store.groupMode==='fallback'" type="warning" :closable="false" title="兜底分组无需配置命中条件，当所有普通分组均未命中时，系统自动执行兜底分组下的规则" style="margin-bottom:12px" />
+    <el-form label-width="100px">
+      <el-form-item label="分组名称" required><el-input v-model="store.groupForm.name" maxlength="30" show-word-limit placeholder="请输入分组名称" /></el-form-item>
+      <el-form-item label="分组描述"><el-input v-model="store.groupForm.description" type="textarea" maxlength="200" show-word-limit placeholder="请输入分组描述" /></el-form-item>
+      <el-form-item v-if="store.groupMode!=='fallback'" label="命中条件" required>
+        <div style="display:flex;gap:8px;width:100%">
+          <el-select v-model="store.groupForm.field" style="width:140px"><el-option label="用户年级" value="用户年级" /><el-option label="渠道ID" value="渠道ID" /></el-select>
+          <el-select v-model="store.groupForm.op" style="width:100px"><el-option label="等于" value="等于" /></el-select>
+          <el-input v-model="store.groupForm.value" placeholder="请输入条件值" />
+        </div>
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <el-button @click="store.groupDialog=false">取消</el-button>
+      <el-button type="primary" @click="saveGroup">确认</el-button>
+    </template>
+  </el-dialog>
+
+  <el-dialog v-model="store.copyDialog" title="复制分组" width="700px">
+    <el-alert type="info" :closable="false" :title="'复制自分组，包含其下规则。新分组默认禁用，命中条件需要重新配置。'" style="margin-bottom:12px" />
+    <el-form label-width="100px">
+      <el-form-item label="分组名称" required><el-input v-model="store.copyForm.name" maxlength="30" /></el-form-item>
+      <el-form-item label="分组描述"><el-input v-model="store.copyForm.description" type="textarea" maxlength="200" /></el-form-item>
+      <el-form-item label="命中条件" required>
+        <div style="display:flex;gap:8px;width:100%">
+          <el-select v-model="store.copyForm.field" style="width:140px"><el-option label="渠道ID" value="渠道ID" /><el-option label="用户年级" value="用户年级" /></el-select>
+          <el-select v-model="store.copyForm.op" style="width:100px"><el-option label="等于" value="等于" /></el-select>
+          <el-input v-model="store.copyForm.value" placeholder="请输入与源分组不同的条件值" />
+        </div>
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <el-button @click="store.copyDialog=false">取消</el-button>
+      <el-button type="primary" @click="saveCopy">确认</el-button>
+    </template>
+  </el-dialog>
+
+  <el-dialog id="ruleDialog" data-diff-page="规则弹窗" v-model="store.ruleDialog" :title="store.editingRuleId ? '编辑规则' : '新建规则'" width="800px">
+    <div class="block-h">基础信息</div>
+    <el-form label-width="110px">
+      <el-form-item label="规则名称" required><el-input v-model="store.ruleForm.name" maxlength="50" show-word-limit placeholder="请输入规则名称" /></el-form-item>
+      <el-form-item label="规则描述"><el-input v-model="store.ruleForm.description" type="textarea" maxlength="200" show-word-limit :rows="3" /></el-form-item>
+      <el-form-item label="规则分类">
+        <el-select v-model="store.ruleForm.category" style="width:200px"><el-option v-for="c in CATS" :key="c" :label="c" :value="c" /></el-select>
+      </el-form-item>
+      <div class="block-h">触发器配置</div>
+      <el-form-item label="触发器类型">
+        <el-select v-model="store.ruleForm.triggerType" :disabled="!!store.editingRuleId" style="width:220px" @change="onTriggerChange">
+          <el-option label="用户信息变更" value="user_change" />
+          <el-option label="定时任务" value="scheduled" />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="触发条件">
+        <div class="cond-box" style="width:100%;margin:0">当满足：用户年级 等于 初中</div>
+      </el-form-item>
+      <el-form-item label="官方群发">
+        <el-checkbox v-model="store.ruleForm.useOfficialBroadcast" :disabled="store.ruleForm.triggerType!=='scheduled'">启用企业微信官方群发</el-checkbox>
+        <div class="desc">仅定时任务可开启。勾选后走企微群发，仅支持静态文案，不支持学情类、跳转 APP、AI 话术生成。</div>
+      </el-form-item>
+      <div class="block-h">动作配置</div>
+      <el-form-item label="动作类型">
+        <el-select id="action-type-select" v-model="store.ruleForm.action" style="width:240px">
+          <el-option v-for="a in ACTIONS" :key="a.value" :label="a.label" :value="a.value" :disabled="actionDisabled(a.value)" />
+        </el-select>
+      </el-form-item>
+      <el-form-item v-if="store.ruleForm.action==='sendWechatMessage'" label="消息内容">
+        <el-input v-model="store.ruleForm.content" type="textarea" :rows="3" placeholder="请输入要发送的消息" />
+      </el-form-item>
+      <el-form-item v-else-if="store.ruleForm.action==='aiScriptGenerate'" label="学习规划模版">
+        <el-select model-value="初中数学三日规划" style="width:240px"><el-option label="初中数学三日规划" value="初中数学三日规划" /></el-select>
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <el-button @click="store.ruleDialog=false">取消</el-button>
+      <el-button type="primary" @click="saveRule">确认</el-button>
+    </template>
+  </el-dialog>
+
+  <el-dialog v-model="store.batchCopyDialog" title="批量复制" width="560px">
+    <el-form label-width="110px">
+      <el-form-item label="目标分组" required>
+        <el-select v-model="store.batchCopyForm.groupId" placeholder="请选择目标分组" style="width:100%">
+          <el-option v-for="g in store.groups" :key="g.id" :label="groupOptionLabel(g)" :value="g.id" />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="副本启用状态" required>
+        <el-radio-group v-model="store.batchCopyForm.copyStatus">
+          <el-radio label="disabled">禁用</el-radio>
+          <el-radio label="enabled">启用</el-radio>
+        </el-radio-group>
+      </el-form-item>
+      <el-form-item label="名称前缀">
+        <el-input v-model="store.batchCopyForm.prefix" placeholder="拼在原规则名称前面，可空" />
+      </el-form-item>
+      <el-form-item label="名称后缀">
+        <el-input v-model="store.batchCopyForm.suffix" placeholder="拼在原规则名称后面，可空" />
+      </el-form-item>
+      <el-form-item label="名称预览">
+        <div class="desc">
+          <div v-for="r in copyPreview" :key="r.id">{{ (store.batchCopyForm.prefix || '') + r.name + (store.batchCopyForm.suffix || '') }}</div>
+        </div>
+      </el-form-item>
+    </el-form>
+    <template #footer>
+      <el-button @click="store.batchCopyDialog=false">取消</el-button>
+      <el-button type="primary" @click="confirmBatchCopy">确认</el-button>
+    </template>
+  </el-dialog>
+
+  <el-dialog id="batchDialog" data-diff-page="批量修改分类" v-model="store.batchDialog" title="批量修改分类" width="480px">
+    <div class="desc" style="margin-bottom:12px">已选 {{ store.selectedRuleIds.length }} 条规则，将改为同一个分类。</div>
+    <el-select v-model="store.batchCat" style="width:100%">
+      <el-option v-for="c in CATS" :key="c" :label="c" :value="c" />
+    </el-select>
+    <template #footer>
+      <el-button @click="store.batchDialog=false">取消</el-button>
+      <el-button type="primary" @click="saveBatch">确认</el-button>
+    </template>
+  </el-dialog>
+
+  <el-dialog v-model="store.attrDialog" title="新增属性" width="560px">
+    <el-form label-width="110px">
+      <el-form-item label="属性名称" required><el-input placeholder="请输入属性名称" /></el-form-item>
+      <el-form-item label="字段标识" required><el-input placeholder="例如 camp_class" /></el-form-item>
+      <el-form-item label="字段类型"><el-select model-value="字符串" style="width:100%"><el-option label="字符串" value="字符串" /><el-option label="数字" value="数字" /><el-option label="布尔" value="布尔" /></el-select></el-form-item>
+      <el-form-item label="描述"><el-input type="textarea" /></el-form-item>
+    </el-form>
+    <template #footer>
+      <el-button @click="store.attrDialog=false">取消</el-button>
+      <el-button type="primary" @click="saveAttr">确认</el-button>
+    </template>
+  </el-dialog>
+
+  <el-dialog v-model="store.tplDialog" title="新建模版" width="640px">
+    <el-form label-width="100px">
+      <el-form-item label="模版名称" required><el-input placeholder="请输入模版名称" /></el-form-item>
+      <el-form-item label="模版描述"><el-input type="textarea" /></el-form-item>
+      <el-form-item label="模版内容"><el-input type="textarea" :rows="4" model-value="按用户年级和累计看课时长生成三日规划话术。" /></el-form-item>
+    </el-form>
+    <template #footer>
+      <el-button @click="store.tplDialog=false">取消</el-button>
+      <el-button type="primary" @click="saveTpl">确认</el-button>
+    </template>
+  </el-dialog>
+
+  <el-drawer id="promptDrawer" data-diff-page="编辑Prompt" v-model="store.promptDrawer" :title="editingPrompt ? editingPrompt.code + ' ' + editingPrompt.name : '编辑 Prompt'" size="520px">
+    <el-form label-position="top">
+      <el-form-item label="模型">
+        <el-select v-model="store.promptModel" style="width:100%"><el-option label="Doubao-1.5-pro" value="Doubao-1.5-pro" /><el-option label="Doubao-1.5-lite" value="Doubao-1.5-lite" /></el-select>
+      </el-form-item>
+      <el-form-item label="Prompt">
+        <el-input v-model="store.promptDraft" type="textarea" :rows="8" />
+      </el-form-item>
+      <div class="desc" style="margin-bottom:8px">插入变量</div>
+      <el-button size="small" @click="insertVar('channel_id')">渠道ID</el-button>
+      <el-button size="small" @click="insertVar('user_grade')">用户年级</el-button>
+      <el-button size="small" @click="insertVar('user_phone')">用户号码</el-button>
+    </el-form>
+    <template #footer>
+      <el-button @click="store.promptDrawer=false">取消</el-button>
+      <el-button type="primary" @click="savePrompt">保存</el-button>
+    </template>
+  </el-drawer>
+
+  <el-dialog id="transferDialog" data-diff-page="转人工明细" v-model="store.transferDialog" title="转人工明细" width="760px">
+    <el-table :data="[{ time:'2026-10-27 19:12:06', trigger:'被动', category:'用户意向', code:'确认购买', note:'用户说想报名体验营' }]" border>
+      <el-table-column prop="time" label="时间" width="170" />
+      <el-table-column prop="trigger" label="触发类型" width="100" />
+      <el-table-column prop="category" label="原因分类" width="120" />
+      <el-table-column prop="code" label="原因明细" width="120" />
+      <el-table-column prop="note" label="额外说明" />
+    </el-table>
+    <template #footer><el-button @click="store.transferDialog=false">关闭</el-button></template>
+  </el-dialog>
+
+  <el-dialog v-model="store.exportDialog" title="导出客户明细" width="560px">
+    <div class="desc" style="margin-bottom:8px">导出字段</div>
+    <el-checkbox checked disabled>昵称</el-checkbox>
+    <el-checkbox checked disabled>备注</el-checkbox>
+    <el-checkbox checked>渠道ID</el-checkbox>
+    <el-checkbox checked>用户年级</el-checkbox>
+    <el-checkbox checked>转人工原因分类</el-checkbox>
+    <el-checkbox checked>接待状态</el-checkbox>
+    <template #footer>
+      <el-button @click="store.exportDialog=false">取消</el-button>
+      <el-button type="primary" @click="submitExport">导出</el-button>
+    </template>
+  </el-dialog>
+
+  <el-dialog id="loginDialog" data-diff-page="云设备登录" v-model="store.loginDialog" title="登录" width="400px" :close-on-click-modal="false">
+    <el-alert :title="loginText" :type="store.loginState==='10' ? 'success' : 'info'" :closable="false" show-icon />
+    <div v-show="store.loginState!=='10'">
+      <div class="qr" @click="simScan" title="点击模拟扫码"></div>
+      <div class="desc" style="text-align:center">使用企业微信扫描二维码。点击二维码可模拟「已扫码」。</div>
+      <div style="text-align:center;margin-top:8px"><el-button link type="primary" @click="simNeedCode">模拟需要验证码</el-button></div>
+    </div>
+    <div v-if="store.loginState==='10'" style="margin-top:16px">
+      <div style="margin-bottom:8px">请输入登录验证码：</div>
+      <el-input v-model="store.verifyCode" placeholder="请输入验证码" @keyup.enter="confirmCode" />
+    </div>
+    <template #footer>
+      <el-button @click="store.loginDialog=false">取消</el-button>
+      <el-button v-if="store.loginState==='10'" type="primary" @click="confirmCode">确认</el-button>
+    </template>
+  </el-dialog>
+  `
+});
+app.use(ElementPlus);
+app.mount("#app");
+</script>
+<script>
+window.DIFF_CHANGESET = {
+  meta: {
+    sddTitle: "",
+    sddUrl: ""
+  },
+  changes: [
+    { id: "chg-menu", level: "module", page: "page-shell", module: "菜单", target: "#bot-menu", type: "remove", title: "不迁移分层配置和群发审核", desc: "体验营企微机器人菜单只保留规则、会话属性、学习规划模版、全局配置、AI员工明细、Prompt管理。", before: "电销菜单含分层配置、群发审核", after: "这两个菜单不出现" },
+    { id: "chg-channel", level: "module", page: "page-global", module: "体验营托管渠道", target: "#channel-section", type: "enum", title: "托管范围改为勾选已有体验营渠道", desc: "全局配置里直接勾选体验营已有渠道，并展示渠道状态。未勾选的渠道，新进线不创建机器人会话。", before: "全局配置为允许的渠道活码，手输活码 ID", after: "勾选已有渠道，列表展示渠道名称、渠道 ID 和状态", examples: [
+      { case: "勾选已有渠道", input: "勾选 8804 初中语文体验营", result: "已托管中出现初中语文体验营（8804）" },
+      { case: "取消到最后一条", input: "只剩 8801 时再取消勾选", result: "提示至少需要保留一个体验营渠道" },
+      { case: "停用渠道", input: "8803 高中物理体验营", result: "状态列为停用，仍可勾选是否托管" }
+    ]},
+    { id: "chg-history", level: "field", page: "page-global", module: "体验营托管渠道", target: "#channel-section", type: "logic", title: "已建会话不受渠道配置回退影响", desc: "从托管渠道中移除某个渠道后，只拦截该渠道之后的新进线。", before: "电销同样跳过已在库好友的渠道校验", after: "体验营沿用：已创建会话仍可 AI 接待和转人工" },
+    { id: "chg-rotation", level: "module", page: "page-global", module: "群发销售轮询", target: "#rotation-section", type: "logic", title: "轮询只服务规则官方群发", desc: "销售轮询规则继续展示，用于规则上的官方群发。私域线索池群发配置不迁移。", before: "轮询说明覆盖私域线索池群发", after: "说明改为规则引擎触发官方群发" },
+    { id: "chg-channel-field", level: "field", page: "page-session", module: "渠道ID", target: "#field-channel", type: "copy", title: "会话属性活码 ID 改为渠道 ID", desc: "基础信息中的进线渠道字段展示为渠道 ID，取值是体验营渠道。", before: "属性名称为渠道活码ID", after: "属性名称为渠道ID，字段标识仍为 channel_id" },
+    { id: "chg-split", level: "module", page: "page-session", module: "分流组", target: "#session-list", type: "remove", title: "不提供分流组", desc: "体验营不迁移用户分流组，会话属性中没有所属分流组。规则分组仍然保留。", before: "电销有所属分流组，写入后固定", after: "无此字段" },
+    { id: "chg-action", level: "field", page: "ruleDialog", module: "规则动作", target: "#action-type-select", type: "remove", title: "去掉专属链接课包", desc: "规则动作保留发消息、更新变量、转人工、小程序、企微标签、会员、学情、跳转 APP 和 AI 话术。", before: "动作含发送专属链接课包", after: "动作列表中无此项" },
+    { id: "chg-org", level: "module", page: "page-employee", module: "组织架构", target: "#org-panel", type: "enum", title: "员工组织使用体验营架构", desc: "AI 员工明细左侧组织树、人员所属路径取体验营自己的部门，不取电销坐席组织。", before: "电销坐席组织", after: "体验营 / 华中 / 初中组，体验营 / 华东 / 小学组" },
+    { id: "chg-logout", level: "module", page: "page-employee", module: "云设备下线", target: "#employee-head", type: "remove", title: "员工列表不再提供云设备下线", desc: "云设备登录和下线只放在个人信息的关联企业微信里，由账号本人操作。", before: "AI 员工卡片上有云设备下线", after: "员工列表只保留在线状态和导出" },
+    { id: "chg-broadcast", level: "field", page: "page-employee", module: "消息标识", target: "#official-broadcast-msg", type: "copy", title: "群发消息标识为官方群发", desc: "规则触发的官方群发在聊天记录中单独标识。不再出现私域线索群发。", before: "消息气泡写私域线索群发", after: "标识为官方群发" },
+    { id: "chg-prompt", level: "field", page: "page-prompt", module: "变量示例", target: "#prompt-tip", type: "copy", title: "Prompt 示例改为体验营字段", desc: "可用变量仍来自会话属性。说明里的例子改为渠道 ID、年级、手机号。", before: "示例含私域线索分层", after: "示例为渠道ID、年级、手机号" },
+    { id: "chg-person", level: "module", page: "page-person", module: "云设备", target: "#person-ops", type: "modify", title: "个人信息提供云设备登录和下线", desc: "右上角个人信息进入关联企业微信，可对已绑定账号登录或下线，并看到云设备 ID 和在线状态。", before: "电销同时在 AI 员工明细提供管理员下线，且有承接流量开关", after: "只在个人信息登录、下线，不提供承接流量", examples: [
+      { case: "验证码正确", input: "246810", result: "周宁的云设备变为在线" },
+      { case: "验证码错误", input: "000000", result: "提示验证码不正确，保持离线" }
+    ]},
+    { id: "chg-coze", level: "page", page: "page-global", module: "流程与链路", target: null, type: "flow", title: "体验营使用独立机器人和扣子空间", desc: "与电销拆成两套机器人服务。机器人 Token、Prompt、规则和会话都走体验营自己的扣子机器人。", before: "与电销共用一套机器人和扣子空间", after: "体验营单独申请扣子空间和机器人" },
+    { id: "chg-runtime", level: "page", page: "page-global", module: "流程与链路", target: null, type: "flow", title: "进线后的发送链路保持电销行为", desc: "欢迎语、扣子会话、发送节奏、失败提示、撤回和转人工通知按电销现有行为保留，由技术单独迁移。", before: "电销进线后的发送链路", after: "体验营行为一致，不在本后台另做配置页" }
+  ]
+};
+</script>
+<script>
+/* ============ 原型变更标注引擎 proto-note（零依赖，可整段复用） ============
+   布局参考：固定右侧深色批注栏 + 页面编号锚点 + canvas 连线（axure 批注风格）
+   规则：默认不显示任何标注；按模块勾选显示；只联动 SDD（不展示 PRD）
+   约定：
+   - change.target 为 null 的“页面不可见”变更（纯流程/链路），不画锚点不连线，
+     统一排在批注栏最后的「流程与链路」分节；数据数组中也应放在最后。
+   - target 在弹窗内的变更，点击批注卡片时由 DIFF_HOOKS.locate(pageId) 自动打开弹窗，
+     引擎轮询等待目标挂载后再滚动定位并连线。
+   - 浮层 z-index 必须压过 Element 弹窗（2000+），否则弹窗打开时锚点与连线被蒙层盖住。 */
+(function () {
+  const CS = window.DIFF_CHANGESET;
+  if (!CS || !CS.changes || !CS.changes.length) return;
+
+  const TYPE_LABEL = { new: "新增", modify: "修改", copy: "文案", enum: "口径", logic: "逻辑", flow: "流程", remove: "删除" };
+  const LEVEL_LABEL = { page: "页面级", module: "模块级", field: "字段级" };
+  const LS_KEY = "diff-annotator-v4:" + location.pathname;
+  const PANEL_W = 360;
+
+  CS.changes.forEach((c, i) => { c._no = String(i + 1).padStart(2, "0"); });
+  const targeted = c => !!c.target;
+
+  /* ---------- 状态 ---------- */
+  const moduleKeys = [];
+  const byModule = {};
+  CS.changes.forEach(c => {
+    const key = c.page + "::" + c.module;
+    if (!byModule[key]) { byModule[key] = []; moduleKeys.push(key); }
+    byModule[key].push(c);
+  });
+  const byTarget = {};
+  CS.changes.filter(targeted).forEach(c => { (byTarget[c.target] = byTarget[c.target] || []).push(c); });
+  const keyOf = c => c.page + "::" + c.module;
+
+  let state = { open: true, enabled: {}, demo: {} };
+  try { state = Object.assign(state, JSON.parse(localStorage.getItem(LS_KEY) || "{}")); } catch (e) {}
+  state.enabled = state.enabled || {};
+  state.demo = state.demo || {};
+  // 新版本新增的模块必须继承"全部显示"状态：老访客的 localStorage 里没有新模块的 key，
+  // 若一律默认 false，新增的变更卡在"全部显示"下会凭空消失（严重漏标错觉）。
+  // 缺失的模块开关一律默认可见：新增模块（尤其 type:new——线上现状没有的能力）绝不能默认隐藏，
+  // 否则老访客在"全部显示"下也看不到新变更，造成"漏标"错觉。历史脏状态由 LS_KEY 版本号升级清除。
+  moduleKeys.forEach(k => { if (!(k in state.enabled)) state.enabled[k] = true; });
+  const demoControls = Array.isArray(CS.meta.demoControls) ? CS.meta.demoControls : [];
+  demoControls.forEach(control => {
+    if (!(control.id in state.demo)) {
+      const firstOption = Array.isArray(control.options) ? control.options[0] : null;
+      state.demo[control.id] = control.default ?? (firstOption && firstOption.value);
+    }
+  });
+  const persist = () => { try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch (e) {} };
+  const isOn = c => state.enabled[keyOf(c)];
+
+  function pageName(pid) {
+    const el = document.getElementById(pid);
+    return (el && el.getAttribute("data-diff-page")) || pid;
+  }
+
+  /* ---------- 样式 ---------- */
+  const style = document.createElement("style");
+  style.setAttribute("data-da", "1");
+  style.textContent = `
+  :root { --da-navy:#071d2f; --da-blue:#1479d1; --da-blue-soft:#2c93e8; --da-sky:#72c4ff; --da-panel-w:${PANEL_W}px; }
+  html.da-open { overflow-x:auto !important; }
+  body.da-open { padding-right:0 !important; overflow-x:visible !important; }
+  .da-scroll-spacer { position:absolute; top:0; width:var(--da-panel-w); height:1px; pointer-events:none; visibility:hidden; }
+
+  .da-launch { position:fixed; top:14px; right:14px; z-index:9200; display:inline-flex; align-items:center; gap:8px;
+    background:var(--da-navy); color:#fff; border:0; border-radius:999px; padding:9px 16px; font-size:13px; font-weight:600;
+    cursor:pointer; box-shadow:0 6px 20px rgba(7,29,47,.28); }
+  .da-launch .da-launch-n { color:var(--da-sky); font-weight:700; }
+
+  .da-panel { position:fixed; z-index:9100; top:0; right:0; bottom:0; width:var(--da-panel-w); overflow-y:auto;
+    color:rgba(255,255,255,.78); border-left:1px solid rgba(255,255,255,.08);
+    background:radial-gradient(circle at 100% 0, rgba(44,147,232,.16), transparent 20rem), var(--da-navy);
+    box-shadow:-18px 0 50px rgba(7,29,47,.12); font-size:12px; scrollbar-width:thin; scrollbar-color:rgba(255,255,255,.2) transparent; }
+  .da-panel-inner { padding:20px 20px 40px; }
+  .da-top { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:14px; }
+  .da-top h2 { margin:0; color:#fff; font-size:17px; font-weight:740; letter-spacing:-.01em; }
+  .da-top h2 small { margin-left:6px; color:var(--da-sky); font-size:12px; font-weight:700; }
+  .da-top-actions { display:flex; align-items:center; gap:8px; }
+  .da-sdd-doc { color:var(--da-sky); font-size:11px; font-weight:650; text-decoration:none; white-space:nowrap; }
+  .da-sdd-doc:hover { text-decoration:underline; }
+  .da-hide { width:28px; height:28px; flex:0 0 auto; border:1px solid rgba(255,255,255,.14); border-radius:8px;
+    color:#fff; background:rgba(255,255,255,.06); font-size:14px; line-height:1; cursor:pointer; }
+  .da-hide:hover { background:rgba(255,255,255,.12); }
+
+  .da-demo { margin-bottom:12px; padding:12px; border:1px solid rgba(255,255,255,.1); border-radius:11px; background:rgba(255,255,255,.045); }
+  .da-demo-title { margin-bottom:8px; color:#fff; font-size:12px; font-weight:700; }
+  .da-demo-row + .da-demo-row { margin-top:9px; }
+  .da-demo-label { display:block; margin-bottom:5px; color:rgba(255,255,255,.45); font-size:10px; font-weight:650; }
+  .da-segments { display:flex; padding:2px; border:1px solid rgba(255,255,255,.1); border-radius:8px; background:rgba(5,17,28,.4); }
+  .da-segment { min-width:0; flex:1; min-height:28px; border:0; border-radius:6px; color:rgba(255,255,255,.58);
+    background:transparent; font-size:11px; cursor:pointer; }
+  .da-segment:hover { color:#fff; }
+  .da-segment.da-selected { color:#fff; background:rgba(44,147,232,.42); box-shadow:0 1px 5px rgba(0,0,0,.16); }
+
+  .da-mods { margin-bottom:20px; padding:12px; border:1px solid rgba(255,255,255,.1); border-radius:11px; background:rgba(255,255,255,.045); }
+  .da-mods-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+  .da-mods-head span { color:#fff; font-size:12px; font-weight:700; }
+  .da-bulk { display:flex; gap:10px; }
+  .da-bulk button { border:0; background:none; padding:0; color:rgba(255,255,255,.5); font-size:11px; cursor:pointer; }
+  .da-bulk button:hover { color:var(--da-sky); }
+  .da-mod-group { margin-top:8px; }
+  .da-mod-group-name { margin-bottom:2px; color:rgba(255,255,255,.4); font-size:10px; font-weight:650; letter-spacing:.04em; }
+  .da-mod { display:flex; align-items:center; gap:8px; padding:5px 6px; border-radius:7px; cursor:pointer; }
+  .da-mod:hover { background:rgba(255,255,255,.06); }
+  .da-mod input { margin:0; flex:0 0 auto; accent-color:var(--da-blue-soft); cursor:pointer; }
+  .da-mod-name { flex:1; min-width:0; color:rgba(255,255,255,.86); font-size:12px; font-weight:550; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .da-mod-types { flex:0 0 auto; color:rgba(255,255,255,.34); font-size:10px; }
+
+  .da-note-section { margin-bottom:18px; }
+  .da-note-heading { display:flex; align-items:center; gap:9px; margin-bottom:10px; color:#fff; font-size:12px; font-weight:700; }
+  .da-note-heading::after { height:1px; flex:1; background:rgba(255,255,255,.1); content:""; }
+  .da-empty { padding:10px 2px; color:rgba(255,255,255,.35); font-size:11px; }
+
+  .da-note { position:relative; scroll-margin-top:16px; margin-bottom:9px; padding:12px 13px; border:1px solid rgba(255,255,255,.1);
+    border-radius:11px; background:rgba(255,255,255,.045); cursor:pointer;
+    transition:border-color .18s ease, background .18s ease, transform .18s ease; }
+  .da-note::before { content:""; position:absolute; top:23px; left:-15px; width:14px; height:1px;
+    background:rgba(114,196,255,.32); transition:background .16s ease, box-shadow .16s ease; }
+  .da-note::after { content:""; position:absolute; top:20px; left:-19px; width:7px; height:7px; border-radius:50%;
+    border:1px solid rgba(114,196,255,.55); background:var(--da-navy); transition:background .16s ease, box-shadow .16s ease; }
+  .da-note.da-nowire::before, .da-note.da-nowire::after { display:none; }
+  .da-note:hover, .da-note.da-active { border-color:rgba(114,196,255,.65); background:rgba(44,147,232,.13); transform:translateX(-3px); }
+  .da-note.da-active::before { background:#72c4ff; box-shadow:0 0 12px rgba(44,147,232,.62); }
+  .da-note.da-active::after { background:#72c4ff; box-shadow:0 0 0 4px rgba(44,147,232,.18); }
+  .da-note-head { display:flex; align-items:center; gap:9px; margin-bottom:6px; color:#fff; font-size:12px; font-weight:700; }
+  .da-no { display:inline-grid; width:22px; height:22px; flex:0 0 auto; place-items:center; border:1px solid rgba(114,196,255,.3);
+    border-radius:50%; color:#8fd1ff; background:rgba(44,147,232,.09); font-size:9px; font-weight:800; }
+  .da-note.da-active .da-no { color:var(--da-navy); border-color:#bfe6ff; background:#bfe6ff; }
+  .da-note-kind { flex:0 0 auto; margin-left:auto; color:rgba(255,255,255,.35); font-size:10px; font-weight:500; }
+  .da-note p { margin:0; color:rgba(255,255,255,.62); font-size:11px; line-height:1.75; }
+  .da-note-ba { margin-top:8px; padding:7px 9px; border-radius:7px; background:rgba(5,17,28,.52); font-size:10px; line-height:1.7; color:rgba(255,255,255,.55); }
+  .da-note-ba b { color:#bfe6ff; font-weight:650; }
+  .da-examples { margin-top:8px; overflow:hidden; border:1px solid rgba(114,196,255,.15); border-radius:7px; background:rgba(5,17,28,.34); }
+  .da-example { display:grid; grid-template-columns:58px minmax(0,1fr); gap:4px 8px; padding:7px 9px; font-size:10px; line-height:1.55; }
+  .da-example + .da-example { border-top:1px solid rgba(255,255,255,.07); }
+  .da-example-case { grid-row:1 / span 2; color:#bfe6ff; font-weight:650; }
+  .da-example-input { min-width:0; color:#fff; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; overflow-wrap:anywhere; }
+  .da-example-result { color:rgba(255,255,255,.5); }
+  .da-example-result::before { content:"→ "; color:rgba(114,196,255,.55); }
+  .da-note-sdd { display:inline-flex; align-items:center; gap:5px; margin-top:9px; color:var(--da-sky); font-size:10.5px;
+    font-weight:650; text-decoration:none; }
+  .da-note-sdd:hover { text-decoration:underline; }
+
+  .da-anchors { position:absolute; left:0; top:0; width:0; height:0; z-index:9000; pointer-events:none; }
+  .da-anchor { position:absolute; display:grid; width:22px; height:22px; place-items:center; border:1px solid rgba(20,121,209,.28);
+    border-radius:50%; color:var(--da-blue); background:#eff8ff; font-size:9px; font-weight:800; cursor:pointer;
+    pointer-events:auto; box-shadow:0 2px 8px rgba(7,29,47,.14); transition:transform .15s ease, background .15s ease; }
+  .da-anchor:hover { transform:scale(1.1); }
+  .da-anchor.da-active { color:#fff; border-color:var(--da-blue-soft); background:var(--da-blue);
+    box-shadow:0 0 0 4px rgba(44,147,232,.16), 0 5px 14px rgba(20,121,209,.24); transform:scale(1.08); }
+
+  .da-outlined { outline:1.5px dashed rgba(20,121,209,.45) !important; outline-offset:2px; }
+  @keyframes da-pulse { 0% { box-shadow:0 0 0 0 rgba(44,147,232,.4); } 100% { box-shadow:0 0 0 14px rgba(44,147,232,0); } }
+  .da-pulsing { animation:da-pulse .9s ease-out 2; }
+
+  .da-wires { position:fixed; inset:0; z-index:8990; width:100vw; height:100vh; pointer-events:none; }
+
+  @media print { .da-panel, .da-anchors, .da-wires, .da-launch, .da-scroll-spacer { display:none !important; }
+    html.da-open { overflow-x:visible !important; } body.da-open { padding-right:0 !important; } }
+  `;
+  document.head.appendChild(style);
+
+  /* ---------- DOM 骨架 ---------- */
+  const launcher = document.createElement("button");
+  launcher.className = "da-launch";
+  launcher.setAttribute("data-da", "1");
+  launcher.innerHTML = '变更导览 <span class="da-launch-n">' + CS.changes.length + "</span>";
+  document.body.appendChild(launcher);
+
+  const panel = document.createElement("aside");
+  panel.className = "da-panel";
+  panel.setAttribute("data-da", "1");
+  document.body.appendChild(panel);
+
+  // 在业务页面真实右边缘后追加与批注栏等宽的滚动缓冲区。
+  // 它只扩展 scrollWidth，不改变、压缩或重排原页面。
+  const scrollSpacer = document.createElement("div");
+  scrollSpacer.className = "da-scroll-spacer";
+  scrollSpacer.setAttribute("data-da", "1");
+  document.body.appendChild(scrollSpacer);
+
+  const anchorLayer = document.createElement("div");
+  anchorLayer.className = "da-anchors";
+  anchorLayer.setAttribute("data-da", "1");
+  document.body.appendChild(anchorLayer);
+
+  const wires = document.createElement("canvas");
+  wires.className = "da-wires";
+  wires.setAttribute("data-da", "1");
+  document.body.appendChild(wires);
+  const wctx = wires.getContext("2d");
+
+  let activeId = null;   // 悬停中的变更
+  let pinnedId = null;   // 点击固定的变更（再次点击取消）
+
+  /* ---------- 面板渲染 ---------- */
+  const pages = [];
+  const modsByPage = {};
+  moduleKeys.forEach(k => {
+    const p = k.split("::")[0];
+    if (!modsByPage[p]) { modsByPage[p] = []; pages.push(p); }
+    modsByPage[p].push(k);
+  });
+
+  function noteCard(c) {
+    let html = '<article class="da-note' + (targeted(c) ? "" : " da-nowire") + '" id="da-note-' + c.id + '" data-chg="' + c.id + '">';
+    html += '<div class="da-note-head"><span class="da-no">' + c._no + '</span><span>' + c.title + '</span>';
+    html += '<span class="da-note-kind">' + (TYPE_LABEL[c.type] || "变更") + " · " + (LEVEL_LABEL[c.level] || "") + "</span></div>";
+    html += "<p>" + c.desc + "</p>";
+    if (c.before && c.after) html += '<div class="da-note-ba"><b>前</b>　' + c.before + '<br><b>后</b>　' + c.after + "</div>";
+    if (Array.isArray(c.examples) && c.examples.length) {
+      html += '<div class="da-examples">';
+      c.examples.forEach(example => {
+        html += '<div class="da-example"><span class="da-example-case">' + example.case + '</span>' +
+          '<code class="da-example-input">' + example.input + '</code>' +
+          '<span class="da-example-result">' + example.result + "</span></div>";
+      });
+      html += "</div>";
+    }
+    if (c.sdd && CS.meta.sddUrl && c.sdd.blockId) {
+      html += '<a class="da-note-sdd" target="_blank" href="' + CS.meta.sddUrl + "#" + c.sdd.blockId + '">SDD · ' + c.sdd.section + " ↗</a>";
+    } else if (c.sdd && c.sdd.section) {
+      html += '<span class="da-note-sdd" style="color:rgba(255,255,255,.4)">SDD · ' + c.sdd.section + "</span>";
+    }
+    html += "</article>";
+    return html;
+  }
+
+  function renderPanel() {
+    let html = '<div class="da-panel-inner">';
+    html += '<div class="da-top"><h2>变更导览<small>' + CS.changes.length + "</small></h2><div class=\"da-top-actions\">";
+    if (CS.meta.sddUrl) html += '<a class="da-sdd-doc" target="_blank" href="' + CS.meta.sddUrl + '">' + (CS.meta.sddTitle || "SDD") + " ↗</a>";
+    html += '<button class="da-hide" title="收起">✕</button></div></div>';
+
+    if (demoControls.length && window.DIFF_HOOKS && typeof window.DIFF_HOOKS.setDemoState === "function") {
+      html += '<section class="da-demo"><div class="da-demo-title">演示状态</div>';
+      demoControls.forEach(control => {
+        html += '<div class="da-demo-row"><span class="da-demo-label">' + control.label + '</span><div class="da-segments">';
+        (control.options || []).forEach(option => {
+          const selected = state.demo[control.id] === option.value;
+          html += '<button class="da-segment' + (selected ? " da-selected" : "") + '" data-demo-control="' + control.id +
+            '" data-demo-value="' + option.value + '">' + option.label + "</button>";
+        });
+        html += "</div></div>";
+      });
+      html += "</section>";
+    }
+
+    html += '<div class="da-mods"><div class="da-mods-head"><span>模块</span><span class="da-bulk"><button data-all="on">全部显示</button><button data-all="off">全部隐藏</button></span></div>';
+    pages.forEach(p => {
+      html += '<div class="da-mod-group"><div class="da-mod-group-name">' + pageName(p) + "</div>";
+      modsByPage[p].forEach(k => {
+        const mod = k.split("::")[1];
+        const types = [...new Set(byModule[k].map(c => TYPE_LABEL[c.type] || "变更"))].join("·");
+        html += '<label class="da-mod" data-key="' + k + '"><input type="checkbox"' + (state.enabled[k] ? " checked" : "") + ">";
+        html += '<span class="da-mod-name">' + mod + '</span><span class="da-mod-types">' + types + "</span></label>";
+      });
+      html += "</div>";
+    });
+    html += "</div>";
+
+    const anyOn = CS.changes.some(isOn);
+    if (!anyOn) {
+      html += '<div class="da-empty">勾选模块后展示对应标注与连线</div>';
+    } else {
+      pages.forEach(p => {
+        const list = CS.changes.filter(c => c.page === p && isOn(c) && targeted(c));
+        if (!list.length) return;
+        html += '<section class="da-note-section"><h3 class="da-note-heading">' + pageName(p) + "</h3>";
+        list.forEach(c => { html += noteCard(c); });
+        html += "</section>";
+      });
+      // 页面不可见的流程/链路变更统一放在最后，不连线
+      const flowList = CS.changes.filter(c => isOn(c) && !targeted(c));
+      if (flowList.length) {
+        html += '<section class="da-note-section"><h3 class="da-note-heading">流程与链路 · 页面不可见</h3>';
+        flowList.forEach(c => { html += noteCard(c); });
+        html += "</section>";
+      }
+    }
+    html += "</div>";
+    panel.innerHTML = html;
+    bindPanel();
+  }
+
+  function bindPanel() {
+    panel.querySelector(".da-hide").addEventListener("click", () => setOpen(false));
+    panel.querySelectorAll("[data-demo-control]").forEach(button => {
+      button.addEventListener("click", () => {
+        const controlId = button.getAttribute("data-demo-control");
+        const value = button.getAttribute("data-demo-value");
+        state.demo[controlId] = value;
+        persist();
+        window.DIFF_HOOKS.setDemoState(controlId, value);
+        renderPanel();
+        setTimeout(scheduleUpdate, 80);
+      });
+    });
+    panel.querySelectorAll(".da-mod input").forEach(cb => {
+      cb.addEventListener("change", () => {
+        const k = cb.closest(".da-mod").getAttribute("data-key");
+        state.enabled[k] = cb.checked;
+        if (pinnedId && !isOn(CS.changes.find(x => x.id === pinnedId))) pinnedId = null;
+        persist();
+        renderPanel();
+        syncAnnotations();
+        applyActive();
+        if (cb.checked) locateModule(k);
+      });
+    });
+    panel.querySelectorAll("[data-all]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const on = btn.getAttribute("data-all") === "on";
+        moduleKeys.forEach(k => { state.enabled[k] = on; });
+        if (!on) pinnedId = null;
+        persist(); renderPanel(); syncAnnotations(); applyActive();
+      });
+    });
+    panel.querySelectorAll(".da-note").forEach(card => {
+      const id = card.getAttribute("data-chg");
+      card.addEventListener("mouseenter", () => setActive(id));
+      card.addEventListener("mouseleave", () => clearActive(id));
+      card.addEventListener("click", e => {
+        if (e.target.closest("a")) return;
+        const c = CS.changes.find(x => x.id === id);
+        if (!c) return;
+        pinnedId = id;
+        applyActive();
+        locateChange(c);
+      });
+    });
+    panel.addEventListener("scroll", scheduleUpdate, { passive: true });
+  }
+
+  /* ---------- 锚点浮层（仅针对有 target 的变更） ---------- */
+  const anchorEls = {};   // change.id -> { el, last:{x,y,shown} }
+  CS.changes.filter(targeted).forEach(c => {
+    const a = document.createElement("button");
+    a.className = "da-anchor";
+    a.setAttribute("data-da", "1");
+    a.textContent = c._no;
+    a.style.display = "none";
+    a.addEventListener("mouseenter", () => setActive(c.id));
+    a.addEventListener("mouseleave", () => clearActive(c.id));
+    a.addEventListener("click", () => {
+      togglePin(c.id);
+      if (pinnedId === c.id) {
+        const card = document.getElementById("da-note-" + c.id);
+        if (card) card.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    });
+    anchorLayer.appendChild(a);
+    anchorEls[c.id] = { el: a, last: { x: -1, y: -1, shown: false } };
+  });
+
+  function targetVisible(el, rect) {
+    if (!el.getClientRects().length) return false;
+    // 遮挡检测（仅当取样点在视口内才有意义）：取样点若不属于目标元素（如被弹窗蒙层盖住），视为不可见。
+    // 引擎自身的浮层（锚点/连线，[data-da]）不算遮挡。目标滚出视口时不做钳制——锚点随文档自然滚出即可。
+    const inViewport = (x, y) => x >= 0 && x <= innerWidth && y >= 0 && y <= innerHeight;
+    const hit = (x, y) => {
+      const top = document.elementFromPoint(x, y);
+      if (!top) return false;
+      if (top.closest && top.closest("[data-da]")) return true;
+      return el === top || el.contains(top) || top.contains(el);
+    };
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    if (inViewport(cx, cy)) {
+      if (hit(cx, cy)) return true;
+      const sx = rect.left + 10, sy = rect.top + 10;
+      if (inViewport(sx, sy)) return hit(sx, sy);
+      return false;
+    }
+    return true;
+  }
+
+  function syncAnnotations() {
+    Object.keys(byTarget).forEach(t => {
+      const el = document.querySelector(t);
+      if (!el) return;
+      const on = byTarget[t].some(isOn) && state.open;
+      el.classList.toggle("da-outlined", on);
+    });
+    scheduleUpdate();
+  }
+
+  function updateOverlay() {
+    // 弹窗跟随页面滚动（横/纵；滚动/弹窗开合都会触发本函数，随动即可）
+    syncDialogFollow();
+    // 锚点钉在目标左上角，使用文档坐标（以锚点层自身为基准），随页面原生滚动——
+    // 杜绝 fixed 浮层"滚动事件追帧"造成的抖动漂移，也不做视口钳制（滚出即自然滚出）
+    const layerRect = anchorLayer.getBoundingClientRect();
+    Object.keys(byTarget).forEach(t => {
+      const el = document.querySelector(t);
+      const rect = el ? el.getBoundingClientRect() : null;
+      const visible = el && state.open && rect && targetVisible(el, rect);
+      byTarget[t].forEach((c, slot) => {
+        const rec = anchorEls[c.id];
+        const show = visible && isOn(c);
+        if (!show) {
+          if (rec.last.shown) { rec.el.style.display = "none"; rec.last.shown = false; }
+          return;
+        }
+        const x = Math.max(rect.left - 11, 2) + slot * 25 - layerRect.left;
+        const y = rect.top - 11 - layerRect.top;
+        if (!rec.last.shown) { rec.el.style.display = "grid"; rec.last.shown = true; }
+        if (rec.last.x !== x || rec.last.y !== y) {
+          rec.el.style.left = x + "px";
+          rec.el.style.top = y + "px";
+          rec.last.x = x; rec.last.y = y;
+        }
+      });
+    });
+    drawWires();
+  }
+
+  /* ---------- 连线 ---------- */
+  function setWireSize() {
+    const ratio = Math.min(devicePixelRatio || 1, 2);
+    const w = Math.max(1, Math.round(innerWidth * ratio));
+    const h = Math.max(1, Math.round(innerHeight * ratio));
+    if (wires.width !== w || wires.height !== h) { wires.width = w; wires.height = h; }
+    wctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  }
+
+  function wirePath(sx, sy, ex, ey, active) {
+    const gap = Math.max(38, ex - sx);
+    wctx.save();
+    wctx.beginPath();
+    wctx.moveTo(sx, sy);
+    wctx.bezierCurveTo(sx + Math.min(120, gap * 0.42), sy, ex - Math.min(82, gap * 0.28), ey, ex, ey);
+    wctx.lineWidth = active ? 2 : 1.3;
+    wctx.strokeStyle = active ? "rgba(44,147,232,.96)" : "rgba(44,147,232,.42)";
+    wctx.shadowColor = active ? "rgba(44,147,232,.7)" : "transparent";
+    wctx.shadowBlur = active ? 9 : 0;
+    wctx.stroke();
+    wctx.shadowBlur = 0;
+    wctx.beginPath(); wctx.arc(sx, sy, active ? 3.2 : 2.1, 0, Math.PI * 2);
+    wctx.fillStyle = active ? "#2c93e8" : "rgba(44,147,232,.5)"; wctx.fill();
+    wctx.beginPath(); wctx.arc(ex - 1, ey, active ? 3 : 2, 0, Math.PI * 2);
+    wctx.fillStyle = active ? "#72c4ff" : "rgba(114,196,255,.45)"; wctx.fill();
+    wctx.restore();
+  }
+
+  function drawWires() {
+    setWireSize();
+    wctx.clearRect(0, 0, innerWidth, innerHeight);
+    if (!state.open) return;
+    // 一个编号一条线：固定态优先于悬停态（滚动中误触发的 hover 不得篡改已选中的连线）
+    const id = pinnedId || activeId;
+    if (!id) return;
+    const c = CS.changes.find(x => x.id === id);
+    if (!c || !isOn(c) || !targeted(c)) return;
+    const rec = anchorEls[id];
+    if (!rec || !rec.last.shown) return;
+    // 起点取锚点实时视口坐标（锚点在文档流中，滚动时坐标必须现算，不能用缓存）
+    const ar = rec.el.getBoundingClientRect();
+    if (ar.bottom < 0 || ar.top > innerHeight) return; // 锚点滚出视口则不画线
+    const card = document.getElementById("da-note-" + id);
+    if (!card) return;
+    const cr = card.querySelector(".da-no").getBoundingClientRect();
+    if (cr.bottom < 40 || cr.top > innerHeight - 8) return;
+    wirePath(ar.right, ar.top + ar.height / 2, innerWidth - PANEL_W + 1, cr.top + cr.height / 2, true);
+  }
+
+  /* ---------- 高亮联动 ---------- */
+  function applyActive() {
+    // 固定态优先：钉住某编号后，悬停其他锚点不改变高亮与连线
+    const id = pinnedId || activeId;
+    CS.changes.forEach(c => {
+      const rec = anchorEls[c.id];
+      if (rec) rec.el.classList.toggle("da-active", c.id === id);
+      const card = document.getElementById("da-note-" + c.id);
+      if (card) card.classList.toggle("da-active", c.id === id);
+    });
+    drawWires();
+  }
+  function setActive(id) { activeId = id; applyActive(); }
+  function clearActive(id) { if (activeId === id) { activeId = null; applyActive(); } }
+  function togglePin(id) {
+    pinnedId = pinnedId === id ? null : id;
+    applyActive();
+  }
+
+  /* ---------- 定位 ---------- */
+  function locateChange(c) {
+    // 先执行页面钩子（可能需要打开弹窗），再轮询等待目标挂载/弹窗动画结束后定位。
+    if (window.DIFF_HOOKS && typeof window.DIFF_HOOKS.locate === "function") window.DIFF_HOOKS.locate(c.page);
+    else if (window.DIFF_HOOKS && typeof window.DIFF_HOOKS.showPage === "function") window.DIFF_HOOKS.showPage(c.page);
+    if (!targeted(c)) { scheduleUpdate(); return; }
+    let tries = 0;
+    const attempt = () => {
+      const el = document.querySelector(c.target);
+      if (!el || !el.getClientRects().length) {
+        if (++tries < 12) { setTimeout(attempt, 130); }
+        return;
+      }
+      el.scrollIntoView({ block: "center", behavior: "smooth" });
+      el.classList.remove("da-pulsing"); void el.offsetWidth; el.classList.add("da-pulsing");
+      setTimeout(() => el.classList.remove("da-pulsing"), 2000);
+      scheduleUpdate();
+      setTimeout(scheduleUpdate, 360); // 弹窗打开动画结束后再校准一次锚点与连线
+    };
+    setTimeout(attempt, 160);
+  }
+  function locateModule(key) { locateChange(byModule[key][0]); }
+
+  /* ---------- 内容视口 ---------- */
+  function syncScrollSpace() {
+    if (!state.open) return;
+    // 业务内容宽度用 document.body.scrollWidth 测：spacer 是 body 下的 absolute 子元素，
+    // 它贡献的是 html 的滚动区而非 body.scrollWidth，所以测量全程不需要隐藏/移动 spacer——
+    // scrollWidth 不会瞬间收缩，浏览器也就不会钳制 scrollLeft。
+    // （旧实现先 display:none 再测量，页面若设了 scroll-behavior:smooth，恢复滚动是异步动画，
+    //   会和用户正在进行的横向拖拽打架，表现为"一拽就弹回"。）
+    const contentWidth = Math.max(document.documentElement.clientWidth, document.body.scrollWidth);
+    const next = contentWidth + "px";
+    scrollSpacer.style.display = "block";
+    if (scrollSpacer.style.left !== next) {
+      const sx = window.scrollX, sy = window.scrollY;
+      scrollSpacer.style.left = next;
+      // 内容变窄仍可能钳制一次，必须用 instant 立即恢复，绝不能吃页面的 scroll-behavior:smooth
+      if (window.scrollX !== sx || window.scrollY !== sy) window.scrollTo({ left: sx, top: sy, behavior: "instant" });
+    }
+  }
+
+  /* ---------- 弹窗跟随页面滚动 ----------
+     Element 弹窗容器是 position:fixed，不随文档滚动。批注栏开着时：
+     - 横滚：被批注栏遮住的弹窗右侧要能拖出来；
+     - 纵滚：高于视口的弹窗底部要能跟着底页一起滚出。
+     做法：批注栏开启时，把弹窗容器（不含蒙层）按 (-scrollX, -scrollY) 平移，
+     弹窗与底层页面同步滑动；收起批注栏时清掉 transform。 */
+  function syncDialogFollow() {
+    const sx = state.open ? window.scrollX : 0;
+    const sy = state.open ? window.scrollY : 0;
+    const tf = (sx || sy) ? ("translate(" + (-sx) + "px," + (-sy) + "px)") : "";
+    document.querySelectorAll(".el-dialog__wrapper, .el-overlay-dialog").forEach(w => {
+      if (!(w.offsetWidth || w.offsetHeight)) return;
+      if (w.style.transform !== tf) w.style.transform = tf;
+    });
+  }
+
+  /* ---------- 开关 ---------- */
+  function setOpen(open) {
+    state.open = open;
+    persist();
+    document.documentElement.classList.toggle("da-open", open);
+    document.body.classList.toggle("da-open", open);
+    panel.style.display = open ? "" : "none";
+    launcher.style.display = open ? "none" : "";
+    if (open) {
+      syncScrollSpace();
+    } else {
+      scrollSpacer.style.display = "none";
+      if (scrollX) window.scrollTo(0, scrollY);
+    }
+    syncAnnotations();
+  }
+  launcher.addEventListener("click", () => setOpen(true));
+
+  /* ---------- 更新调度 ---------- */
+  let frame = 0;
+  function scheduleUpdate() {
+    cancelAnimationFrame(frame);
+    frame = requestAnimationFrame(updateOverlay);
+  }
+  window.addEventListener("scroll", scheduleUpdate, { passive: true, capture: true });
+  window.addEventListener("resize", () => {
+    syncScrollSpace();
+    scheduleUpdate();
+  }, { passive: true });
+  document.addEventListener("click", e => {
+    if (e.target.closest("[data-da]")) return;
+    setTimeout(scheduleUpdate, 60);
+    setTimeout(scheduleUpdate, 360);
+  }, true);
+  const mo = new MutationObserver(records => {
+    if (records.every(r => r.target && r.target.closest && r.target.closest("[data-da]"))) return;
+    syncScrollSpace();
+    scheduleUpdate();
+  });
+  mo.observe(document.body, { attributes: true, attributeFilter: ["class", "style"], childList: true, subtree: true });
+
+  /* ---------- 初始 ---------- */
+  if (window.DIFF_HOOKS && typeof window.DIFF_HOOKS.setDemoState === "function") {
+    demoControls.forEach(control => window.DIFF_HOOKS.setDemoState(control.id, state.demo[control.id]));
+  }
+  renderPanel();
+  setOpen(state.open);
+  setTimeout(scheduleUpdate, 150);
+})();
+
+</script>
+</body>
+</html>
