@@ -158,6 +158,7 @@ const store = reactive({
   exportDialog: false,
   loginDialog: false,
   loginAccountId: 1,
+  loginHostType: "",
   loginState: "0",
   verifyCode: "",
   groups: [
@@ -197,8 +198,8 @@ const store = reactive({
     { code: "A5", name: "AI 用户标签", model: "Doubao-1.5-pro", updatedBy: "林晓", updatedAt: "2026-10-16 11:08:45", content: "根据对话判断家长身份类型。" }
   ],
   accounts: [
-    { id: 1, name: "体验营企微-周宁", userId: "ZhouNing", deviceId: "yd-10021", online: false },
-    { id: 2, name: "体验营企微-陈可", userId: "ChenKe", deviceId: "yd-10022", online: true }
+    { id: 1, name: "体验营企微-周宁", userId: "ZhouNing", deviceId: "yd-10021", online: false, hostType: "" },
+    { id: 2, name: "体验营企微-陈可", userId: "ChenKe", deviceId: "yd-10022", online: true, hostType: "iPad" }
   ]
 });
 
@@ -563,6 +564,7 @@ function insertVar(key) {
 }
 function openLogin(row) {
   store.loginAccountId = row.id;
+  store.loginHostType = row.hostType || "";
   store.loginState = "0";
   store.verifyCode = "";
   store.loginDialog = true;
@@ -570,11 +572,17 @@ function openLogin(row) {
 function simScan() { store.loginState = "1"; }
 function simNeedCode() { store.loginState = "10"; }
 function confirmCode() {
+  if (!store.loginHostType) {
+    toastWarn("请先选择云设备托管类型（iPad / Mac）");
+    return;
+  }
   if (store.verifyCode.trim() === "246810") {
     const acc = loginAccount.value;
     acc.online = true;
+    acc.hostType = store.loginHostType;
+    if (!acc.deviceId) acc.deviceId = "yd-" + (10020 + acc.id);
     store.loginDialog = false;
-    toastOk("登录成功");
+    toastOk("登录成功（" + store.loginHostType + "）");
   } else {
     toastWarn("验证码不正确");
   }
@@ -1100,10 +1108,13 @@ const app = createApp({
               <el-table-column label="登录状态" width="120">
                 <template #default="{ row }"><el-tag :type="row.online ? 'success' : 'danger'">{{ row.online ? '在线' : '离线' }}</el-tag></template>
               </el-table-column>
+              <el-table-column label="云设备托管类型" width="140">
+                <template #default="{ row }">{{ row.hostType || '—' }}</template>
+              </el-table-column>
               <el-table-column label="操作" width="160">
                 <template #default="{ row }">
-                  <el-button v-if="!row.online" link type="primary" @click="openLogin(row)">登录</el-button>
-                  <el-button v-else link type="primary" @click="logout(row)">下线</el-button>
+                  <el-button v-if="!row.online" link type="primary" @click="openLogin(row)">云设备登录</el-button>
+                  <el-button v-else link type="primary" @click="logout(row)">云设备下线</el-button>
                 </template>
               </el-table-column>
             </el-table>
@@ -1303,20 +1314,31 @@ const app = createApp({
     </template>
   </el-dialog>
 
-  <el-dialog id="loginDialog" data-diff-page="云设备登录" v-model="store.loginDialog" title="登录" width="400px" :close-on-click-modal="false">
-    <el-alert :title="loginText" :type="store.loginState==='10' ? 'success' : 'info'" :closable="false" show-icon />
-    <div v-show="store.loginState!=='10'">
-      <div class="qr" @click="simScan" title="点击模拟扫码"></div>
-      <div class="desc" style="text-align:center">使用企业微信扫描二维码。点击二维码可模拟「已扫码」。</div>
-      <div style="text-align:center;margin-top:8px"><el-button link type="primary" @click="simNeedCode">模拟需要验证码</el-button></div>
+  <el-dialog id="loginDialog" data-diff-page="云设备登录" v-model="store.loginDialog" title="云设备登录" width="440px" :close-on-click-modal="false">
+    <div style="margin-bottom:14px">
+      <div style="font-weight:600;margin-bottom:8px">云设备托管类型<span style="color:#d83931">（必选，iPad / Mac 互斥）</span></div>
+      <el-radio-group v-model="store.loginHostType">
+        <el-radio label="iPad">iPad</el-radio>
+        <el-radio label="Mac">Mac</el-radio>
+      </el-radio-group>
+      <div class="desc" style="margin-top:6px">未选择托管类型时不可进入扫码。同一账号同时仅一种类型在线；切换类型须先下线再登录。</div>
     </div>
-    <div v-if="store.loginState==='10'" style="margin-top:16px">
-      <div style="margin-bottom:8px">请输入登录验证码：</div>
-      <el-input v-model="store.verifyCode" placeholder="请输入验证码" @keyup.enter="confirmCode" />
-    </div>
+    <template v-if="store.loginHostType">
+      <el-alert :title="loginText" :type="store.loginState==='10' ? 'success' : 'info'" :closable="false" show-icon />
+      <div v-show="store.loginState!=='10'">
+        <div class="qr" @click="simScan" title="点击模拟扫码"></div>
+        <div class="desc" style="text-align:center">使用企业微信扫描二维码。点击二维码可模拟「已扫码」。</div>
+        <div style="text-align:center;margin-top:8px"><el-button link type="primary" @click="simNeedCode">模拟需要验证码</el-button></div>
+      </div>
+      <div v-if="store.loginState==='10'" style="margin-top:16px">
+        <div style="margin-bottom:8px">请输入登录验证码：</div>
+        <el-input v-model="store.verifyCode" placeholder="请输入验证码（演示：246810）" @keyup.enter="confirmCode" />
+      </div>
+    </template>
+    <el-alert v-else title="请先选择云设备托管类型后再扫码" type="warning" :closable="false" show-icon />
     <template #footer>
       <el-button @click="store.loginDialog=false">取消</el-button>
-      <el-button v-if="store.loginState==='10'" type="primary" @click="confirmCode">确认</el-button>
+      <el-button v-if="store.loginState==='10'" type="primary" :disabled="!store.loginHostType" @click="confirmCode">确认</el-button>
     </template>
   </el-dialog>
   `
@@ -1346,9 +1368,11 @@ window.DIFF_CHANGESET = {
     { id: "chg-logout", level: "module", page: "page-employee", module: "云设备下线", target: "#employee-head", type: "remove", title: "员工列表不再提供云设备下线", desc: "云设备登录和下线只放在个人信息的关联企业微信里，由账号本人操作。", before: "AI 员工卡片上有云设备下线", after: "员工列表只保留在线状态和导出" },
     { id: "chg-broadcast", level: "field", page: "page-employee", module: "消息标识", target: "#official-broadcast-msg", type: "copy", title: "群发消息标识为官方群发", desc: "规则触发的官方群发在聊天记录中单独标识。不再出现私域线索群发。", before: "消息气泡写私域线索群发", after: "标识为官方群发" },
     { id: "chg-prompt", level: "field", page: "page-prompt", module: "变量示例", target: "#prompt-tip", type: "copy", title: "Prompt 示例改为体验营字段", desc: "可用变量仍来自会话属性。说明里的例子改为渠道 ID、年级、手机号。", before: "示例含私域线索分层", after: "示例为渠道ID、年级、手机号" },
-    { id: "chg-person", level: "module", page: "page-person", module: "云设备", target: "#person-ops", type: "modify", title: "个人信息提供云设备登录和下线", desc: "右上角个人信息进入关联企业微信，可对已绑定账号登录或下线，并看到云设备 ID 和在线状态。", before: "电销同时在 AI 员工明细提供管理员下线，且有承接流量开关", after: "只在个人信息登录、下线，不提供承接流量", examples: [
-      { case: "验证码正确", input: "246810", result: "周宁的云设备变为在线" },
-      { case: "验证码错误", input: "000000", result: "提示验证码不正确，保持离线" }
+    { id: "chg-person", level: "module", page: "page-person", module: "云设备", target: "#person-ops", type: "modify", title: "单一云设备登录入口，弹窗内 iPad/Mac 互斥，列表展示托管类型", desc: "关联企业微信操作列仅保留「云设备登录 / 云设备下线」单一入口；登录弹窗须先单选托管类型（iPad / Mac 互斥），再扫码验证；列表展示云设备托管类型，下线保留最近类型。", before: "电销同时在 AI 员工明细提供管理员下线，且有承接流量开关", after: "个人信息单一登录入口；iPad/Mac 互斥；展示托管类型；不提供承接流量", examples: [
+      { case: "未选托管类型", input: "直接点扫码", result: "提示先选择 iPad 或 Mac，不可进入扫码" },
+      { case: "选 iPad 验证码正确", input: "iPad + 246810", result: "账号在线，托管类型显示 iPad" },
+      { case: "切换 Mac", input: "先下线再选 Mac 登录", result: "托管类型覆盖为 Mac；在线时不可直接改类型" },
+      { case: "验证码错误", input: "000000", result: "提示验证码不正确，托管类型与在线态不变" }
     ]},
     { id: "chg-coze", level: "page", page: "page-global", module: "流程与链路", target: null, type: "flow", title: "体验营使用独立机器人和扣子空间", desc: "与电销拆成两套机器人服务。机器人 Token、Prompt、规则和会话都走体验营自己的扣子机器人。", before: "与电销共用一套机器人和扣子空间", after: "体验营单独申请扣子空间和机器人" },
     { id: "chg-runtime", level: "page", page: "page-global", module: "流程与链路", target: null, type: "flow", title: "进线后的发送链路保持电销行为", desc: "欢迎语、扣子会话、发送节奏、失败提示、撤回和转人工通知按电销现有行为保留，由技术单独迁移。", before: "电销进线后的发送链路", after: "体验营行为一致，不在本后台另做配置页" }
